@@ -15,7 +15,7 @@
       "controllers/*": ["app/controllers/*"],
       "middlewares": ["app/middlewares/index.ts"],
       "models/*": ["app/models/*.ts"],
-      "repositories": ["app/repositories/*.ts"],
+      "repositories/*": ["app/repositories/*"],
       "routes": ["app/routes/index.ts"],
       "types/*": ["app/types/*"],
       "utils": ["utils/*"]
