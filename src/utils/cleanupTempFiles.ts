@@ -12,12 +12,12 @@ async function cleanupTempFiles() {
   async function performCleanup() {
     try {
       const files = await fs.readdir(TEMP_DIR);
-      const tempFiles = files.filter(file => file.startsWith(TEMP_FILE_PREFIX));
+      const tempFiles = files.filter((file: string) => file.startsWith(TEMP_FILE_PREFIX));
 
-      await Promise.all(tempFiles.map(file => fs.unlink(path.join(TEMP_DIR, file))));
+      await Promise.all(tempFiles.map((file: any) => fs.unlink(path.join(TEMP_DIR, file))));
     
       console.log('Temporary files successfully removed.');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing temporary files:', error.message);
     }
   }
@@ -29,4 +29,4 @@ async function cleanupTempFiles() {
   setInterval(performCleanup, CLEANUP_INTERVAL_MS);
 }
 
-module.exports = cleanupTempFiles;
+export default cleanupTempFiles;

@@ -11,4 +11,4 @@ function execute(db) {
   );
 };
 
-module.exports = db.on("open", () => execute(db));
+export default db.on("open", () => execute(db));
