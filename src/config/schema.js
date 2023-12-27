@@ -17,9 +17,10 @@ const schema = `
   ${GenderProductSchema}
   ${SizeProductSchema}
   ${ColorProductSchema}
-  ${BrandProductSchema}  
-  ${ClientTransactionsSchema}
-  ${PaymentCollectionSchema}
+  ${BrandProductSchema}    
 `;
 
-module.exports = schema
+// ${ClientTransactionsSchema}
+// ${PaymentCollectionSchema}
+
+export default schema
