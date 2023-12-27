@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "baseUrl": "./src",
+    "paths": {
+      "controllers/*": ["app/controllers/*"],
+      "middlewares": ["app/middlewares/index.ts"],
+      "models/*": ["app/models/*.ts"],
+      "repositories": ["app/repositories/*.ts"],
+      "routes": ["app/routes/index.ts"],
+      "types/*": ["app/types/*"],
+      "utils": ["utils/*"]
+    },
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
