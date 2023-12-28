@@ -17,6 +17,7 @@
       "models/*": ["app/models/*.ts"],
       "repositories/*": ["app/repositories/*"],
       "routes": ["app/routes/index.ts"],
+      "errors/*": ["app/errors/*.ts"],
       "types/*": ["app/types/*"],
       "utils": ["utils/*"]
     },
