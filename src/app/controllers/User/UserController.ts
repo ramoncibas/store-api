@@ -1,72 +1,78 @@
 import { Request, Response } from 'express';
-import findUserBy from '../../../models/User/findUserBy';
-import UserModel from './UserModel';
+import UserRepository from 'repositories/UserRepository';
 import UserFile from './UserFile';
-import { User } from '../../types/User.type';
-
-interface MulterRequest extends Request {
-  files: Express.Multer.File[];
-}
+import { MulterRequest } from 'types/User.type';
+import UserError from 'errors/UserError';
 
 class UserController {
   static async getUser(req: Request, res: Response): Promise<void> {
     const { uuid } = req.params;
 
     try {
-      const findUser = new findUserBy();
-      const [userProfile] = await findUser.uuid(uuid) as Array<User>;
+      const user = await UserRepository.get(uuid);
 
-      if (userProfile.user_picture_name) {
-        const filePath = `${process.env.HOST}/profile/user_picture/${userProfile.user_picture_name}`;
-        userProfile.user_picture_url = filePath;
+      if (!user) {
+        const notFoundError = new UserError('User not found!', undefined, 404);
+        res.status(404).send(notFoundError.toResponseObject());
+        return;
       }
 
-      res.send(userProfile);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong, Select All Products");
+      if (user?.user_picture_name) {
+        const filePath = `${process.env.HOST}/profile/user_picture/${user.user_picture_name}`;
+        user.user_picture_url = filePath;
+      }
+
+      res.send(user);
+
+    } catch (error: any) {
+      const genericError = new UserError('Error retrieving user');
+
+      res.status(500).send(genericError.toResponseObject());
+      throw genericError;
     }
   }
 
-  static async getAllUser(req: Request, res: Response): Promise<void> {
-    // Lógica para obter todos os usuários
-    const id = req.params.id;
+  static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      // Code...
-    } catch (error) {
-      console.log(error);
-      res.send("Something went wrong, Select All Users");
+      const users = await UserRepository.getAll();
+      res.send(users);
+
+    } catch (error: any) {
+      const genericError = new UserError('Error retrieving all user');
+
+      res.status(500).send(genericError.toResponseObject());
+      throw genericError;
     }
   }
 
-  static async saveUser(req: Request, res: Response): Promise<void> {
-    // Lógica para salvar um novo usuário
+  static async createUser(req: Request, res: Response): Promise<void> {
     const fields = req.body;
-    console.log(fields);
 
     if (Object.values(fields).some(value => typeof value !== 'string' || value.trim() === '')) {
-      res.status(400).send("Todos os campos devem ser preenchidos!");
+      const invalidDataError = new UserError('All fields must be filled!', undefined, 400);
+      res.status(400).send(invalidDataError.toResponseObject());
       return;
     }
 
     try {
-      await UserModel.saveUser(fields);
-      res.status(201).redirect("/profile");      
-    } catch (error) {
-      console.log(error);
-      res.send("Something went wrong, SaveUser");
+      await UserRepository.create(fields);
+      res.status(201).redirect("/profile");
+
+    } catch (error: any) {
+      const createUserError = new UserError('Error creating user', error);
+
+      res.status(500).send(createUserError.toResponseObject());
+      throw createUserError;
     }
   }
 
   static async updateUser(req: MulterRequest, res: Response): Promise<void> {
-    // Lógica para atualizar informações do usuário
     const { phone, email, user_picture_name } = req.body;
-
     const userPictureFile = req.files.find(file => file.fieldname === 'user_picture');
 
     try {
       const userUUID = req.params.uuid;
-      
+
       if (userPictureFile) {
         await UserFile.saveUserPicture(userUUID, userPictureFile);
       }
@@ -77,22 +83,18 @@ class UserController {
         user_picture_name: userPictureFile?.filename || user_picture_name || null
       };
 
-      await UserModel.updateUser(userUUID, fields);
+      await UserRepository.update(userUUID, fields);
 
       res.status(200).send({
         type: "success",
-        title: "Sucesso",
-        message: "O seu perfil foi atualizado!"
+        title: "Success",
+        message: "Your profile has been updated!"
       });
+    } catch (error: any) {
+      const updateUserError = new UserError('Error updating user', error);
 
-    } catch (error) {
-      console.error('Error updating user:', error);
-
-      res.status(500).send({
-        type: "error",
-        title: "Falhou",
-        message: "Parece que algo deu errado!"
-      });
+      res.status(500).send(updateUserError.toResponseObject());
+      throw updateUserError;
     }
   }
 }
