@@ -1,4 +1,4 @@
-const fs = require("fs");
+import fs from "fs";
 
 /**
  * Checks if a file with a specific prefix exists in the specified directory.
