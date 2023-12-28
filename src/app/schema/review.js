@@ -1,6 +1,7 @@
 const ReviewSchema = `
   CREATE TABLE IF NOT EXISTS review (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT NOT NULL,
     product_id INTEGER,
     customer_id INTEGER,
     rating INTEGER,

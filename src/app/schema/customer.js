@@ -1,6 +1,7 @@
 const CustomerSchema = `
   CREATE TABLE IF NOT EXISTS customer (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT NOT NULL,
     user_id INTEGER UNIQUE,
     shipping_address TEXT NOT NULL,
     card_number TEXT,
