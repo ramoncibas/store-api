@@ -1,4 +1,5 @@
 import CustomerModel from "models/CustomerModel";
+import CustomerError from "errors/CustomerError";
 import Customer from "types/Customer.type";
 
 class CustomerRepository {
@@ -8,7 +9,11 @@ class CustomerRepository {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async create(customer: Customer): Promise<void> {
-    await CustomerModel.save(customer);
+    try {
+      await CustomerModel.save(customer);
+    } catch (error: any) {
+      throw new CustomerError('Error creating customer', error);
+    }
   }
 
   /**
@@ -17,7 +22,11 @@ class CustomerRepository {
    * @returns A Promise that resolves with the customer data or null if not found.
    */
   static async get(customerIdentifier: number | string): Promise<Customer | null> {
-    return await CustomerModel.get(customerIdentifier);
+    try {
+      return await CustomerModel.get(customerIdentifier);
+    } catch (error: any) {
+      throw new CustomerError('Error retrieving customer', error);
+    }
   }
 
   /**
@@ -27,7 +36,11 @@ class CustomerRepository {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(customerUUID: string, updatedFields: Partial<Customer>): Promise<void> {
-    await CustomerModel.update(customerUUID, updatedFields);
+    try {
+      await CustomerModel.update(customerUUID, updatedFields);
+    } catch (error: any) {
+      throw new CustomerError('Error updating customer', error);
+    }
   }
 
   /**
@@ -36,7 +49,11 @@ class CustomerRepository {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(customerUUID: string): Promise<void> {
-    await CustomerModel.delete(customerUUID);
+    try {
+      await CustomerModel.delete(customerUUID);
+    } catch (error: any) {
+      throw new CustomerError('Error deleting customer', error);
+    }
   }
 }
 
