@@ -23,4 +23,4 @@ const schema = `
 // ${ClientTransactionsSchema}
 // ${PaymentCollectionSchema}
 
-export default schema
+export default schema;
