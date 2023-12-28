@@ -413,6 +413,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/sqlite3@npm:^3.1.11":
+  version: 3.1.11
+  resolution: "@types/sqlite3@npm:3.1.11"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: af5a523e40cb6b0c50df1e5edb88354ab434b0e2711e609ba7a609e9c9567c8220a3534c5571bc07a0926b15cc29d829dd4354d674b72c70e5c79c098e8c851d
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^9":
+  version: 9.0.7
+  resolution: "@types/uuid@npm:9.0.7"
+  checksum: b329ebd4f9d1d8e08d4f2cc211be4922d70d1149f73d5772630e4a3acfb5170c6d37b3d7a39a0412f1a56e86e8a844c7f297c798b082f90380608bf766688787
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/eslint-plugin@npm:^6.4.0":
   version: 6.16.0
   resolution: "@typescript-eslint/eslint-plugin@npm:6.16.0"
@@ -1881,6 +1897,8 @@ __metadata:
     "@types/express": "npm:^4.17.21"
     "@types/multer": "npm:^1.4.11"
     "@types/node": "npm:^20.10.5"
+    "@types/sqlite3": "npm:^3.1.11"
+    "@types/uuid": "npm:^9"
     "@typescript-eslint/eslint-plugin": "npm:^6.4.0"
     bcryptjs: "npm:^2.4.3"
     cors: "npm:^2.8.5"
@@ -1901,6 +1919,7 @@ __metadata:
     tsconfig-paths: "npm:^4.2.0"
     typescript: "npm:*"
     universal-cookie-express: "npm:^4.0.3"
+    uuid: "npm:^9.0.1"
   languageName: unknown
   linkType: soft
 
@@ -12947,6 +12966,15 @@ __metadata:
   bin:
     uuid: ./bin/uuid
   checksum: 1c13950df865c4f506ebfe0a24023571fa80edf2e62364297a537c80af09c618299797bbf2dbac6b1f8ae5ad182ba474b89db61e0e85839683991f7e08795347
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "uuid@npm:9.0.1"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 1607dd32ac7fc22f2d8f77051e6a64845c9bce5cd3dd8aa0070c074ec73e666a1f63c7b4e0f4bf2bc8b9d59dc85a15e17807446d9d2b17c8485fbc2147b27f9b
   languageName: node
   linkType: hard
 
