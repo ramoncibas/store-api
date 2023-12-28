@@ -1,5 +1,5 @@
 export default interface Customer {
-  id?: number;
+  id: number;
   user_id: number;
   shipping_address: string;
   card_number?: string;
