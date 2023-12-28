@@ -5,7 +5,12 @@ import CustomerController from 'controllers/Customer/CustomerController';
 
 const router = express.Router();
 
-router.post('/customer/create', CustomerController.saveCustomer);
 router.get('/customer/:uuid', authMiddleware, CustomerController.getCustomer);
+router.post('/customer/create', authMiddleware, CustomerController.createCustomer);
+router.post('/customer/:uuid/reviews', authMiddleware, CustomerController.createReview);
+router.patch("/customer/:uuid", authMiddleware, CustomerController.updateCustomer);
 
 export default router;
+
+
+
