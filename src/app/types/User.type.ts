@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { FileArray, UploadedFile } from 'express-fileupload';
+import { AuthRequest } from '../middlewares/authMiddleware';
 
 export type UserType = 'user' | 'admin';
 
@@ -8,18 +10,20 @@ export interface UserLogin {
 }
 
 export interface User extends UserLogin {
-  id?: number;
+  id?: number | string;
   uuid: string;
   first_name: string;
   last_name: string;
   phone?: string;
-  user_picture_name: string;
+  user_picture_name: string | null;
   user_picture_url?: string;
   expiresIn?: any;
   token?: string;
-  type: UserType;
+  type?: UserType;
 }
 
-export interface MulterRequest extends Request {
-  files: Express.Multer.File[];
+export interface CustomRequest extends Request {
+  // files?: ({ [name: string]: UploadedFile } & FileArray) | null | undefined;
+  files?: any;
+  user?: any;
 }

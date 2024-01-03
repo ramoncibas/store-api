@@ -1,5 +1,5 @@
 export default interface Product {
-  id?: number;
+  id?: number | string;
   name: string;
   price: number;
   discount_percentage: number;
@@ -11,4 +11,11 @@ export default interface Product {
   brand_product_id: number;
   gender_product_id: number;
   category_product_id: number;
+  quantity_available?: number;
+}
+
+export interface ShoppingCartItem {
+  id: number | string;
+  product_id: number;
+  quantity: number;
 }
