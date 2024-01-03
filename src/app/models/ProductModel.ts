@@ -20,11 +20,11 @@ class ProductModel {
    * @param id - ID of the product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async deleteProduct(id: number): Promise<void> {
+  static async delete(productId: number | string): Promise<void> {
     const query = 'DELETE FROM product WHERE id = ?';
     const dbManager = this.getDBManager();
 
-    await dbManager.run(query, [id]);
+    await dbManager.run(query, [productId]);
   }
 
   /**
@@ -42,7 +42,7 @@ class ProductModel {
    * Get all products from the database.
    * @returns A Promise that resolves with an array of products.
    */
-  static async getAllProducts(): Promise<Product[]> {
+  static async get(): Promise<Product[]> {
     const query = 'SELECT * FROM product';
     const dbManager = this.getDBManager();
 
@@ -54,20 +54,20 @@ class ProductModel {
    * @param filters - Object containing filters for the products.
    * @returns A Promise that resolves with an array of filtered products.
    */
-  static async getFilteredProduct(filters: Partial<Product>): Promise<Product[]> {
+  static async getFiltered(filters: Partial<Product>): Promise<Product[]> {
     const conditions: string[] = [];
     const values: any[] = [];
-  
+
     Object.entries(filters).forEach(([key, value]) => {
       conditions.push(`${key} = ?`);
       values.push(value);
     });
-  
+
     const conditionString = conditions.join(' AND ');
-  
+
     const query = `SELECT * FROM product WHERE ${conditionString}`;
     const dbManager = this.getDBManager();
-  
+
     return await dbManager.all(query, values);
   }
 
@@ -76,11 +76,23 @@ class ProductModel {
    * @param id - ID of the product to be retrieved.
    * @returns A Promise that resolves with the product data or null if not found.
    */
-  static async getProductById(id: number): Promise<Product | null> {
+  static async getById(productId: number | string): Promise<Product | null> {
     const query = 'SELECT * FROM product WHERE id = ?';
     const dbManager = this.getDBManager();
 
-    return await dbManager.get(query, [id]);
+    return await dbManager.get(query, [productId]);
+  }
+
+  /**
+   * Get a products from the database based on its IDs.
+   * @param ids - IDs of the products to be retrieved.
+   * @returns A Promise that resolves with the products data or null if not found.
+   */
+  static async getByIds(productIds: Array<number | string>): Promise<Product[] | null> {
+    const query = 'SELECT * FROM product WHERE id IN (?)';
+    const dbManager = this.getDBManager();
+
+    return await dbManager.get(query, productIds);
   }
 
   /**
@@ -88,7 +100,7 @@ class ProductModel {
    * @param fields - Object representing the product data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async createProduct(fields: Product): Promise<void> {
+  static async create(fields: Product): Promise<void> {
     const query = `
       INSERT INTO product (
         name,
@@ -117,28 +129,36 @@ class ProductModel {
    * @param fields - Object containing the updated product data.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async updateProduct(fields: Product): Promise<void> {
+  static async update(productId: number | string, fields: Partial<Product>): Promise<void> {
+    // const query = `
+    //   UPDATE product
+    //   SET name = ?,
+    //       price = ?,
+    //       discount_percentage = ?,
+    //       number_of_installments = ?,
+    //       product_picture = ?,
+    //       color = ?,
+    //       size = ?,
+    //       free_shipping = ?,
+    //       brand_product_id = ?,
+    //       gender_product_id = ?,
+    //       category_product_id = ?
+    //   WHERE id = ?
+    // `;
+
+    const keys = Object.keys(fields);
+    const values = Object.values(fields);
+
+    const setClause = keys.map((key) => `${key} = ?`).join(", ");
+
     const query = `
-      UPDATE product
-      SET name = ?,
-          price = ?,
-          discount_percentage = ?,
-          number_of_installments = ?,
-          product_picture = ?,
-          color = ?,
-          size = ?,
-          free_shipping = ?,
-          brand_product_id = ?,
-          gender_product_id = ?,
-          category_product_id = ?
-      WHERE id = ?
+      UPDATE customer
+      SET ${setClause}
+      WHERE uuid = ?
     `;
 
-    const values = [...Object.values(fields), fields.id];
-
     const dbManager = this.getDBManager();
-
-    await dbManager.run(query, values);
+    await dbManager.run(query, [...values, productId]);
   }
 }
 
