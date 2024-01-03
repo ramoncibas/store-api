@@ -249,6 +249,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/bcryptjs@npm:^2.4.6":
+  version: 2.4.6
+  resolution: "@types/bcryptjs@npm:2.4.6"
+  checksum: 1182663f0c081c5c58760019459cd309335e9b5fc6552780b0fd21b6c5f25661a844709e46218796f4bdbebe6736e11cfc5af0729bc2cdb0160943650aceb3da
+  languageName: node
+  linkType: hard
+
 "@types/body-parser@npm:*":
   version: 1.19.5
   resolution: "@types/body-parser@npm:1.19.5"
@@ -256,6 +263,15 @@ __metadata:
     "@types/connect": "npm:*"
     "@types/node": "npm:*"
   checksum: aebeb200f25e8818d8cf39cd0209026750d77c9b85381cdd8deeb50913e4d18a1ebe4b74ca9b0b4d21952511eeaba5e9fbbf739b52731a2061e206ec60d568df
+  languageName: node
+  linkType: hard
+
+"@types/busboy@npm:*":
+  version: 1.5.3
+  resolution: "@types/busboy@npm:1.5.3"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: f766aebd29773828dbe69ca2f8edfbc578568aade8a34214cd1c3f817b098ac000e6e8fcf652eed81b60bcf0b184b399821909709c16b4432bf92e5afc794761
   languageName: node
   linkType: hard
 
@@ -301,6 +317,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/express-fileupload@npm:^1.4.4":
+  version: 1.4.4
+  resolution: "@types/express-fileupload@npm:1.4.4"
+  dependencies:
+    "@types/busboy": "npm:*"
+    "@types/express": "npm:*"
+  checksum: 034c9241e89db5231b0d48c831d8511468d8eaf8d6388b1d53df24a10fcd33dfd34352272866073e17ceda826ca32cae239ce476c628313c852ba5237b619146
+  languageName: node
+  linkType: hard
+
 "@types/express-serve-static-core@npm:^4.17.33":
   version: 4.17.41
   resolution: "@types/express-serve-static-core@npm:4.17.41"
@@ -343,6 +369,15 @@ __metadata:
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
   checksum: 6bf5337bc447b706bb5b4431d37686aa2ea6d07cfd6f79cc31de80170d6ff9b1c7384a9c0ccbc45b3f512bae9e9f75c2e12109806a15331dc94e8a8db6dbb4ac
+  languageName: node
+  linkType: hard
+
+"@types/jsonwebtoken@npm:^9.0.5":
+  version: 9.0.5
+  resolution: "@types/jsonwebtoken@npm:9.0.5"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: c582b8420586f3b9550f7e34992cb32be300bc953636f3b087ed9c180ce7ea5c2e4b35090be2d57f0d3168cc3ca1074932907caa2afe09f4e9c84cf5c0daefa8
   languageName: node
   linkType: hard
 
@@ -1892,9 +1927,12 @@ __metadata:
   resolution: "backend@workspace:."
   dependencies:
     1.1.0: "npm:^1.0.0"
+    "@types/bcryptjs": "npm:^2.4.6"
     "@types/cors": "npm:^2.8.17"
     "@types/eslint": "npm:^8"
     "@types/express": "npm:^4.17.21"
+    "@types/express-fileupload": "npm:^1.4.4"
+    "@types/jsonwebtoken": "npm:^9.0.5"
     "@types/multer": "npm:^1.4.11"
     "@types/node": "npm:^20.10.5"
     "@types/sqlite3": "npm:^3.1.11"
