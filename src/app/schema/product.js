@@ -13,6 +13,7 @@ const ProductSchema = `
     brand_id INTEGER NOT NULL,
     gender_id INTEGER NOT NULL,
     category_id INTEGER NOT NULL,
+    quantity_available INTEGER DEFAULT 0 NOT NULL,
     FOREIGN KEY(size_id) REFERENCES size_product(id),
     FOREIGN KEY(brand_id) REFERENCES brand_product(id),
     FOREIGN KEY(gender_id) REFERENCES gender_product(id),
