@@ -1,9 +1,9 @@
-// Customer.route.ts
-import express from 'express';
+import { Router } from 'express';
+
 import { authMiddleware } from 'middlewares';
 import CustomerController from 'controllers/Customer/CustomerController';
 
-const router = express.Router();
+const router = Router();
 
 router.get('/customer/:uuid', authMiddleware, CustomerController.getCustomer);
 router.post('/customer/create', authMiddleware, CustomerController.createCustomer);
@@ -11,6 +11,3 @@ router.post('/customer/:uuid/reviews', authMiddleware, CustomerController.create
 router.patch("/customer/:uuid", authMiddleware, CustomerController.updateCustomer);
 
 export default router;
-
-
-

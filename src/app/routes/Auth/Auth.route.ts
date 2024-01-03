@@ -1,11 +1,12 @@
-// Auth.route.ts
-import express from 'express';
-import * as AuthController from 'controllers/Auth/AuthController';
+import { Router } from 'express';
 
-const router = express.Router();
+import AuthController from 'controllers/Auth/AuthController';
+import UserController from 'controllers/User/UserController';
 
-// Adicione rotas de autenticação conforme necessário
-router.post('/login', AuthController.login);
-router.post('/register', AuthController.register);
+const router = Router();
+
+router.post('/login', AuthController.loginUser);
+router.post('/logout', AuthController.logoutUser);
+router.post('/register', UserController.createUser);
 
 export default router;
