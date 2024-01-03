@@ -8,22 +8,23 @@ class UserRepository {
    * @param user - Object representing the user data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(user: User): Promise<void> {
+  static async create(user: User): Promise<User> {
     try {
-      await UserModel.createUser(user);
+      return await UserModel.create(user);
     } catch (error: any) {
       throw new UserError('Error creating user', error);
     }
   }
 
   /**
-   * Gets a user from the database based on the provided UUID.
-   * @param userUUID - UUID of the user.
+   * Get a user from the database based on the provided pattern and value.
+   * @param pattern - A string or array of strings representing the fields to filter on.
+   * @param value - The corresponding value for the filter pattern.
    * @returns A Promise that resolves with the user data or null if not found.
    */
-  static async get(userUUID: string): Promise<User | null> {
+  static async getByPattern(pattern: string | Array<string>, value: string | Array<string>): Promise<User | null> {
     try {
-      return await UserModel.getUserById(userUUID);
+      return await UserModel.getByPattern(pattern, value);
     } catch (error: any) {
       throw new UserError('Error retrieving user', error);
     }
@@ -35,7 +36,7 @@ class UserRepository {
    */
   static async getAll(): Promise<User[]> {
     try {
-      return await UserModel.getAllUsers();
+      return await UserModel.getAll();
     } catch (error: any) {
       throw new UserError('Error retrieving all users', error);
     }
@@ -49,7 +50,7 @@ class UserRepository {
    */
   static async update(userUUID: string, updatedFields: Partial<User>): Promise<void> {
     try {
-      await UserModel.updateUser(userUUID, updatedFields);
+      await UserModel.update(userUUID, updatedFields);
     } catch (error: any) {
       throw new UserError('Error updating user', error);
     }
@@ -62,7 +63,7 @@ class UserRepository {
    */
   static async delete(userUUID: string): Promise<void> {
     try {
-      await UserModel.deleteUser(userUUID);
+      await UserModel.delete(userUUID);
     } catch (error: any) {
       throw new UserError('Error deleting user', error);
     }
