@@ -1,11 +1,11 @@
-const upload = require("express-fileupload")
+import expressFileUpload from "express-fileupload";
 
-const fileUpload = upload({
+const fileUpload = expressFileUpload({
   useTempFiles: true,
   tempFileDir: "temp",
   limits: { fileSize: 50 * 1024 * 1024 },
   preserveExtension: true,
-  safeFileNames: true
+  safeFileNames: true,
 });
 
 export default fileUpload;

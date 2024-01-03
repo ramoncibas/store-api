@@ -1,6 +1,8 @@
-const findUserBy = require("../../models/User/findUserBy");
+import { Request, Response, NextFunction } from "express";
+import findUserBy from "../models/User/findUserBy";
+import { User } from "../types/User.type";
 
-const isAdmin = async (req, res, next) => {
+const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   const uuid = req.params.uuid 
   const messageWrongUser = "Ops! Something is wrong with your data. You are not able to acces this page";
 
@@ -10,7 +12,7 @@ const isAdmin = async (req, res, next) => {
   
   try {
     const findUser = new findUserBy();
-    const [user] = await findUser.uuid(uuid);
+    const [user]: any = await findUser.uuid(uuid);
     console.log('user:', user)
     if(user.type != 'admin') {
       return res.status(403).send(messageWrongUser);

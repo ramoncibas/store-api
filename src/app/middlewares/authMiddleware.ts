@@ -1,23 +1,30 @@
-const jwt = require("jsonwebtoken");
+import { Response, NextFunction, Request } from 'express';
+import jwt from 'jsonwebtoken';
 
 const config = process.env;
 
-const authMiddleware = (req, res, next) => {
-  const token = req.headers["x-access-token"]; //req.body.token || req.query.token ||   
+export interface AuthRequest extends Request {
+  user?: string | jwt.JwtPayload;
+}
+
+const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  const token: string | undefined = req.headers["x-access-token"] as string;
 
   if (!token) {
-    return res.status(403).send("A token is required for authentication");
+    res.status(403).send("A token is required for authentication");
+    return;
   }
-  
+
   try {
-    const decoded = jwt.verify(token, config.JWT_TOKEN_KEY);
+    const decoded = jwt.verify(token, config.JWT_TOKEN_KEY as string);
     req.user = decoded;
 
+    next();
   } catch (error) {
-    console.log(error)
-    return res.status(401).send("Invalid Token");
+    console.error(error);
+    res.status(401).send("Invalid Token");
+    return;
   }
-  return next();
 };
 
 export default authMiddleware;
