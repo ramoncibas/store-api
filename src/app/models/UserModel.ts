@@ -17,7 +17,7 @@ class UserModel {
    * @param user - Object representing the user data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async createUser(user: User): Promise<void> {
+  static async create(user: User): Promise<User> {
     const query = `
       INSERT INTO user (
         uuid,
@@ -29,13 +29,16 @@ class UserModel {
         user_picture_name,
         type
       ) VALUES (?, ?, ?, ?)
+      RETURNING *;
     `;
 
     try {
       const generatedUuid = uuidv4();
 
       const dbManager = this.getDBManager();
-      await dbManager.run(query, [generatedUuid, ...Object.values(user)]);
+      const userData: User[] = await dbManager.all(query, [generatedUuid, ...Object.values(user)]);
+
+      return userData[0];
     } catch (error) {
       console.error(error);
       throw error;
@@ -43,18 +46,21 @@ class UserModel {
   }
 
   /**
-   * Get a user from the database based on the provided UUID.
-   * @param userUUID - UUID of the user.
+   * Get a user from the database based on the provided pattern and value.
+   * @param pattern - A string or array of strings representing the fields to filter on.
+   * @param value - The corresponding value for the filter pattern.
    * @returns A Promise that resolves with the user data or null if not found.
    */
-  static async getUserById(userUUID: string): Promise<User | null> {
+  static async getByPattern(pattern: string | Array<string>, value: string | Array<string>): Promise<User | null> {
+    const conditions = Array.isArray(pattern) ? pattern.join(' AND ') : pattern;
+
     const query = `
-      SELECT * FROM user WHERE uuid = ?
+      SELECT * FROM user WHERE ${conditions} = ?
     `;
 
     try {
       const dbManager = this.getDBManager();
-      const row = await dbManager.get(query, [userUUID]);
+      const row = await dbManager.get(query, [value]);
       return row || null;
     } catch (error) {
       console.error(error);
@@ -66,7 +72,7 @@ class UserModel {
    * Get all users from the database.
    * @returns A Promise that resolves with an array of all users.
    */
-  static async getAllUsers(): Promise<User[]> {
+  static async getAll(): Promise<User[]> {
     const query = 'SELECT * FROM user';
 
     try {
@@ -86,7 +92,7 @@ class UserModel {
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async updateUser(userUUID: string, updatedFields: Partial<User>): Promise<void> {
+  static async update(userUUID: string, updatedFields: Partial<User>): Promise<void> {
     const keys = Object.keys(updatedFields);
     const values = Object.values(updatedFields);
 
@@ -112,7 +118,7 @@ class UserModel {
    * @param userUUID - UUID of the user to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async deleteUser(userUUID: string): Promise<void> {
+  static async delete(userUUID: string): Promise<void> {
     const query = `
       DELETE FROM user WHERE uuid = ?
     `;
