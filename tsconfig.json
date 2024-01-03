@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["express"],
     "target": "es2018",
     "module": "commonjs",
     "esModuleInterop": true,
@@ -14,8 +15,9 @@
     "paths": {
       "controllers/*": ["app/controllers/*"],
       "middlewares": ["app/middlewares/index.ts"],
-      "models/*": ["app/models/*.ts"],
       "repositories/*": ["app/repositories/*"],
+      "models/*": ["app/models/*.ts"],
+      "helpers/*": ["app/helpers/*"],
       "routes": ["app/routes/index.ts"],
       "errors/*": ["app/errors/*.ts"],
       "types/*": ["app/types/*"],
