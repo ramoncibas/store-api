@@ -17,7 +17,7 @@ class PurchaseModel {
    * @returns A Promise that resolves with the generated purchase ID when the operation is completed.
    */
   static async create(purchase: Purchase): Promise<number | null> {
-    const query = `
+    const query: string = `
       INSERT INTO purchase (
         user_id,
         total_amount,
@@ -44,7 +44,7 @@ class PurchaseModel {
    * @returns A Promise that resolves with the purchase data or null if not found.
    */
   static async get(purchaseId: number): Promise<Purchase | null> {
-    const query = `
+    const query: string = `
       SELECT * FROM purchase WHERE id = ?
     `;
 
@@ -64,7 +64,7 @@ class PurchaseModel {
    * @returns A Promise that resolves with the purchase data or null if not found.
    */
     static async getAll(customerID: number | string): Promise<Purchase[] | null> {
-      const query = `
+      const query: string = `
         SELECT * FROM purchase WHERE customer_id = ?
       `;
   

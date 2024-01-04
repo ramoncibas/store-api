@@ -17,7 +17,7 @@ class CustomerModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async save(customer: Customer): Promise<void> {
-    const query = `
+    const query: string = `
       INSERT INTO customer (
         user_id,
         shipping_address,
@@ -50,7 +50,7 @@ class CustomerModel {
     const isNumericId = typeof customerIdentifier === "number";
     const column = isNumericId ? "id" : "uuid";
 
-    const query = `
+    const query: string = `
       SELECT * FROM customer WHERE ${column} = ?
     `;
 
@@ -76,7 +76,7 @@ class CustomerModel {
 
     const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
-    const query = `
+    const query: string = `
       UPDATE customer
       SET ${setClause}
       WHERE uuid = ?
@@ -97,7 +97,7 @@ class CustomerModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(customerUUID: string): Promise<void> {
-    const query = `
+    const query: string = `
       DELETE FROM customer WHERE uuid = ?
     `;
 

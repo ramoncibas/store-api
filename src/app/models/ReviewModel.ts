@@ -17,7 +17,7 @@ class ReviewModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async save(review: Review): Promise<void> {
-    const query = `
+    const query: string = `
       INSERT INTO review (
         user_id,
         product_id,
@@ -43,7 +43,7 @@ class ReviewModel {
    */
   static async get(reviewUUID: string): Promise<Review | null> {
 
-    const query = `
+    const query: string = `
       SELECT * FROM review WHERE uuid = ?
     `;
 
@@ -69,7 +69,7 @@ class ReviewModel {
 
     const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
-    const query = `
+    const query: string = `
       UPDATE review
       SET ${setClause}
       WHERE uuid = ?
@@ -90,7 +90,7 @@ class ReviewModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(reviewUUID: string): Promise<void> {
-    const query = `
+    const query: string = `
       DELETE FROM review WHERE uuid = ?
     `;
 

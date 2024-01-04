@@ -17,7 +17,7 @@ class ShoppingCartModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async save(product: ShoppingCartItem): Promise<void> {
-    const query = `
+    const query: string = `
       INSERT INTO shopping_cart (
         customer_id,
         product_id,
@@ -40,7 +40,7 @@ class ShoppingCartModel {
    * @returns A Promise that resolves with the customer data or null if not found.
    */
   static async get(customerID: number | string): Promise<Array<number> | null> {
-    const query = `
+    const query: string = `
       SELECT product_id FROM shopping_cart WHERE customer_id = ?
     `;
 
@@ -60,7 +60,7 @@ class ShoppingCartModel {
    * @returns A Promise that resolves with the customer data or null if not found.
    */
     static async getAll(customerID: number | string): Promise<ShoppingCartItem[] | null> {
-      const query = `
+      const query: string = `
         SELECT * FROM shopping_cart WHERE customer_id = ?
       `;
   
@@ -81,7 +81,7 @@ class ShoppingCartModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(shoppingCarID: number | string, quantity: number): Promise<void> {  
-    const query = `
+    const query: string = `
       UPDATE shopping_cart
       SET quantity = ?
       WHERE id = ?
@@ -102,7 +102,7 @@ class ShoppingCartModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(shoppingCarID: number | string): Promise<void> {
-    const query = `
+    const query: string = `
       DELETE FROM shopping_cart WHERE id = ?
     `;
 
