@@ -4,13 +4,21 @@ import ReviewRepository from 'repositories/ReviewRepository';
 import Customer from 'types/Customer.type';
 import Review from 'types/Review.type';
 import CustomerError from 'errors/CustomerError';
+import UserRepository from '../../repositories/UserRepository';
 
 class CustomerController {
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
-      const customerData: Customer = req.body;
+      const customer: Customer = req.body;
 
-      await CustomerRepository.create(customerData);
+      const existingCustomer = await UserRepository.getByPattern('user_id', customer.user_id);
+
+      if (existingCustomer) {
+        res.status(400).send(CustomerError.customerAlreadyExists().toResponseObject());
+        return;
+      }
+
+      await CustomerRepository.create(customer);
 
       res.status(201).send("Customer created successfully!");
 
@@ -30,8 +38,7 @@ class CustomerController {
       const customer = await CustomerRepository.get(customerUUID);
 
       if (!customer) {
-        const customerNotFoundError = new CustomerError('Customer not found!', undefined, 404);
-        res.status(404).send(customerNotFoundError.toResponseObject());
+        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
         return;
       }
 
@@ -39,8 +46,11 @@ class CustomerController {
 
       await ReviewRepository.create(reviewData);
 
-      res.status(201).send("Review created successfully!");
-
+      res.status(200).send({
+        type: "success",
+        title: "Success",
+        message: "Review created successfully!"
+      });
     } catch (error: any) {
       const customerError = new CustomerError('Error creating review', error);
 
@@ -55,7 +65,7 @@ class CustomerController {
       const customer = await CustomerRepository.get(customerIdentifier);
 
       if (!customer) {
-        res.status(404).send("Customer not found.");
+        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
       }
 
       res.send(customer);
@@ -95,20 +105,21 @@ class CustomerController {
       const existingCustomer = await CustomerRepository.get(customerUUID);
 
       if (!existingCustomer) {
-        const customerNotFoundError = new CustomerError(`Customer with UUID ${customerUUID} not found.`, undefined, 400);
-
-        res.status(404).send(customerNotFoundError.toResponseObject());
+        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
         return;
       }
 
       await CustomerRepository.update(customerUUID, updatedFields);
 
-      res.status(200).send("Customer updated successfully!");
+      res.status(200).send({
+        type: "success",
+        title: "Success",
+        message: "Customer updated successfully!"
+      });
     } catch (error: any) {
-      const customerError = new CustomerError('Something went wrong while updating the customer.', error);
+      res.status(500).send(CustomerError.customerUpdateFailed().toResponseObject());
 
-      res.status(500).send(customerError.toResponseObject());
-      throw customerError;
+      throw CustomerError.customerUpdateFailed();
     }
   }
 
@@ -118,13 +129,16 @@ class CustomerController {
 
       await CustomerRepository.delete(customerUUID);
 
-      res.status(200).send("Customer deleted successfully!");
+      res.status(200).send({
+        type: "success",
+        title: "Success",
+        message: "Customer deleted successfully!"
+      });
     } catch (error: any) {
       console.error(error);
-      const customerError = new CustomerError('Something went wrong while deleting the customer.', error);
+      res.status(500).send(CustomerError.customerDeletionFailed().toResponseObject());
 
-      res.status(500).send(customerError.toResponseObject());
-      throw customerError;
+      throw CustomerError.customerDeletionFailed();
     }
   }
 }
