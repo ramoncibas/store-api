@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { FileArray, UploadedFile } from 'express-fileupload';
-import { AuthRequest } from '../middlewares/authMiddleware';
 
 export type UserType = 'user' | 'admin';
 
@@ -20,6 +19,11 @@ export interface User extends UserLogin {
   expiresIn?: any;
   token?: string;
   type?: UserType;
+}
+
+export interface UserPicture {
+  name: any;
+  user_picture?: FileArray | UploadedFile 
 }
 
 export interface CustomRequest extends Request {
