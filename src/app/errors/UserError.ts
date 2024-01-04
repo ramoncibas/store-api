@@ -1,14 +1,19 @@
 class UserError extends Error {
   private errorCode: number;
+  private originalError?: any;
 
   constructor(message: string, error?: any, errorCode: number = 500) {
     super(message);
     this.name = 'UserError';
     this.errorCode = errorCode;
+    this.originalError = error;
+    this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
+  }
 
-    if (error) {
-      // Log the original error for debugging purposes
-      console.error(`UserError: ${message}`, error);
+  private logError(): void {
+    if (this.originalError) {
+      // using a logging library (sentry, or something)
+      console.error(`UserError: ${this.message}`, this.originalError);
     }
   }
 
@@ -18,18 +23,39 @@ class UserError extends Error {
 
   toResponseObject(): any {
     return {
-      type: "error",
-      title: this.name,
-      message: this.message
+      status: "error",
+      errorCode: this.errorCode,
+      message: this.message || UserError.default(),
+      data: null,
     };
   }
 
-  static defaultMessage(): string {
-    return "Something went wrong!";
+  static default(): UserError {
+    return new UserError("Something went wrong!");
   }
 
-  static userNotFoundMessage(): string {
-    return "User not found!";
+  static userNotFound(): UserError {
+    return new UserError("User not found!", 404);
+  }
+
+  static invalidInput(): UserError {
+    return new UserError("Invalid input provided.", 400);
+  }
+
+  static unauthorized(): UserError {
+    return new UserError("Unauthorized access.", 401);
+  }
+
+  static userAlreadyExists(): UserError {
+    return new UserError("User already exists!", 409);
+  }
+
+  static userUpdateFailed(): UserError {
+    return new UserError("Failed to update the user.", 500);
+  }
+
+  static userDeletionFailed(): UserError {
+    return new UserError("Failed to delete the user.", 500);
   }
 }
 
