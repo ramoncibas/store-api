@@ -21,7 +21,7 @@ class ProductModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(productId: number | string): Promise<void> {
-    const query = 'DELETE FROM product WHERE id = ?';
+    const query: string = 'DELETE FROM product WHERE id = ?';
     const dbManager = this.getDBManager();
 
     await dbManager.run(query, [productId]);
@@ -32,7 +32,7 @@ class ProductModel {
    * @returns A Promise that resolves with an array of product aspects.
    */
   static async getAllAspects(): Promise<any> {
-    const query = 'SELECT * FROM product_aspects';
+    const query: string = 'SELECT * FROM product_aspects';
     const dbManager = this.getDBManager();
 
     return await dbManager.all(query, []);
@@ -43,7 +43,7 @@ class ProductModel {
    * @returns A Promise that resolves with an array of products.
    */
   static async get(): Promise<Product[]> {
-    const query = 'SELECT * FROM product';
+    const query: string = 'SELECT * FROM product';
     const dbManager = this.getDBManager();
 
     return await dbManager.all(query, []);
@@ -65,7 +65,7 @@ class ProductModel {
 
     const conditionString = conditions.join(' AND ');
 
-    const query = `SELECT * FROM product WHERE ${conditionString}`;
+    const query: string = `SELECT * FROM product WHERE ${conditionString}`;
     const dbManager = this.getDBManager();
 
     return await dbManager.all(query, values);
@@ -77,7 +77,19 @@ class ProductModel {
    * @returns A Promise that resolves with the product data or null if not found.
    */
   static async getById(productId: number | string): Promise<Product | null> {
-    const query = 'SELECT * FROM product WHERE id = ?';
+    const query: string = `
+      SELECT 
+        p.*,
+        bp.name as brand_name,
+        gp.name as gender_name,
+        cp.name as category_name
+      FROM product p
+        INNER JOIN brand_product bp on p.brand_id = bp.id
+        INNER JOIN gender_product gp on p.gender_id = gp.id
+        INNER JOIN category_product cp on p.category_id = cp.id
+        INNER JOIN size_product sz on p.size_id = sz.id
+      WHERE p.id = ?
+    `;
     const dbManager = this.getDBManager();
 
     return await dbManager.get(query, [productId]);
@@ -89,7 +101,7 @@ class ProductModel {
    * @returns A Promise that resolves with the products data or null if not found.
    */
   static async getByIds(productIds: Array<number | string>): Promise<Product[] | null> {
-    const query = 'SELECT * FROM product WHERE id IN (?)';
+    const query: string = 'SELECT * FROM product WHERE id IN (?)';
     const dbManager = this.getDBManager();
 
     return await dbManager.get(query, productIds);
@@ -101,7 +113,7 @@ class ProductModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async create(fields: Product): Promise<void> {
-    const query = `
+    const query: string = `
       INSERT INTO product (
         name,
         price,
@@ -130,7 +142,7 @@ class ProductModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(productId: number | string, fields: Partial<Product>): Promise<void> {
-    // const query = `
+    // const query: string = `
     //   UPDATE product
     //   SET name = ?,
     //       price = ?,
@@ -151,7 +163,7 @@ class ProductModel {
 
     const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
-    const query = `
+    const query: string = `
       UPDATE customer
       SET ${setClause}
       WHERE uuid = ?
