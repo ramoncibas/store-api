@@ -3,12 +3,7 @@ import Product from 'types/Product.type';
 import ProductRepository from 'repositories/ProductRepository';
 
 class ProductController {
-  /**
-   * Delete a product from the database based on its ID.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves when the operation is completed.
-   */
+
   static async deleteProduct(req: Request, res: Response) {
     const id = req.body.id;
     try {
@@ -20,12 +15,6 @@ class ProductController {
     }
   }
 
-  /**
-   * Get all aspects of products from the database.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves with an array of product aspects.
-   */
   static async getAllAspects(req: Request, res: Response) {
     try {
       const aspects = await ProductRepository.getAllAspects();
@@ -39,12 +28,6 @@ class ProductController {
     }
   }
 
-  /**
-   * Get filtered products from the database based on the provided filters.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves with an array of filtered products.
-   */
   static async getFilteredProduct(req: Request, res: Response) {
     try {
       if (!req.query) {
@@ -60,12 +43,6 @@ class ProductController {
     }
   }
 
-  /**
-   * Get a product from the database based on its ID.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves with the product data or null if not found.
-   */
   static async getProductById(req: Request, res: Response) {
     const id: any = req.query.id;
 
@@ -88,12 +65,6 @@ class ProductController {
     }
   }
   
-  /**
-   * Get all products from the database.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves with an array of products.
-   */
   static async getProducts(req: Request, res: Response) {
     try {
       const products = await ProductRepository.get();
@@ -105,12 +76,6 @@ class ProductController {
     }
   }
 
-  /**
-   * Create a new product in the database.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves when the operation is completed.
-   */
   static async createProduct(req: Request, res: Response) {
     const fields: Product = req.body;
 
@@ -129,12 +94,6 @@ class ProductController {
     }
   }
 
-  /**
-   * Update an existing product in the database.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves when the operation is completed.
-   */
   static async updateProduct(req: Request, res: Response) {
     const fields: Product = req.body;
   
