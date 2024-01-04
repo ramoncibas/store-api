@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
+
 import UserRepository from 'repositories/UserRepository';
+import UserFile from '../User/UserFile';
 import UserError from 'errors/UserError';
-import { User } from 'types/User.type';
+import { CustomRequest, User, UserPicture } from 'types/User.type';
 
 class AuthController {
   private static readonly ONE_HOUR_IN_SECONDS = 3600;
@@ -59,6 +62,64 @@ class AuthController {
       console.error(error);
       res.status(500).send("Something went wrong during login");
       throw new UserError("Something went wrong during login", error, 500);
+    }
+  }
+
+  static async registerUser(req: CustomRequest, res: Response): Promise<void> {
+    try {
+      const {
+        first_name,
+        last_name,
+        email,
+        password,
+      }: User = req.body;
+
+      const userPictureFile: UserPicture | null = req.files;
+
+      if (Object.values(req.body).some(value => typeof value !== 'string' || value.trim() === '')) {
+        res.status(400).send(UserError.invalidInput().toResponseObject());
+        return;
+      }
+
+      const existingUser = await UserRepository.getByPattern('email', email);
+
+      if (existingUser) {
+        res.status(409).send("User Already Exists. Please Login");
+        return;
+      }
+
+      const userUUID = randomUUID();
+
+      if (userPictureFile && userPictureFile.user_picture) {
+        await UserFile.saveUserPicture(userUUID, userPictureFile.user_picture);
+      }
+
+      const encryptedPassword = await bcrypt.hash(password, 10);
+
+      const user_picture_name: string | null = userPictureFile?.user_picture
+        ? `${userUUID}_${userPictureFile.user_picture.name}`
+        : null;
+
+      const user = await UserRepository.create({
+        uuid: userUUID,
+        first_name,
+        last_name,
+        email: email.toLowerCase(),
+        password: encryptedPassword,
+        user_picture_name: user_picture_name
+      });
+
+      const token = this.generateToken(user.id!, email);
+
+      user.token = token;
+      console.log(user);
+      res.status(201).json(user);
+
+    } catch (error: any) {
+      const createUserError = new UserError('Error creating user', error);
+
+      res.status(500).send(createUserError.toResponseObject());
+      throw createUserError;
     }
   }
 

@@ -2,14 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import UserRepository from 'repositories/UserRepository';
 import UserFile from './UserFile';
 import UserError from 'errors/UserError';
-import { CustomRequest, User } from 'types/User.type';
-import { FileArray, UploadedFile } from 'express-fileupload';
-
-import { randomUUID } from 'crypto';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-const { JWT_TOKEN_KEY, BUCKET_USER_PICTURE } = process.env;
+import { CustomRequest, User, UserPicture } from 'types/User.type';
 
 class UserController {
   static async getUser(req: Request, res: Response): Promise<void> {
@@ -19,8 +12,7 @@ class UserController {
       const user = await UserRepository.getByPattern('uuid', uuid);
 
       if (!user) {
-        const notFoundError = new UserError('User not found!', undefined, 404);
-        res.status(404).send(notFoundError.toResponseObject());
+        res.status(404).send(UserError.userNotFound().toResponseObject());
         return;
       }
 
@@ -32,106 +24,37 @@ class UserController {
       res.send(user);
 
     } catch (error: any) {
-      const genericError = new UserError('Error retrieving user');
-
-      res.status(500).send(genericError.toResponseObject());
-      throw genericError;
+      res.status(500).send(UserError.default().toResponseObject());
+      throw UserError.default();
     }
   }
 
   static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      const users = await UserRepository.getAll();
+      const users: User[] = await UserRepository.getAll();
+      
       res.send(users);
-
     } catch (error: any) {
-      const genericError = new UserError('Error retrieving all user');
-
-      res.status(500).send(genericError.toResponseObject());
-      throw genericError;
-    }
-  }
-
-  static async createUser(req: Request, res: Response): Promise<void> {
-    try {
-      const {
-        first_name,
-        last_name,
-        email,
-        password,
-      }: User = req.body;
-
-      const files = req.files as { user_picture?: FileArray | UploadedFile } || null;
-
-      if (Object.values(req.body).some(value => typeof value !== 'string' || value.trim() === '')) {
-        const invalidDataError = new UserError('All fields must be filled!', undefined, 400);
-        res.status(400).send(invalidDataError.toResponseObject());
-        return;
-      }
-
-      const existingUser = await UserRepository.getByPattern('email', email);
-
-      if (existingUser) {
-        res.status(409).send("User Already Exists. Please Login");
-        return;
-      }
-
-      const userUUID = randomUUID();
-
-      if (files && files.user_picture) {
-        await UserFile.saveUserPicture(userUUID, files.user_picture);
-      }
-
-      const encryptedPassword = await bcrypt.hash(password, 10);
-
-      const user_picture_name: string | null = files?.user_picture
-        ? `${userUUID}_${files.user_picture.name}`
-        : null;
-
-      const user = await UserRepository.create({
-        uuid: userUUID,
-        first_name,
-        last_name,
-        email: email.toLowerCase(),
-        password: encryptedPassword,
-        user_picture_name: user_picture_name
-      });
-
-      const token = jwt.sign(
-        { user_id: user.id, email },
-        JWT_TOKEN_KEY!,
-        { expiresIn: "1h" }
-      );
-
-      user.token = token;
-      console.log(user);
-      res.status(201).json(user);
-
-    } catch (error: any) {
-      const createUserError = new UserError('Error creating user', error);
-
-      res.status(500).send(createUserError.toResponseObject());
-      throw createUserError;
+      res.status(500).send(UserError.default().toResponseObject());
+      throw UserError.default();
     }
   }
 
   static async updateUser(req: CustomRequest, res: Response, next: NextFunction): Promise<void> {
     const { phone, email, user_picture_name } = req.body;
-    const userPictureFile = Array.isArray(req.files)
-      ? req.files.find((file) => file.name === 'user_picture')
-      : undefined;
+    const userPictureFile: UserPicture | null = req.files;
 
     try {
-      const userUUID = req.params.uuid;
+      const userUUID: string = req.params.uuid;
 
-      if (userPictureFile) {
+      if (userPictureFile && userPictureFile.user_picture) {
         await UserFile.saveUserPicture(userUUID, userPictureFile);
       }
 
       const fields = {
         phone,
         email,
-        user_picture_name: userPictureFile?.filename || user_picture_name || null
+        user_picture_name: userPictureFile?.user_picture?.name || user_picture_name || null
       };
 
       await UserRepository.update(userUUID, fields);
