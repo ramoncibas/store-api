@@ -18,7 +18,7 @@ class UserModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async create(user: User): Promise<User> {
-    const query = `
+    const query: string = `
       INSERT INTO user (
         uuid,
         first_name,
@@ -28,7 +28,7 @@ class UserModel {
         phone,
         user_picture_name,
         type
-      ) VALUES (?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?,?, ?, ?, ?)
       RETURNING *;
     `;
 
@@ -51,10 +51,10 @@ class UserModel {
    * @param value - The corresponding value for the filter pattern.
    * @returns A Promise that resolves with the user data or null if not found.
    */
-  static async getByPattern(pattern: string | Array<string>, value: string | Array<string>): Promise<User | null> {
+  static async getByPattern(pattern: string | Array<string>, value: number | string | Array<string>): Promise<User | null> {
     const conditions = Array.isArray(pattern) ? pattern.join(' AND ') : pattern;
 
-    const query = `
+    const query: string = `
       SELECT * FROM user WHERE ${conditions} = ?
     `;
 
@@ -73,7 +73,7 @@ class UserModel {
    * @returns A Promise that resolves with an array of all users.
    */
   static async getAll(): Promise<User[]> {
-    const query = 'SELECT * FROM user';
+    const query: string = 'SELECT * FROM user';
 
     try {
       const dbManager = this.getDBManager();
@@ -98,7 +98,7 @@ class UserModel {
 
     const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
-    const query = `
+    const query: string = `
       UPDATE user
       SET ${setClause}
       WHERE uuid = ?
@@ -119,7 +119,7 @@ class UserModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(userUUID: string): Promise<void> {
-    const query = `
+    const query: string = `
       DELETE FROM user WHERE uuid = ?
     `;
 
