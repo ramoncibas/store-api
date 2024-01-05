@@ -1,6 +1,6 @@
 {
   "watch": ["src"],
   "ext": "ts",
-  "exec": "node ./dist/server.js",
+  "exec": "ts-node -r tsconfig-paths/register src/server.ts",
   "delay": 1000
 }

@@ -2,12 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "pages.js",
+  "main": "dist/server.js",
   "scripts": {
+    "start": "node -r tsconfig-paths/register ./dist/server.js",
+    "build": "npx tsc && node -r tsconfig-paths/register -r ts-node/register ./dist/server.js",
+    "dev": "nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon -r tsconfig-paths/register src/server.ts",
-    "clean": "rm -rf dist",
-    "build": "npx tsc"
+    "clean": "rm -rf dist"
   },
   "author": "",
   "license": "ISC",
@@ -44,7 +45,8 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
     "eslint-plugin-promise": "^6.0.0",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "*"
+    "typescript": "^5.3.3"
   }
 }
