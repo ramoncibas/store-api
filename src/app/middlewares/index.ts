@@ -1,4 +1,6 @@
-export { default as isAdmin } from "./isAdmin";
-export { default as authMiddleware } from "./authMiddleware";
-export { default as fileUpload } from "./fileUpload";
-export { default as errorHandler } from "./errorHandler";
+import isAdmin from "./isAdmin";
+import authMiddleware from "./authMiddleware";
+import fileUpload from "./fileUpload";
+import errorHandler from "./errorHandler";
+
+export { isAdmin, authMiddleware, fileUpload, errorHandler };
