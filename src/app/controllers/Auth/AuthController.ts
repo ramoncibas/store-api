@@ -6,7 +6,7 @@ import { randomUUID } from 'crypto';
 import UserRepository from 'repositories/UserRepository';
 import UserFile from '../User/UserFile';
 import UserError from 'errors/UserError';
-import { CustomRequest, User, UserPicture } from 'types/User.type';
+import { CustomRequest, User, UserLogin, UserPicture } from 'types/User.type';
 
 class AuthController {
   private static readonly ONE_HOUR_IN_SECONDS = 3600;
@@ -39,7 +39,7 @@ class AuthController {
 
   static async loginUser(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password } = req.body;
+      const { email, password }: UserLogin = req.body;
 
       if (!email || !password) {
         res.status(400).send("All input is required");
