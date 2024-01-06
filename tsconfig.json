@@ -19,6 +19,7 @@
       "models/*": ["app/models/*.ts"],
       "helpers/*": ["app/helpers/*"],
       "routes": ["app/routes/index.ts"],
+      "schema/*": ["app/schema/*"],
       "errors/*": ["app/errors/*.ts"],
       "types/*": ["app/types/*"],
       "utils": ["utils/*"]

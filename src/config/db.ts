@@ -1,4 +1,5 @@
 import sqlite3, { Database, RunResult } from "sqlite3";
+import schema from "schema/index";
 
 class DatabaseManager {
   private db: Database;
@@ -10,6 +11,8 @@ class DatabaseManager {
         console.error('Error connecting to database:', err.message);
       }
     });
+
+    // this.db.serialize(() => this.db.exec(schema));
   }
 
   public run(sql: string, params: any[]): Promise<RunResult> {
