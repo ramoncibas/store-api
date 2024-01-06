@@ -82,7 +82,8 @@ class ProductModel {
         p.*,
         bp.name as brand_name,
         gp.name as gender_name,
-        cp.name as category_name
+        cp.name as category_name,
+        cp.name as size_name
       FROM product p
         INNER JOIN brand_product bp on p.brand_id = bp.id
         INNER JOIN gender_product gp on p.gender_id = gp.id
