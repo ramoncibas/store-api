@@ -12,10 +12,10 @@ router.patch('/cart/:id', ShoppingCartController.updateShoppingCartProduct);
 router.delete('/cart/:id', ShoppingCartController.deleteShoppingCartItem);
 
 router.get("/", ProductController.getProducts);
-router.get("/product/aspects", ProductController.getAllAspects);
-router.get("/product/:id", authMiddleware, ProductController.getProductById);
-router.post("/product", authMiddleware, isAdmin, ProductController.createProduct);
-router.patch("/product", authMiddleware, isAdmin, ProductController.updateProduct);
-router.delete("/product", authMiddleware, isAdmin, ProductController.deleteProduct);
+router.get("/aspects", ProductController.getAllAspects);
+router.get("/:id", ProductController.getProductById);
+router.post("/create", authMiddleware, isAdmin, ProductController.createProduct);
+router.patch("/edit", authMiddleware, isAdmin, ProductController.updateProduct);
+router.delete("/delete", authMiddleware, isAdmin, ProductController.deleteProduct);
 
 export default router;
