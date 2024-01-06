@@ -5,8 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "start": "node -r tsconfig-paths/register ./dist/server.js",
-    "build": "npx tsc && node -r tsconfig-paths/register -r ts-node/register ./dist/server.js",
-    "dev": "nodemon src/server.ts",
+    "build": "npm run clean && npx tsc && node -r tsconfig-paths/register -r ts-node/register ./dist/server.js",
+    "dev": "ts-node src/swagger.ts && nodemon src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist"
   },
@@ -24,6 +24,9 @@
     "nodemon": "^3.0.1",
     "nopt": "^7.2.0",
     "sqlite3": "^5.1.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "universal-cookie-express": "^4.0.3",
     "uuid": "^9.0.1"
   },
@@ -37,6 +40,8 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.10.5",
     "@types/sqlite3": "^3.1.11",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.6",
     "@types/uuid": "^9",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "eslint": "^8.0.1",
