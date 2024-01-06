@@ -5,12 +5,7 @@ import ShoppingCartError from 'errors/ShoppingCartError';
 import Product, { ShoppingCartItem } from 'types/Product.type';
 
 class ShoppingCartController {
-  /**
-   * Retrieve products in the shopping cart for a specified customerID.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves with an array of products when the operation is completed.
-   */
+  
   static async getShoppingCartProducts(req: Request, res: Response): Promise<void> {
     try {
       const { id: customerID } = req.params;
@@ -43,12 +38,6 @@ class ShoppingCartController {
     }
   }
 
-  /**
-   * Create a new product in the shopping cart.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves when the operation is completed.
-   */
   static async createShoppingCartProduct(req: Request, res: Response): Promise<void> {
     try {
       const fields: ShoppingCartItem = req.body;
@@ -63,12 +52,6 @@ class ShoppingCartController {
     }
   }
 
-  /**
-   * Update an existing product in the shopping cart.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves when the operation is completed.
-   */
   static async updateShoppingCartProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id, quantity }: Partial<ShoppingCartItem> = req.body;
@@ -88,12 +71,6 @@ class ShoppingCartController {
     }
   }
 
-  /**
-   * Delete a product from the shopping cart based on its ID.
-   * @param req - Express Request object.
-   * @param res - Express Response object.
-   * @returns A Promise that resolves when the operation is completed.
-   */
   static async deleteShoppingCartItem(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.body;
