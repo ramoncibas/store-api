@@ -26,6 +26,7 @@
     },
   },
   "include": [
+    "src/swagger.json",
     "src/**/*.ts",
     "test/**/*.ts"
   ],
