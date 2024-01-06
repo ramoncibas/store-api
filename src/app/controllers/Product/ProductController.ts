@@ -44,7 +44,7 @@ class ProductController {
   }
 
   static async getProductById(req: Request, res: Response) {
-    const id: any = req.query.id;
+    const id: any = req.params.id;
 
     try {
       if (!id) {
@@ -53,7 +53,7 @@ class ProductController {
     
       const productId = typeof id === "string" ? parseInt(id, 10) : id;
       const product = await ProductRepository.getById(productId);
-    
+
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
