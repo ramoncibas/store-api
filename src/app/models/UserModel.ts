@@ -28,14 +28,14 @@ class UserModel {
         phone,
         user_picture_name,
         type
-      ) VALUES (?, ?, ?, ?,?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *;
     `;
 
     try {
-      const generatedUuid = uuidv4();
-
       const dbManager = this.getDBManager();
+      const generatedUuid = uuidv4();
+      
       const userData: User[] = await dbManager.all(query, [generatedUuid, ...Object.values(user)]);
 
       return userData[0];
