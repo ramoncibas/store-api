@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["express"],
+    "types": ["jest", "express"],
     "target": "es2018",
     "module": "commonjs",
     "esModuleInterop": true,
