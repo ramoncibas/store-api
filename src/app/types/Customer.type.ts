@@ -1,5 +1,6 @@
 export default interface Customer {
-  id: number | string;
+  id?: number | string;
+  uuid: string;
   user_id: number | string;
   shipping_address: string;
   card_number?: string;
