@@ -5,16 +5,17 @@ import Customer from 'types/Customer.type';
 import Review from 'types/Review.type';
 import CustomerError from 'errors/CustomerError';
 import UserRepository from '../../repositories/UserRepository';
+import UserError from '../../errors/UserError';
 
 class CustomerController {
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
       const customer: Customer = req.body;
 
-      const existingCustomer = await UserRepository.getByPattern('user_id', customer.user_id);
-
+      const existingCustomer = await UserRepository.getByPattern('id', customer.user_id);
+      
       if (existingCustomer) {
-        res.status(400).send(CustomerError.customerAlreadyExists().toResponseObject());
+        res.status(409).send(CustomerError.customerAlreadyExists().toResponseObject());
         return;
       }
 
@@ -35,14 +36,14 @@ class CustomerController {
       const customerUUID: string = req.params.uuid;
       const reviewData: Review = req.body;
 
-      const customer = await CustomerRepository.get(customerUUID);
+      const customer: Customer | null = await CustomerRepository.get(customerUUID);
 
-      if (!customer) {
+      if (!customer || customer.id === null) {
         res.status(404).send(CustomerError.customerNotFound().toResponseObject());
         return;
       }
 
-      reviewData.customer_id = customer.id;
+      reviewData.customer_id = customer.id as string | number;
 
       await ReviewRepository.create(reviewData);
 
@@ -66,9 +67,10 @@ class CustomerController {
 
       if (!customer) {
         res.status(404).send(CustomerError.customerNotFound().toResponseObject());
+        return;
       }
 
-      res.send(customer);
+      res.status(200).send(customer);
 
     } catch (error: any) {
       const customerError = new CustomerError('Something went wrong while fetching the customer.', error);
@@ -126,6 +128,12 @@ class CustomerController {
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
       const customerUUID: string = req.params.uuid;
+      const customer = await CustomerRepository.get(customerUUID);
+
+      if (!customer) {
+        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
+        return;
+      }
 
       await CustomerRepository.delete(customerUUID);
 
@@ -135,7 +143,6 @@ class CustomerController {
         message: "Customer deleted successfully!"
       });
     } catch (error: any) {
-      console.error(error);
       res.status(500).send(CustomerError.customerDeletionFailed().toResponseObject());
 
       throw CustomerError.customerDeletionFailed();
