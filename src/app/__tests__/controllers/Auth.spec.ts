@@ -1,39 +1,28 @@
-import express from 'express';
-import request from 'supertest';
-import AuthController from 'controllers/Auth/AuthController';
+import supertest from 'supertest';
 
 describe('AuthController', () => {
-  let authToken: string;
-
-  beforeEach(() => {
-    AuthController.initialize();
-  });
-
+  let
+    authToken: string, 
+    baseUrl: string = 'http://localhost:5000';
+  
   test('should login a user', async () => {
-    const app = express();
-    app.use(express.json());
-    app.post('/login', AuthController.loginUser);
-
-    const response = await request(app)
-      .post('/login')
+    const response = await supertest(baseUrl)
+      .post('/auth/login')
       .send({
         email: 'store@admin.com',
         password: 'store#123',
-      });
-    
-    expect(response.status).toBe(200);
+      })
+      .set('Accept', 'application/json')
+
+      expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('token');
 
     authToken = response.body.token;
   });
 
   test('should register a user', async () => {
-    const app = express();
-    app.use(express.json());
-    app.post('/register', AuthController.registerUser);
-
-    const response = await request(app)
-      .post('/register')
+    const response = await supertest(baseUrl)
+      .post('/auth/register')
       .send({
         first_name: 'Store',
         last_name: 'Admin',
@@ -53,12 +42,8 @@ describe('AuthController', () => {
   });
 
   test('should logout a user', async () => {
-    const app = express();
-    app.use(express.json());
-    app.post('/logout', AuthController.logoutUser);
-
-    const response = await request(app)
-      .post('/logout')
+    const response = await supertest(baseUrl)
+      .post('/auth/logout')
       .set('x-access-token', authToken);
     
     expect(response.status).toBe(200);
