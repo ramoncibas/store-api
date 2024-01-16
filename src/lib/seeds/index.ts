@@ -52,7 +52,6 @@ class Seeder extends DatabaseManager {
     }
   }
 
-
   public createTables(): void {
     try {
       this.db.exec(config.schema, (err) => {
