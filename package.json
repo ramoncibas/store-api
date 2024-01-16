@@ -7,7 +7,7 @@
     "start": "NODE_ENV=production && node -r tsconfig-paths/register ./dist/server.js",
     "build": "npm run clean && npx tsc && node -r tsconfig-paths/register -r ts-node/register ./dist/server.js",
     "dev": "NODE_ENV=development && ts-node src/swagger.ts && nodemon src/server.ts",
-    "test": "NODE_ENV=test && jest --detectOpenHandles --forceExit",
+    "test": "NODE_ENV=development jest --detectOpenHandles --forceExit",
     "clean": "rm -rf dist"
   },
   "author": "",
@@ -25,8 +25,7 @@
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
-    "universal-cookie-express": "^4.0.3",
-    "uuid": "^9.0.1"
+    "universal-cookie-express": "^4.0.3"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.23.7",
