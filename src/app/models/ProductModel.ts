@@ -1,4 +1,4 @@
-import DatabaseManager from '../../config/db';
+import DatabaseManager from '../../database/db';
 import Product from 'types/Product.type';
 
 class ProductModel {

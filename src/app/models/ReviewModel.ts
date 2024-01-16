@@ -1,6 +1,6 @@
-import DatabaseManager from "../../config/db";
+import DatabaseManager from "../../database/db";
 import Review from "types/Review.type";
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 class ReviewModel {
   private static dbManager: DatabaseManager;
@@ -31,7 +31,7 @@ class ReviewModel {
 
     try {
       const dbManager = this.getDBManager();
-      const reviewUUID = uuidv4();
+      const reviewUUID = randomUUID();
       await dbManager.run(query, [reviewUUID, ...Object.values(review)]);
     } catch (error) {
       console.error(error);

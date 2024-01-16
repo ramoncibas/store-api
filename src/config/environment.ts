@@ -1,17 +1,17 @@
-import schema from "config/schema/index";
+import schema from "../database/schema";
 
 const environments : any = {
   production: {
-    database: process.env.DATABASE_URL,
     schema,
+    envFilePath: {
+      path: '.env'
+    },
   },
   development: {
-    database: process.env.DATABASE_DEV_URL,
     schema,
-  },
-  test: {
-    database: process.env.DATABASE_TEST_URL,
-    schema,
+    envFilePath: {
+      path: '.env.dev'
+    },
   },
 };
 

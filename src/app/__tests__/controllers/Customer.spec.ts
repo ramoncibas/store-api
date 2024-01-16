@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express';
 import supertest from 'supertest';
-import appRoutes from 'routes';
 
 import CustomerController from 'controllers/Customer/CustomerController';
 import CustomerRepository from 'repositories/CustomerRepository';
@@ -9,13 +8,12 @@ import CustomerError from 'errors/CustomerError';
 import ReviewRepository from 'repositories/ReviewRepository';
 import Customer from 'types/Customer.type';
 import Review from 'types/Review.type';
-import DatabaseManager from '../../../config/db';
-import { authMiddleware } from '../../middlewares';
+import DatabaseManager from '../../../database/db';
 
 
 beforeAll(async () => {
   const dbManager = new DatabaseManager();
-  await dbManager.initializeTestData();
+  // await dbManager.initializeTestData();
 });
 
 afterAll(async () => {
@@ -42,8 +40,8 @@ jest.mock('repositories/UserRepository', () => ({
 
 
 const customer: Customer = {
-  id: 2,
-  user_id: 24,
+  id: 1,
+  user_id: 1,
   uuid: "1djshagb2",
   card_expiry_date: "20281211",
   card_number: "3400010300",

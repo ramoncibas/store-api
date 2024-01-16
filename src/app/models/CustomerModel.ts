@@ -1,4 +1,4 @@
-import DatabaseManager from "../../config/db";
+import DatabaseManager from "../../database/db";
 import Customer from "types/Customer.type";
 
 class CustomerModel {
