@@ -1,5 +1,6 @@
-import DatabaseManager from "../../config/db";
+import DatabaseManager from "../../database/db";
 import Review from "types/Review.type";
+import { randomUUID } from 'crypto';
 
 class ReviewModel {
   private static dbManager: DatabaseManager;
@@ -19,17 +20,19 @@ class ReviewModel {
   static async save(review: Review): Promise<void> {
     const query: string = `
       INSERT INTO review (
-        user_id,
+        uuid,
         product_id,
+        customer_id,
         rating,
         comment,
         review_date
-      ) VALUES (?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     try {
       const dbManager = this.getDBManager();
-      await dbManager.run(query, [...Object.values(review)]);
+      const reviewUUID = randomUUID();
+      await dbManager.run(query, [reviewUUID, ...Object.values(review)]);
     } catch (error) {
       console.error(error);
       throw error;

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["express"],
+    "types": ["jest", "express"],
     "target": "es2018",
     "module": "commonjs",
     "esModuleInterop": true,
@@ -19,17 +19,19 @@
       "models/*": ["app/models/*.ts"],
       "helpers/*": ["app/helpers/*"],
       "routes": ["app/routes/index.ts"],
-      "schema/*": ["app/schema/*"],
+      "schema/*": ["schema/*"],
+      "config/*": ["config/*"],
+      "lib/*": ["lib/*"],
       "errors/*": ["app/errors/*.ts"],
       "types/*": ["app/types/*"],
       "utils": ["utils/*"]
     },
   },
   "include": [
-    "src/swagger.json",
     "src/**/*.ts",
-    "test/**/*.ts"
-  ],
+    "test/**/*.ts",
+    "src/swagger.json"
+],
   "exclude": [
     "node_modules",
     "dist"
