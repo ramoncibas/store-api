@@ -1,5 +1,5 @@
-const fs = require("fs").promises;
-const path = require("path");
+import fs from 'fs/promises'
+import path from 'path';
 
 const TEMP_DIR = 'temp';
 const TEMP_FILE_PREFIX = 'tmp-1';
