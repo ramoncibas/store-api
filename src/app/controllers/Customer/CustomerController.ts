@@ -5,16 +5,17 @@ import Customer from 'types/Customer.type';
 import Review from 'types/Review.type';
 import CustomerError from 'errors/CustomerError';
 import UserRepository from '../../repositories/UserRepository';
+import UserError from '../../errors/UserError';
 
 class CustomerController {
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
       const customer: Customer = req.body;
 
-      const existingCustomer = await UserRepository.getByPattern('user_id', customer.user_id);
-
+      const existingCustomer = await UserRepository.getByPattern('id', customer.user_id);
+      
       if (existingCustomer) {
-        res.status(400).send(CustomerError.customerAlreadyExists().toResponseObject());
+        res.status(409).json(CustomerError.customerAlreadyExists().toResponseObject());
         return;
       }
 
@@ -25,7 +26,7 @@ class CustomerController {
     } catch (error: any) {
       const customerError = new CustomerError('Error creating customer', error);
 
-      res.status(500).send(customerError.toResponseObject());
+      res.status(500).json(customerError.toResponseObject());
       throw customerError;
     }
   }
@@ -35,18 +36,18 @@ class CustomerController {
       const customerUUID: string = req.params.uuid;
       const reviewData: Review = req.body;
 
-      const customer = await CustomerRepository.get(customerUUID);
+      const customer: Customer | null = await CustomerRepository.get(customerUUID);
 
-      if (!customer) {
-        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
+      if (!customer || customer.id === null) {
+        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
         return;
       }
 
-      reviewData.customer_id = customer.id;
+      reviewData.customer_id = customer.id as string | number;
 
       await ReviewRepository.create(reviewData);
 
-      res.status(200).send({
+      res.status(200).json({
         type: "success",
         title: "Success",
         message: "Review created successfully!"
@@ -54,7 +55,7 @@ class CustomerController {
     } catch (error: any) {
       const customerError = new CustomerError('Error creating review', error);
 
-      res.status(500).send(customerError.toResponseObject());
+      res.status(500).json(customerError.toResponseObject());
       throw customerError;
     }
   }
@@ -65,15 +66,16 @@ class CustomerController {
       const customer = await CustomerRepository.get(customerIdentifier);
 
       if (!customer) {
-        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
+        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
+        return;
       }
 
-      res.send(customer);
+      res.status(200).json(customer);
 
     } catch (error: any) {
       const customerError = new CustomerError('Something went wrong while fetching the customer.', error);
 
-      res.status(500).send(customerError.toResponseObject());
+      res.status(500).json(customerError.toResponseObject());
       throw customerError;
     }
   }
@@ -88,7 +90,7 @@ class CustomerController {
       if (!areFieldsValid) {
         const customerNotFoundError = new CustomerError('One or more fields are missing or have invalid data types.', undefined, 400);
 
-        res.status(404).send(customerNotFoundError.toResponseObject());
+        res.status(404).json(customerNotFoundError.toResponseObject());
         return;
       }
 
@@ -97,7 +99,7 @@ class CustomerController {
         const isCardValid = await CustomerController.validateCreditCard(updatedFields);
       
         if (!isCardValid) {
-          res.status(400).send('Invalid credit card details.');
+          res.status(400).json('Invalid credit card details.');
           return;
         }
       */
@@ -105,19 +107,19 @@ class CustomerController {
       const existingCustomer = await CustomerRepository.get(customerUUID);
 
       if (!existingCustomer) {
-        res.status(404).send(CustomerError.customerNotFound().toResponseObject());
+        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
         return;
       }
 
       await CustomerRepository.update(customerUUID, updatedFields);
 
-      res.status(200).send({
+      res.status(200).json({
         type: "success",
         title: "Success",
         message: "Customer updated successfully!"
       });
     } catch (error: any) {
-      res.status(500).send(CustomerError.customerUpdateFailed().toResponseObject());
+      res.status(500).json(CustomerError.customerUpdateFailed().toResponseObject());
 
       throw CustomerError.customerUpdateFailed();
     }
@@ -126,17 +128,22 @@ class CustomerController {
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
       const customerUUID: string = req.params.uuid;
+      const customer = await CustomerRepository.get(customerUUID);
+
+      if (!customer) {
+        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
+        return;
+      }
 
       await CustomerRepository.delete(customerUUID);
 
-      res.status(200).send({
+      res.status(200).json({
         type: "success",
         title: "Success",
         message: "Customer deleted successfully!"
       });
     } catch (error: any) {
-      console.error(error);
-      res.status(500).send(CustomerError.customerDeletionFailed().toResponseObject());
+      res.status(500).json(CustomerError.customerDeletionFailed().toResponseObject());
 
       throw CustomerError.customerDeletionFailed();
     }

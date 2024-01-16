@@ -1,0 +1,9 @@
+{
+  "presets": ["@babel/preset-react"],
+  "overrides": [{
+    "test": "*.ts",
+    "presets": [
+      ["@babel/preset-typescript"], { "ignoreExtensions": true }
+    ]
+  }]
+}

@@ -1,6 +1,6 @@
-import DatabaseManager from "../../config/db";
+import DatabaseManager from "../../database/db";
 import { User } from "types/User.type";
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 class UserModel {
   private static dbManager: DatabaseManager;
@@ -28,15 +28,18 @@ class UserModel {
         phone,
         user_picture_name,
         type
-      ) VALUES (?, ?, ?, ?,?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       RETURNING *;
     `;
 
     try {
-      const generatedUuid = uuidv4();
-
+      console.log(user)
       const dbManager = this.getDBManager();
+      const generatedUuid = randomUUID();
+      
       const userData: User[] = await dbManager.all(query, [generatedUuid, ...Object.values(user)]);
+
+      console.log(userData)
 
       return userData[0];
     } catch (error) {

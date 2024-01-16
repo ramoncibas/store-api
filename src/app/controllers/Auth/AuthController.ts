@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
@@ -9,7 +9,6 @@ import UserError from 'errors/UserError';
 import { CustomRequest, User, UserLogin, UserPicture } from 'types/User.type';
 
 class AuthController {
-  private static readonly ONE_HOUR_IN_SECONDS = 3600;
   private static JWT_TOKEN_KEY: string;
   private static JWT_EXPIRE_IN: string;
 
@@ -17,23 +16,27 @@ class AuthController {
   static invalidTokens: Set<string> = new Set();
 
   static initialize(): void {
-    AuthController.JWT_TOKEN_KEY = process.env.JWT_TOKEN_KEY || '';
-    AuthController.JWT_EXPIRE_IN = process.env.JWT_EXPIRE_IN || '';
+    this.initializeJwtConfig();
+  }
 
-    if (!AuthController.JWT_TOKEN_KEY) {
+  private static initializeJwtConfig(): void {
+    this.JWT_TOKEN_KEY = process.env.JWT_TOKEN_KEY || '';
+    this.JWT_EXPIRE_IN = process.env.JWT_EXPIRE_IN || '';
+
+    if (!this.JWT_TOKEN_KEY) {
       throw new Error("JWT_TOKEN_KEY not defined");
     }
 
-    if (!AuthController.JWT_EXPIRE_IN) {
+    if (!this.JWT_EXPIRE_IN) {
       throw new Error("JWT_EXPIRE_IN not defined");
     }
   }
-
-  private static generateToken(userId: string | number, email: string): string {
+  
+  private static generateToken = (userId: string | number, email: string): string => {
     return jwt.sign(
       { user_id: userId, email },
       this.JWT_TOKEN_KEY,
-      { expiresIn: `${this.JWT_EXPIRE_IN}s` }
+      { expiresIn: this.JWT_EXPIRE_IN }
     );
   }
 
@@ -48,11 +51,11 @@ class AuthController {
 
       const user: User | null = await UserRepository.getByPattern('email', email);
 
-      if (user && (await bcrypt.compare(password, user.password))) {
-        const token = this.generateToken(user.id!, email);
+      if (user && user.id && (await bcrypt.compare(password, user.password))) {
+        const token = AuthController.generateToken(user.id, email);
 
         user.token = token;
-        user.expiresIn = this.ONE_HOUR_IN_SECONDS;
+        user.expiresIn = AuthController.JWT_EXPIRE_IN;
 
         res.status(200).json(user);
       } else {
@@ -72,6 +75,8 @@ class AuthController {
         last_name,
         email,
         password,
+        phone = '',
+        type = 'user'
       }: User = req.body;
 
       const userPictureFile: UserPicture | null = req.files;
@@ -106,14 +111,19 @@ class AuthController {
         last_name,
         email: email.toLowerCase(),
         password: encryptedPassword,
-        user_picture_name: user_picture_name
+        phone,
+        user_picture_name: user_picture_name,
+        type
       });
 
-      const token = this.generateToken(user.id!, email);
+      if(user && user.id) {
+        const token = AuthController.generateToken(user.id, email);
 
-      user.token = token;
-      console.log(user);
-      res.status(201).json(user);
+        user.token = token;
+        res.status(201).json(user);
+      } else {
+        res.status(400).send("Token not created").send("/login");
+      }
 
     } catch (error: any) {
       const createUserError = new UserError('Error creating user', error);
@@ -132,23 +142,32 @@ class AuthController {
         return;
       }
 
-      if (this.invalidTokens.has(userToken)) {
+      if (AuthController.invalidTokens.has(userToken)) {
         res.status(200).send("User already logged out");
         return;
       }
 
-      // Verifique se o token é válido (verifique a assinatura, expiração, etc.)
-      const decodedToken = jwt.verify(userToken, this.JWT_TOKEN_KEY) as { user_id: string | number, email: string };
+      try {
+        const decodedToken = jwt.verify(userToken, AuthController.JWT_TOKEN_KEY) as JwtPayload;
 
-      // Futuro: Atualizar dados do usuário na sessão, para mostrar a quantidade de usuarios logados
-      // const updatedUser = await UserRepository.updateUserSession(decodedToken.user_id, /* novos dados */);
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        if (decodedToken.exp && decodedToken.exp < currentTimestamp) {
+          throw new Error('Token expired');
+        }
 
-      // Futuro: Registrar atividade do usuário
-      // await ActivityLogger.logUserActivity(decodedToken.user_id, 'logout');
+        // Futuro: Atualizar dados do usuário na sessão, para mostrar a quantidade de usuarios logados
+        // const updatedUser = await UserRepository.updateUserSession(decodedToken.user_id, /* novos dados */);
 
-      this.invalidTokens.add(userToken);
+        // Futuro: Registrar atividade do usuário
+        // await ActivityLogger.logUserActivity(decodedToken.user_id, 'logout');
 
-      res.status(200).send("User successfully logged out");
+        AuthController.invalidTokens.add(userToken);
+        res.status(200).send("User successfully logged out");
+
+      } catch (error) {
+        console.error(error);
+        res.status(401).send("Invalid or expired token");
+      }
     } catch (error) {
       console.error(error);
       res.status(500).send("Something went wrong during logout");
