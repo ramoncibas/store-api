@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import DatabaseManager from "../../database/db";
 import Customer from "types/Customer.type";
 
@@ -19,6 +20,7 @@ class CustomerModel {
   static async save(customer: Customer): Promise<void> {
     const query: string = `
       INSERT INTO customer (
+        uuid,
         user_id,
         shipping_address,
         card_number,
@@ -29,12 +31,13 @@ class CustomerModel {
         favorite_categories,
         favorite_brands,
         customer_reviews
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     try {
       const dbManager = this.getDBManager();
-      await dbManager.run(query, [...Object.values(customer)]);
+      const generatedUuid = randomUUID();
+      await dbManager.run(query, [generatedUuid, ...Object.values(customer)]);
     } catch (error) {
       console.error(error);
       throw error;

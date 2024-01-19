@@ -97,6 +97,7 @@ const config: Config = {
     '^models/(.*)$': '<rootDir>/src/app/models/$1',
     '^helpers/(.*)$': '<rootDir>/src/app/helpers/$1',
     '^routes$': '<rootDir>/src/app/routes/index.ts',
+    '^config/(.*)$': '<rootDir>/src/config/$1',
     '^schema/(.*)$': '<rootDir>/src/app/schema/$1',
     '^errors/(.*)$': '<rootDir>/src/app/errors/$1',
     '^types/(.*)$': '<rootDir>/src/app/types/$1',
