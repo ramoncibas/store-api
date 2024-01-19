@@ -51,19 +51,21 @@ class UserModel {
   /**
    * Get a user from the database based on the provided pattern and value.
    * @param pattern - A string or array of strings representing the fields to filter on.
-   * @param value - The corresponding value for the filter pattern.
+   * @param values - A string or array of strings corresponding values for the filter pattern.
    * @returns A Promise that resolves with the user data or null if not found.
    */
-  static async getByPattern(pattern: string | Array<string>, value: number | string | Array<string>): Promise<User | null> {
+  static async getByPattern(pattern: string | Array<string>, values: number | string | Array<string>): Promise<User | null> {
     const conditions = Array.isArray(pattern) ? pattern.join(' AND ') : pattern;
-
+    const placeholders = Array.isArray(values) ? values.map(() => '?').join(', ') : '?';
+    const queryValues = Array.isArray(values) ? values : [values];
+    
     const query: string = `
-      SELECT * FROM user WHERE ${conditions} = ?
+      SELECT * FROM user WHERE ${conditions} = ${placeholders}
     `;
 
     try {
       const dbManager = this.getDBManager();
-      const row = await dbManager.get(query, [value]);
+      const row = await dbManager.get(query, queryValues);
       return row || null;
     } catch (error) {
       console.error(error);
