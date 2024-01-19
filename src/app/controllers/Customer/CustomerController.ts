@@ -10,8 +10,7 @@ import UserError from '../../errors/UserError';
 class CustomerController {
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
-      const customer: Customer = req.body;
-
+      const customer: Customer = req.body;      
       const existingCustomer = await UserRepository.getByPattern('id', customer.user_id);
       
       if (existingCustomer) {
@@ -35,6 +34,11 @@ class CustomerController {
     try {
       const customerUUID: string = req.params.uuid;
       const reviewData: Review = req.body;
+
+      if (!reviewData) {
+        res.status(400).json(CustomerError.invalidInput().toResponseObject());
+        return;
+      }
 
       const customer: Customer | null = await CustomerRepository.get(customerUUID);
 
@@ -85,12 +89,13 @@ class CustomerController {
       const customerUUID: string = req.params.uuid;
       const updatedFields: Partial<Customer> = req.body;
 
-      const areFieldsValid = Object.values(updatedFields).every(value => typeof value === 'string' && value.trim() !== '');
+      const areFieldsValid = Object.values(updatedFields).every(value => (
+        (typeof value === 'string' && value.trim() !== '') || 
+        (!isNaN(Number(value)) && value !== '')
+      ));
 
-      if (!areFieldsValid) {
-        const customerNotFoundError = new CustomerError('One or more fields are missing or have invalid data types.', undefined, 400);
-
-        res.status(404).json(customerNotFoundError.toResponseObject());
+      if (!areFieldsValid) {      
+        res.status(400).json(CustomerError.invalidInput().toResponseObject());
         return;
       }
 
