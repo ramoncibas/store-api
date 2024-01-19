@@ -1,5 +1,6 @@
+import config from 'config/environment';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config(config.envFilePath);
 
 import { Request, Response } from 'express';
 import supertest from 'supertest';
