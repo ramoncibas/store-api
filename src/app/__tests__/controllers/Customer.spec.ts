@@ -542,24 +542,24 @@ describe('Supertest - CustomerController', () => {
       });
     });
 
-    // test('should handle existing customer and return 409 status', async () => {
-    //   const customer409 = { ...customer, user_id: 1 }
-    //   delete customer409.id;
+    test('should handle existing customer and return 409 status', async () => {
+      const customer409 = { ...customer, user_id: 1 }
+      delete customer409.id;
 
-    //   const response = await supertest(baseUrl)
-    //     .post('/customer/create')
-    //     .set('x-access-token', JWT_DEV_TOKEN)
-    //     .send(customer409);
+      const response = await supertest(baseUrl)
+        .post('/customer/create')
+        .set('x-access-token', JWT_DEV_TOKEN)
+        .send(customer409);
 
-    //   expect(response.status).toBe(409);
-    //   expect(response.body).toEqual({
-    //     type: 'error',
-    //     title: 'Error',
-    //     message: 'Customer already exists!',
-    //     errorCode: 409,
-    //     data: null
-    //   });
-    // });
+      expect(response.status).toBe(409);
+      expect(response.body).toEqual({
+        type: 'error',
+        title: 'Error',
+        message: 'Customer already exists!',
+        errorCode: 409,
+        data: null
+      });
+    });
   });
 
   return
