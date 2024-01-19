@@ -32,7 +32,7 @@ class CustomerError extends Error {
   }
 
   static default(): CustomerError {
-    return new CustomerError("Something went wrong!");
+    return new CustomerError("Something went wrong!", undefined, 500);
   }
 
   static customerNotFound(): CustomerError {
