@@ -1,4 +1,7 @@
-import express, { Request, Response } from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { Request, Response } from 'express';
 import supertest from 'supertest';
 
 import CustomerController from 'controllers/Customer/CustomerController';
@@ -8,18 +11,8 @@ import CustomerError from 'errors/CustomerError';
 import ReviewRepository from 'repositories/ReviewRepository';
 import Customer from 'types/Customer.type';
 import Review from 'types/Review.type';
-import DatabaseManager from '../../../database/db';
 
-
-beforeAll(async () => {
-  const dbManager = new DatabaseManager();
-  // await dbManager.initializeTestData();
-});
-
-afterAll(async () => {
-  const dbManager = new DatabaseManager();
-  await dbManager.close();
-});
+const JWT_DEV_TOKEN = process.env.JWT_DEV_TOKEN || '';
 
 jest.mock('repositories/CustomerRepository', () => ({
   ...jest.requireActual('repositories/CustomerRepository'),
@@ -38,13 +31,14 @@ jest.mock('repositories/UserRepository', () => ({
   getByPattern: jest.fn(),
 }));
 
+const randomID = () => Math.floor(Math.random() * 100000);
 
-const customer: Customer = {
+const customer: Partial<Customer> = {
   id: 1,
   user_id: 1,
   uuid: "1djshagb2",
   card_expiry_date: "20281211",
-  card_number: "3400010300",
+  card_number: "3400010300231211",
   card_security_code: "123",
   customer_reviews: "2",
   favorite_brands: "Nike",
@@ -54,9 +48,20 @@ const customer: Customer = {
   total_purchases: 1290
 };
 
+const customerToUpdate: Partial<Customer> = {
+  card_expiry_date: "11111111",
+  card_number: "1111111111111111",
+  card_security_code: "111",
+  customer_reviews: "11",
+  favorite_brands: "11111111",
+  favorite_categories: "11111111",
+  last_purchase_date: "11111111",
+  shipping_address: "11111111",
+  total_purchases: 1111
+};
+
 const review: Partial<Review> = {
-  product_id: '1',
-  customer_id: '1',
+  product_id: randomID(),
   rating: 5,
   comment: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
   review_date: '20240107'
@@ -78,10 +83,8 @@ describe('Mock - CustomerController', () => {
   });
 
   describe('getCustomer', () => {
-
     test('should get a customer successfully', async () => {
       try {
-        // Mock CustomerRepository.get to return an existing customer
         (CustomerRepository.get as jest.Mock).mockResolvedValue(customer);
 
         await CustomerController.getCustomer(req, res);
@@ -97,7 +100,6 @@ describe('Mock - CustomerController', () => {
 
     test('should handle missing customer and return 404 status', async () => {
       try {
-        // Mock CustomerRepository.get to return null
         (CustomerRepository.get as jest.Mock).mockResolvedValue(null);
 
         await CustomerController.getCustomer(req, res);
@@ -119,7 +121,6 @@ describe('Mock - CustomerController', () => {
 
     test('should handle errors and return 500 status', async () => {
       try {
-        // Mock CustomerRepository.get to return an error
         (CustomerRepository.get as jest.Mock).mockRejectedValue(new Error('Mocked error'));
 
         await expect(CustomerController.getCustomer(req, res)).rejects.toThrow(CustomerError);
@@ -146,12 +147,11 @@ describe('Mock - CustomerController', () => {
 
     test('should create a new customer successfully', async () => {
       try {
-        // Mock UserRepository.getByPattern to return an existing customer
         (UserRepository.getByPattern as jest.Mock).mockResolvedValue(null);
 
         await CustomerController.createCustomer(req, res);
 
-        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 24);
+        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 1);
         expect(CustomerRepository.create).toHaveBeenCalledWith(customer);
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.send).toHaveBeenCalledWith('Customer created successfully!');
@@ -163,12 +163,11 @@ describe('Mock - CustomerController', () => {
 
     test('should handle existing customer and return 409 status', async () => {
       try {
-        // Mock UserRepository.getByPattern to return an existing customer
         (UserRepository.getByPattern as jest.Mock).mockResolvedValue(customer);
 
         await CustomerController.createCustomer(req, res);
 
-        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 24);
+        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 1);
         expect(res.status).toHaveBeenCalledWith(409);
         expect(res.json).toHaveBeenCalledWith({
           "type": "error",
@@ -185,12 +184,11 @@ describe('Mock - CustomerController', () => {
 
     test('should handle errors and return 500 status', async () => {
       try {
-        // Mock UserRepository.getByPattern to return an error
         (UserRepository.getByPattern as jest.Mock).mockRejectedValue(new Error('Mocked error'));
 
         await expect(CustomerController.createCustomer(req, res)).rejects.toThrow(CustomerError);
 
-        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 24);
+        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 1);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
           "type": "error",
@@ -215,7 +213,6 @@ describe('Mock - CustomerController', () => {
       try {
         const customerUUID = req.params.uuid;
 
-        // Mock CustomerRepository.get to return an existing customer
         (CustomerRepository.get as jest.Mock).mockResolvedValue(customer);
 
         jest.spyOn(ReviewRepository, 'create').mockResolvedValue();
@@ -244,7 +241,6 @@ describe('Mock - CustomerController', () => {
 
     test('should handle missing customer and return 404 status', async () => {
       try {
-        // Mock CustomerRepository.get to return null
         (CustomerRepository.get as jest.Mock).mockResolvedValue(null);
 
         await CustomerController.createReview(req, res);
@@ -266,7 +262,6 @@ describe('Mock - CustomerController', () => {
 
     test('should handle errors and return 500 status', async () => {
       try {
-        // Mock CustomerRepository.get to return an error
         (CustomerRepository.get as jest.Mock).mockRejectedValue(new Error('Mocked error'));
 
         await expect(CustomerController.createReview(req, res)).rejects.toThrow(CustomerError);
@@ -287,8 +282,91 @@ describe('Mock - CustomerController', () => {
     });
   });
 
-  describe('deleteCustomer', () => {
+  describe('updateCustomer', () => {
+    beforeEach(() => {
+      req.body = customerToUpdate;
+    });
 
+    afterEach(() => {
+      jest.resetAllMocks();
+    });
+
+    test('should update customer successfully with valid input', async () => {
+
+      (CustomerRepository.get as jest.Mock).mockResolvedValue(customer);
+      (CustomerRepository.update as jest.Mock).mockResolvedValue(null);
+
+      await CustomerController.getCustomer(req, res);
+      await CustomerController.updateCustomer(req, res);
+
+      expect(CustomerRepository.get).toHaveBeenCalledWith(customer.uuid);
+      expect(CustomerRepository.update).toHaveBeenCalledWith(customer.uuid, customerToUpdate);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'success',
+        title: 'Success',
+        message: 'Customer updated successfully!',
+      });
+    });
+
+    test('should return 400 for invalid input', async () => {
+      const wrongReq = {
+        params: { uuid: '1djshagb2' },
+        body: { ...customerToUpdate, card_expiry_date: '' }
+      } as unknown as Request;
+
+      (CustomerRepository.get as jest.Mock).mockResolvedValue(customer);
+
+      await CustomerController.updateCustomer(wrongReq, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        title: 'Error',
+        message: 'Invalid input provided.',
+        data: null,
+        errorCode: 400
+      });
+
+      expect(CustomerRepository.update).not.toHaveBeenCalled();
+    });
+
+    test('should handle customer not found with 404 status', async () => {
+      (CustomerRepository.get as jest.Mock).mockResolvedValue(null);
+
+      await CustomerController.updateCustomer(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalled();
+
+      expect(CustomerRepository.update).not.toHaveBeenCalled();
+    });
+
+    test('should handle internal server error with 500 status', async () => {
+      try {
+        (CustomerRepository.get as jest.Mock).mockRejectedValue(new Error('Mocked error'));
+
+        await expect(CustomerController.updateCustomer(req, res)).rejects.toThrow(CustomerError);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          "type": "error",
+          "title": "Error",
+          "message": "Failed to update the customer.",
+          "errorCode": 500,
+          "data": null
+        });
+
+        expect(CustomerRepository.update).not.toHaveBeenCalled();
+      } catch (error) {
+        console.error('Error during test:', error);
+        throw error;
+      }
+    });
+  });
+
+  describe('deleteCustomer', () => {
     test('should delete a customer successfully', async () => {
       try {
         const customerUUID = req.params.uuid;
@@ -332,17 +410,16 @@ describe('Mock - CustomerController', () => {
       }
     });
   });
-  // Escrever os testes de Update
 });
 
-describe('Supertest - CustomerController', () => {  
+describe('Supertest - CustomerController', () => {
   let baseUrl: string = 'http://localhost:5000';
 
-  // ajustar o middlware de authMiddleware, para conseguir lidar com token padrão
   describe('GET /customer/:uuid', () => {
     test('should get a customer successfully', async () => {
       const response = await supertest(baseUrl)
         .get(`/customer/${customer.uuid}`)
+        .set('x-access-token', JWT_DEV_TOKEN);
 
       expect(typeof response.body).toBe('object');
       expect(response.status).toBe(200);
@@ -350,7 +427,9 @@ describe('Supertest - CustomerController', () => {
     });
 
     test('should handle missing customer and return 404 status', async () => {
-      const response = await supertest(baseUrl).get(`/customer/${customer.uuid}404`);
+      const response = await supertest(baseUrl)
+        .get(`/customer/${customer.uuid}404`)
+        .set('x-access-token', JWT_DEV_TOKEN);
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({
@@ -365,26 +444,23 @@ describe('Supertest - CustomerController', () => {
 
   describe('POST /customer/:uuid/review', () => {
     test('should create a new review successfully', async () => {
-      (ReviewRepository.create as jest.Mock).mockResolvedValueOnce(review);
-
       const response = await supertest(baseUrl)
         .post(`/customer/${customer.uuid}/review`)
-        .send(review);
-      console.log(response.body)
+        .set('x-access-token', JWT_DEV_TOKEN)
+        .send(review)
+
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
         type: 'success',
         title: 'Success',
         message: 'Review created successfully!'
       });
-
-      expect(ReviewRepository.create).toHaveBeenCalledWith(review);
     });
-    return
 
     test('should handle missing customer and return 404 status', async () => {
       const response = await supertest(baseUrl)
         .post(`/customer/${customer.uuid}404/review`)
+        .set('x-access-token', JWT_DEV_TOKEN)
         .send(review);
 
       expect(response.status).toBe(404);
@@ -396,118 +472,109 @@ describe('Supertest - CustomerController', () => {
         data: null
       });
     });
+  });
 
-    test('should handle errors and return 500 status', async () => {
-      // Try create a review, with mock data
+  describe('POST /customer/create', () => {
+    test('should create a new customer successfully', async () => {
+      const customer201 = { ...customer, user_id: randomID() }
+      delete customer201.id;
+      delete customer201.uuid;
+
       const response = await supertest(baseUrl)
-        .post(`/customer/${customer.uuid}/review`)
-        .send(review);
+        .post('/customer/create')
+        .set('x-access-token', JWT_DEV_TOKEN)
+        .send(customer201);
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(201);
+      expect(response.text).toBe('Customer created successfully!');
+    });
+
+    test('should handle existing customer and return 409 status', async () => {
+      const customer409 = { ...customer, user_id: 1 }
+      delete customer409.id;
+
+      const response = await supertest(baseUrl)
+        .post('/customer/create')
+        .set('x-access-token', JWT_DEV_TOKEN)
+        .send(customer409);
+
+      expect(response.status).toBe(409);
       expect(response.body).toEqual({
         type: 'error',
         title: 'Error',
-        message: 'Error creating review',
-        errorCode: 500,
+        message: 'Customer already exists!',
+        errorCode: 409,
         data: null
       });
     });
   });
 
-  // Update Customer:
-  // request(app)
-  // .post('/')
-  // .field('name', 'my awesome avatar')
-  // .field('complex_object', '{"attribute": "value"}', {contentType: 'application/json'})
-  // .attach('avatar', 'test/fixtures/avatar.jpg')
+  describe('PATCH /customer/:uuid', () => {
+    test('should update customer successfully', async () => {
+      const response = await supertest(baseUrl)
+        .patch(`/customer/${customer.uuid}`)
+        .set('x-access-token', JWT_DEV_TOKEN)
+        .send(customerToUpdate);
 
-  // describe('POST /customer', () => {
-  //   test('should create a new customer successfully', async () => {
-  //     // Mock UserRepository.getByPattern to return null
-  //     (UserRepository.getByPattern as jest.Mock).mockResolvedValue(null);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        type: 'success',
+        title: 'Success',
+        message: 'Customer updated successfully!'
+      });
 
-  //     const response = await supertest(baseUrl)
-  //       .post('/customer')
-  //       .send(customer);
+      const customerRollback = { ...customer }
+      delete customerRollback.id;
+      delete customerRollback.uuid;
+      delete customerRollback.user_id;
 
-  //     expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', customer.user_id);
-  //     expect(CustomerRepository.create).toHaveBeenCalledWith(customer);
-  //     expect(response.status).toBe(201);
-  //     expect(response.text).toBe('Customer created successfully!');
-  //   });
+      const responseRollback = await supertest(baseUrl)
+        .patch(`/customer/${customer.uuid}`)
+        .set('x-access-token', JWT_DEV_TOKEN)
+        .send(customerRollback);
 
-  //   test('should handle existing customer and return 409 status', async () => {
-  //     // Mock UserRepository.getByPattern to return an existing customer
-  //     (UserRepository.getByPattern as jest.Mock).mockResolvedValue(customer);
+      expect(responseRollback.status).toBe(200);
+      expect(responseRollback.body).toEqual({
+        type: 'success',
+        title: 'Success',
+        message: 'Customer updated successfully!'
+      });
+    });
 
-  //     const response = await supertest(baseUrl)
-  //       .post('/customer')
-  //       .send(customer);
+    // test('should handle existing customer and return 409 status', async () => {
+    //   const customer409 = { ...customer, user_id: 1 }
+    //   delete customer409.id;
 
-  //     expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', customer.user_id);
-  //     expect(response.status).toBe(409);
-  //     expect(response.body).toEqual({
-  //       type: 'error',
-  //       title: 'Error',
-  //       message: 'Customer already exists!',
-  //       errorCode: 409,
-  //       data: null
-  //     });
-  //   });
+    //   const response = await supertest(baseUrl)
+    //     .post('/customer/create')
+    //     .set('x-access-token', JWT_DEV_TOKEN)
+    //     .send(customer409);
 
-  //   test('should handle errors and return 500 status', async () => {
-  //     // Mock UserRepository.getByPattern to return an error
-  //     (UserRepository.getByPattern as jest.Mock).mockRejectedValue(new Error('Mocked error'));
+    //   expect(response.status).toBe(409);
+    //   expect(response.body).toEqual({
+    //     type: 'error',
+    //     title: 'Error',
+    //     message: 'Customer already exists!',
+    //     errorCode: 409,
+    //     data: null
+    //   });
+    // });
+  });
 
-  //     const response = await supertest(baseUrl)
-  //       .post('/customer')
-  //       .send(customer);
+  return
+  describe('DELETE /customer/:uuid', () => {
+    test('should delete a customer successfully', async () => {
+      const response = await supertest(baseUrl)
+        .delete(`/customer/delete/${customer.uuid}`)
+        .set('x-access-token', JWT_DEV_TOKEN);
 
-  //     expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', customer.user_id);
-  //     expect(response.status).toBe(500);
-  //     expect(response.body).toEqual({
-  //       type: 'error',
-  //       title: 'Error',
-  //       message: 'Error creating customer',
-  //       errorCode: 500,
-  //       data: null
-  //     });
-  //   });
-  // });
-
-
-
-  // describe('DELETE /customer/:uuid', () => {
-  //   test('should delete a customer successfully', async () => {
-  //     // Mock CustomerRepository.get to return an existing customer
-  //     (CustomerRepository.get as jest.Mock).mockResolvedValue(customer);
-
-  //     const response = await supertest(baseUrl).delete(`/customer/${customer.uuid}`);
-
-  //     expect(CustomerRepository.get).toHaveBeenCalledWith(customer.uuid);
-  //     expect(CustomerRepository.delete).toHaveBeenCalledWith(customer.uuid);
-  //     expect(response.status).toBe(200);
-  //     expect(response.body).toEqual({
-  //       type: 'success',
-  //       title: 'Success',
-  //       message: 'Customer deleted successfully!'
-  //     });
-  //   });
-
-  //   test('should return 500 when customer deletion fails', async () => {
-  //     // Mock CustomerRepository.delete to return an error
-  //     (CustomerRepository.delete as jest.Mock).mockRejectedValue(new Error('Mocked error'));
-
-  //     const response = await supertest(baseUrl).delete(`/customer/${customer.uuid}`);
-
-  //     expect(response.status).toBe(500);
-  //     expect(response.body).toEqual({
-  //       type: 'error',
-  //       title: 'Error',
-  //       message: 'Failed to delete the customer.',
-  //       errorCode: 500,
-  //       data: null
-  //     });
-  //   });
-  // });
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({
+        type: 'success',
+        title: 'Success',
+        message: 'Customer deleted successfully!'
+      });
+    });
+  });
 });
+
