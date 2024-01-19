@@ -59,6 +59,16 @@ The source code is organized into separate modules for better clarity and mainta
 
 Each module has its own routes defined in their respective files.
 
+### Tests
+To run the application tests, it is necessary for the server to be running, as there are various tests that simulate a user's request, going through the entire server flow.
+```bash
+$ npm run dev     #The server will start on port 5000 by default.
+```
+Next, execute the following command:
+```bash
+$ npm run test     #The test suite will be executed.
+```
+
 # <a name="contributing"></a>🤝 Contributing 
 This project is for study purposes too, so send me an email telling me what you are doing and why you are doing it, teach me what you know
 
