@@ -8,7 +8,7 @@ class ProductController {
     const id = req.body.id;
     try {
       await ProductRepository.delete(id);
-      res.send("Product deleted successfully");
+      res.json("Product deleted successfully");
     } catch (error) {
       console.error(error);
       res.status(500).send("Something went wrong, Delete product from Shopping Cart");
@@ -18,10 +18,8 @@ class ProductController {
   static async getAllAspects(req: Request, res: Response) {
     try {
       const aspects = await ProductRepository.getAllAspects();
-  
-      // Aproveitar, e melhorar a logica disso aqui
 
-      // res.send(data);
+      res.json(aspects);
     } catch (error) {
       console.error(error);
       res.status(500).send("Something went wrong, Select All Aspects");
@@ -36,7 +34,7 @@ class ProductController {
 
       const product = await ProductRepository.getFiltered(req.query);
 
-      res.send(product);
+      res.json(product);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Something went wrong, Select All Aspects" });
@@ -58,7 +56,7 @@ class ProductController {
         return res.status(404).json({ error: "Product not found" });
       }
     
-      res.send(product);
+      res.json(product);
     } catch (error) {
       console.error(error);
       res.status(500).send("Something went wrong, Select All Products");
@@ -69,7 +67,7 @@ class ProductController {
     try {
       const products = await ProductRepository.get();
 
-      res.send(products);
+      res.json(products);
     } catch (error) {
       console.error(error);
       res.status(500).send("Something went wrong, Select All Products");
