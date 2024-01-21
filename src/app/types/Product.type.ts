@@ -19,3 +19,15 @@ export interface ShoppingCartItem {
   product_id: number;
   quantity: number;
 }
+
+export interface AspectColumn {
+  id: number;
+  name: string;
+}
+
+export interface AspectResult {
+  brands: AspectColumn[];
+  genders: AspectColumn[];
+  categories: AspectColumn[];
+  sizes: Partial<AspectColumn[]>;
+}
