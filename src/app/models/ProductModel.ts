@@ -1,5 +1,5 @@
 import DatabaseManager from '../../database/db';
-import Product from 'types/Product.type';
+import Product, { AspectResult } from 'types/Product.type';
 
 class ProductModel {
   private static dbManager: DatabaseManager;
@@ -31,11 +31,41 @@ class ProductModel {
    * Get all aspects of products from the database.
    * @returns A Promise that resolves with an array of product aspects.
    */
-  static async getAllAspects(): Promise<any> {
-    const query: string = 'SELECT * FROM product_aspects';
-    const dbManager = this.getDBManager();
+  static async getAllAspects(): Promise<AspectResult> {
+    let dbManager: DatabaseManager | null = null;
 
-    return await dbManager.all(query, []);
+    try {
+      dbManager = this.getDBManager();
+
+      const brandQuery = 'SELECT id, name FROM brand_product';
+      const genderQuery = 'SELECT id, name FROM gender_product';
+      const categoryQuery = 'SELECT id, name FROM category_product';
+      const sizeQuery = 'SELECT id, size FROM size_product';
+
+      const [brands, genders, categories, sizes] = await Promise.all([
+        dbManager.all(brandQuery, []),
+        dbManager.all(genderQuery, []),
+        dbManager.all(categoryQuery, []),
+        dbManager.all(sizeQuery, []),
+      ]);
+
+      const aspects: any = {
+        brands,
+        genders,
+        categories,
+        sizes
+      };
+
+      return aspects;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get all aspects");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+        dbManager = null;
+      }
+    }
   }
 
   /**
@@ -43,10 +73,21 @@ class ProductModel {
    * @returns A Promise that resolves with an array of products.
    */
   static async get(): Promise<Product[]> {
-    const query: string = 'SELECT * FROM product';
-    const dbManager = this.getDBManager();
+    let dbManager: DatabaseManager | null = null;
 
-    return await dbManager.all(query, []);
+    try {
+      dbManager = this.getDBManager();
+      const query: string = 'SELECT * FROM product';
+
+      return await dbManager.all(query, []);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get all products");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+      }
+    }
   }
 
   /**
@@ -55,20 +96,31 @@ class ProductModel {
    * @returns A Promise that resolves with an array of filtered products.
    */
   static async getFiltered(filters: Partial<Product>): Promise<Product[]> {
-    const conditions: string[] = [];
-    const values: any[] = [];
+    let dbManager: DatabaseManager | null = null;
 
-    Object.entries(filters).forEach(([key, value]) => {
-      conditions.push(`${key} = ?`);
-      values.push(value);
-    });
+    try {
+      const conditions: string[] = [];
+      const values: any[] = [];
 
-    const conditionString = conditions.join(' AND ');
+      Object.entries(filters).forEach(([key, value]) => {
+        conditions.push(`${key} = ?`);
+        values.push(value);
+      });
 
-    const query: string = `SELECT * FROM product WHERE ${conditionString}`;
-    const dbManager = this.getDBManager();
+      const conditionString = conditions.join(' AND ');
 
-    return await dbManager.all(query, values);
+      const query: string = `SELECT * FROM product WHERE ${conditionString}`;
+      dbManager = this.getDBManager();
+
+      return await dbManager.all(query, values);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get all products");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+      }
+    }
   }
 
   /**
@@ -77,23 +129,35 @@ class ProductModel {
    * @returns A Promise that resolves with the product data or null if not found.
    */
   static async getById(productId: number | string): Promise<Product | null> {
-    const query: string = `
-      SELECT 
-        p.*,
-        bp.name as brand_name,
-        gp.name as gender_name,
-        cp.name as category_name,
-        cp.name as size_name
-      FROM product p
-        INNER JOIN brand_product bp on p.brand_id = bp.id
-        INNER JOIN gender_product gp on p.gender_id = gp.id
-        INNER JOIN category_product cp on p.category_id = cp.id
-        INNER JOIN size_product sz on p.size_id = sz.id
-      WHERE p.id = ?
-    `;
-    const dbManager = this.getDBManager();
+    let dbManager: DatabaseManager | null = null;
 
-    return await dbManager.get(query, [productId]);
+    try {
+      const query: string = `
+        SELECT 
+          p.*,
+          bp.name as brand_name,
+          gp.name as gender_name,
+          cp.name as category_name,
+          cp.name as size_name
+        FROM product p
+          INNER JOIN brand_product bp on p.brand_id = bp.id
+          INNER JOIN gender_product gp on p.gender_id = gp.id
+          INNER JOIN category_product cp on p.category_id = cp.id
+          INNER JOIN size_product sz on p.size_id = sz.id
+        WHERE p.id = ?
+      `;
+
+      dbManager = this.getDBManager();
+
+      return await dbManager.get(query, [productId]);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get product by Id");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+      }
+    }
   }
 
   /**
@@ -102,10 +166,21 @@ class ProductModel {
    * @returns A Promise that resolves with the products data or null if not found.
    */
   static async getByIds(productIds: Array<number | string>): Promise<Product[] | null> {
-    const query: string = 'SELECT * FROM product WHERE id IN (?)';
-    const dbManager = this.getDBManager();
+    let dbManager: DatabaseManager | null = null;
 
-    return await dbManager.get(query, productIds);
+    try {
+      const query: string = 'SELECT * FROM product WHERE id IN (?)';
+      dbManager = this.getDBManager();
+
+      return await dbManager.get(query, productIds);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get products by Ids");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+      }
+    }
   }
 
   /**
@@ -114,27 +189,38 @@ class ProductModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async create(fields: Product): Promise<void> {
-    const query: string = `
-      INSERT INTO product (
-        name,
-        price,
-        discount_percentage,
-        number_of_installments,
-        product_picture,
-        color,
-        size,
-        free_shipping,
-        brand_product_id,
-        gender_product_id,
-        category_product_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    let dbManager: DatabaseManager | null = null;
 
-    const values = Object.values(fields);
+    try {
+      const query: string = `
+        INSERT INTO product (
+          name,
+          price,
+          discount_percentage,
+          number_of_installments,
+          product_picture,
+          color,
+          size,
+          free_shipping,
+          brand_product_id,
+          gender_product_id,
+          category_product_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-    const dbManager = this.getDBManager();
+      const values = Object.values(fields);
 
-    await dbManager.run(query, values);
+      dbManager = this.getDBManager();
+
+      await dbManager.run(query, values);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to create an product");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+      }
+    }
   }
 
   /**
@@ -143,35 +229,30 @@ class ProductModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(productId: number | string, fields: Partial<Product>): Promise<void> {
-    // const query: string = `
-    //   UPDATE product
-    //   SET name = ?,
-    //       price = ?,
-    //       discount_percentage = ?,
-    //       number_of_installments = ?,
-    //       product_picture = ?,
-    //       color = ?,
-    //       size = ?,
-    //       free_shipping = ?,
-    //       brand_product_id = ?,
-    //       gender_product_id = ?,
-    //       category_product_id = ?
-    //   WHERE id = ?
-    // `;
+    let dbManager: DatabaseManager | null = null;
 
-    const keys = Object.keys(fields);
-    const values = Object.values(fields);
+    try {
+      const keys = Object.keys(fields);
+      const values = Object.values(fields);
 
-    const setClause = keys.map((key) => `${key} = ?`).join(", ");
+      const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
-    const query: string = `
-      UPDATE customer
-      SET ${setClause}
-      WHERE uuid = ?
-    `;
+      const query: string = `
+        UPDATE customer
+        SET ${setClause}
+        WHERE uuid = ?
+      `;
 
-    const dbManager = this.getDBManager();
-    await dbManager.run(query, [...values, productId]);
+      dbManager = this.getDBManager();
+      await dbManager.run(query, [...values, productId]);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to fetch all products");
+    } finally {
+      if (dbManager !== null) {
+        dbManager.close();
+      }
+    }
   }
 }
 
