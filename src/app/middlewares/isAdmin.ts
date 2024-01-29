@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import UserRepository from "repositories/UserRepository";
-import UserError from "errors/UserError";
+import UserError from "builders/errors/UserError";
 import { User } from "types/User.type";
 
 const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
-  const uuid: string = req.params.uuid 
-  const messageWrongUser: string = "Ops! Something is wrong with your data. You are not able to acces this page";
+  const uuid: string | undefined = req.headers["user-uuid"] as string;
+
+  const messageWrongUser: string = "Ops! You are not able to acces this page";
 
   if (!uuid) {
     return res.status(403).send(messageWrongUser);
@@ -18,12 +19,12 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(403).send(messageWrongUser);
     }
 
+    return next();
   } catch (error) {
     console.log(error)
     res.status(401).send(messageWrongUser);
     throw new UserError(messageWrongUser, error, 401);
   }
-  return next();
 };
 
 export default isAdmin;
