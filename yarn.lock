@@ -3009,6 +3009,7 @@ __metadata:
     express: "npm:^4.18.1"
     express-fileupload: "npm:^1.4.0"
     express-session: "npm:^1.17.3"
+    express-validator: "npm:^7.0.1"
     jest: "npm:^29.7.0"
     jsonwebtoken: "npm:^9.0.2"
     nodemon: "npm:^3.0.1"
@@ -4279,6 +4280,16 @@ __metadata:
     safe-buffer: "npm:5.2.1"
     uid-safe: "npm:~2.1.5"
   checksum: 6b53da479b46c58c480d00fc9a76e5cc22a706404ae6eb8eb7b09148f7a0c07517bb8957397eae4dbe72a3e4d79b39b69da448b3fb94744b28713c716355dec9
+  languageName: node
+  linkType: hard
+
+"express-validator@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "express-validator@npm:7.0.1"
+  dependencies:
+    lodash: "npm:^4.17.21"
+    validator: "npm:^13.9.0"
+  checksum: 1af58f04bdc3c916d3b6ab30f8c4c0ddc3b11118868715ed8487cc5e3c8edbcd078152c64be69fbd27e5f901a0dc6ba0dc045cb10384ffc3b0680ef34ccd6700
   languageName: node
   linkType: hard
 
@@ -6106,6 +6117,13 @@ __metadata:
   version: 4.1.1
   resolution: "lodash.once@npm:4.1.1"
   checksum: 46a9a0a66c45dd812fcc016e46605d85ad599fe87d71a02f6736220554b52ffbe82e79a483ad40f52a8a95755b0d1077fba259da8bfb6694a7abbf4a48f1fc04
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.17.21":
+  version: 4.17.21
+  resolution: "lodash@npm:4.17.21"
+  checksum: d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
   languageName: node
   linkType: hard
 
@@ -8316,7 +8334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.7.0":
+"validator@npm:^13.7.0, validator@npm:^13.9.0":
   version: 13.11.0
   resolution: "validator@npm:13.11.0"
   checksum: 0107da3add5a4ebc6391dac103c55f6d8ed055bbcc29a4c9cbf89eacfc39ba102a5618c470bdc33c6487d30847771a892134a8c791f06ef0962dd4b7a60ae0f5
