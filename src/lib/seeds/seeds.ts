@@ -36,7 +36,8 @@ const seeds = async () => {
         email: 'store@admin.com',
         password: await encryptedPassword(),
         phone: '12345',
-        user_picture_name: 'store.png'
+        user_picture_name: 'store.png',
+        type: 'admin'
       }
     ],
 
@@ -81,7 +82,6 @@ const seeds = async () => {
         customer_id: 1,
         rating: 4,
         comment: 'Good product!',
-        review_date: '2024-01-15',
       },
     ],
 
