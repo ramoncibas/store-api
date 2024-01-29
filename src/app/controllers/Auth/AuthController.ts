@@ -5,8 +5,9 @@ import { randomUUID } from 'crypto';
 
 import UserRepository from 'repositories/UserRepository';
 import UserFile from '../User/UserFile';
-import UserError from 'errors/UserError';
+import UserError from 'builders/errors/UserError';
 import { CustomRequest, User, UserLogin, UserPicture } from 'types/User.type';
+import ResponseBuilder from 'builders/response/ResponseBuilder';
 
 class AuthController {
   private static JWT_TOKEN_KEY: string;
@@ -31,7 +32,7 @@ class AuthController {
       throw new Error("JWT_EXPIRE_IN not defined");
     }
   }
-  
+
   private static generateToken = (userId: string | number, email: string): string => {
     return jwt.sign(
       { user_id: userId, email },
@@ -40,31 +41,43 @@ class AuthController {
     );
   }
 
+  private static handleUserError(res: Response, error: any) {
+    if (error instanceof UserError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    console.log(error)
+  }
+
   static async loginUser(req: Request, res: Response): Promise<void> {
     try {
       const { email, password }: UserLogin = req.body;
 
       if (!email || !password) {
-        res.status(400).send("All input is required");
-        return;
+        throw UserError.invalidInput();
       }
 
       const user: User | null = await UserRepository.getByPattern('email', email);
 
-      if (user && user.id && (await bcrypt.compare(password, user.password))) {
-        const token = AuthController.generateToken(user.id, email);
-
-        user.token = token;
-        user.expiresIn = AuthController.JWT_EXPIRE_IN;
-
-        res.status(200).json(user);
-      } else {
-        res.status(400).send("Invalid Credentials");
+      if (!(user && user.id && (await bcrypt.compare(password, user.password)))) {
+        throw UserError.invalidInput();
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong during login");
-      throw new UserError("Something went wrong during login", error, 500);
+
+      const token = AuthController.generateToken(user.id, email);
+
+      user.token = token;
+      user.expiresIn = AuthController.JWT_EXPIRE_IN;
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "User logged in successfully!",
+        statusCode: 200,
+        data: user
+      });
+    } catch (error: any) {
+      this.handleUserError(res, error)
     }
   }
 
@@ -81,16 +94,17 @@ class AuthController {
 
       const userPictureFile: UserPicture | null = req.files;
 
-      if (Object.values(req.body).some(value => typeof value !== 'string' || value.trim() === '')) {
-        res.status(400).send(UserError.invalidInput().toResponseObject());
-        return;
+      // Alterar isso para o schema
+      if (Object.values(req.body).some(
+        value => typeof value !== 'string' || value.trim() === ''
+      )) {
+        throw UserError.invalidInput();
       }
 
       const existingUser = await UserRepository.getByPattern('email', email);
 
       if (existingUser) {
-        res.status(409).send("User Already Exists. Please Login");
-        return;
+        throw UserError.userAlreadyExists();
       }
 
       const userUUID = randomUUID();
@@ -116,20 +130,23 @@ class AuthController {
         type
       });
 
-      if(user && user.id) {
-        const token = AuthController.generateToken(user.id, email);
-
-        user.token = token;
-        res.status(201).json(user);
-      } else {
-        res.status(400).send("Token not created").send("/login");
+      if (!(user && user.id)) {
+        throw UserError.userCreationFailed();
       }
 
-    } catch (error: any) {
-      const createUserError = new UserError('Error creating user', error);
+      const token = AuthController.generateToken(user.id, email);
 
-      res.status(500).send(createUserError.toResponseObject());
-      throw createUserError;
+      user.token = token;
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "User registered successfully!",
+        statusCode: 201,
+        data: user
+      });
+
+    } catch (error: any) {
+      this.handleUserError(res, error)
     }
   }
 
@@ -138,13 +155,11 @@ class AuthController {
       const userToken = req.headers["x-access-token"] as string;
 
       if (!userToken) {
-        res.status(401).send("Unauthorized");
-        return;
+        throw UserError.unauthorized();
       }
 
       if (AuthController.invalidTokens.has(userToken)) {
-        res.status(200).send("User already logged out");
-        return;
+        throw UserError.userAlreadyLogged();
       }
 
       try {
@@ -152,7 +167,7 @@ class AuthController {
 
         const currentTimestamp = Math.floor(Date.now() / 1000);
         if (decodedToken.exp && decodedToken.exp < currentTimestamp) {
-          throw new Error('Token expired');
+          throw UserError.invalidToken();
         }
 
         // Futuro: Atualizar dados do usuário na sessão, para mostrar a quantidade de usuarios logados
@@ -162,16 +177,16 @@ class AuthController {
         // await ActivityLogger.logUserActivity(decodedToken.user_id, 'logout');
 
         AuthController.invalidTokens.add(userToken);
-        res.status(200).send("User successfully logged out");
-
+        return ResponseBuilder.send({
+          response: res,
+          message: "User successfully logged out!",
+          statusCode: 200
+        });
       } catch (error) {
-        console.error(error);
-        res.status(401).send("Invalid or expired token");
+        throw UserError.default();
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong during logout");
-      throw new UserError("Something went wrong during logout", error, 500);
+    } catch (error: any) {
+      this.handleUserError(res, error)
     }
   }
 }

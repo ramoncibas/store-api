@@ -6,15 +6,29 @@ import ProductRepository from 'repositories/ProductRepository';
 import ProductHelper from 'helpers/ProductHelper';
 
 import Product, { ShoppingCartItem } from 'types/Product.type';
-import UserError from 'errors/UserError';
-import PurchaseError from 'errors/PurchaseError';
+import UserError from 'builders/errors/UserError';
+import PurchaseError from 'builders/errors/PurchaseError';
+import ResponseBuilder from 'builders/response/ResponseBuilder';
+import ShoppingCartError from 'builders/errors/ShoppingCartError';
 
 class PurchaseController {
+  private static handlePurchaseError(res: Response, error: any) {
+    if (error instanceof UserError || error instanceof PurchaseError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
 
+    console.log(error)
+  }
   // Validar a necessidade de implementar uma arquitetura somente para o estoque
-  static async updateStock(shoppingCartItems: ShoppingCartItem[], productList: Partial<Product>[]): Promise<void> {
+  // Implementar uma classe separada para esse metodo, ela será utilizada aqui, e quando um admin inserir um novo produto por exemplo
+  static async updateStock(
+    shoppingCartItems: ShoppingCartItem[],
+    productList: Partial<Product>[]
+  ): Promise<any> {
     try {
-      await Promise.all(
+      return await Promise.all(
         shoppingCartItems.map(async ({ id: cartId, quantity }: ShoppingCartItem) => {
           const product = productList.find(product => product.id === cartId);
 
@@ -47,21 +61,19 @@ class PurchaseController {
       const numericCustomerID: number = parseInt(customerID, 10);
 
       if (isNaN(numericCustomerID)) {
-        res.status(400).send("Invalid customerID provided");
-        return;
+        throw UserError.invalidInput();
       }
 
       const shoppingCartItems: ShoppingCartItem[] | null = await ShoppingCartRepository.getAll(numericCustomerID);
 
       if (!shoppingCartItems || shoppingCartItems?.length === 0) {
-        res.status(400).send("Shopping cart is empty");
-        return;
+        throw ShoppingCartError.isEmpty();
       }
 
       const shoppingCartIds: number[] = shoppingCartItems.map(obj => {
         const idAsNumber = Number(obj.id);
         if (isNaN(idAsNumber)) {
-          throw new Error(`Invalid id value for shopping cart item: ${obj.id}`);
+          throw ShoppingCartError.invalidValue(obj.id);
         }
         return idAsNumber;
       });
@@ -69,8 +81,7 @@ class PurchaseController {
       const products: Product[] | null = await ProductRepository.getByIds(shoppingCartIds);
 
       if (!Array.isArray(products) || products.length === 0) {
-        res.status(400).send("No products found for the given shopping cart items");
-        return;
+        throw ShoppingCartError.itemNotFound();
       }
 
       const totalAmount = ProductHelper.calculateTotalAmount(shoppingCartItems, products);
@@ -80,21 +91,23 @@ class PurchaseController {
         total_amount: totalAmount
       });
 
-      if(purchaseId) {
+      if (purchaseId) {
         const paymentSuccessful = await ProductHelper.processPayment(customerID, totalAmount);
 
         if (!paymentSuccessful) {
-          res.status(500).send("Payment processing failed");
-          return;
+          throw PurchaseError.default();
         }
       }
 
       await this.updateStock(shoppingCartItems, products);
 
-      res.status(200).send("Purchase successful");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong during purchase");
+      return ResponseBuilder.send({
+        response: res,
+        message: "Purchase created successfully!",
+        statusCode: 201
+      });
+    } catch (error: any) {
+      this.handlePurchaseError(res, error)
     }
   }
 
@@ -104,22 +117,23 @@ class PurchaseController {
       const numericPurchaseId: number = parseInt(purchaseId, 10);
 
       if (isNaN(numericPurchaseId)) {
-        res.status(400).send("Invalid purchaseId provided");
-        return;
+        throw PurchaseError.invalidInput();
       }
 
       const purchase = await PurchaseRepository.get(numericPurchaseId);
 
       if (!purchase) {
-        res.status(404).send("Purchase not found");
-        return;
+        throw PurchaseError.notFound();
       }
 
-      res.send(purchase);
+      return ResponseBuilder.send({
+        response: res,
+        message: "Purchase retrieved successfully!",
+        statusCode: 200,
+        data: purchase
+      });
     } catch (error: any) {
-      console.error('Error retrieving purchase:', error);
-      res.status(500).send("Internal Server Error");
-      throw new PurchaseError('Error retrieving purchase', error);
+      this.handlePurchaseError(res, error)
     }
   }
 
@@ -127,19 +141,25 @@ class PurchaseController {
     try {
       const { id: customerID } = req.params;
       const numericCustomerID: number = parseInt(customerID, 10);
-  
+
       if (isNaN(numericCustomerID)) {
-        res.status(400).send("Invalid customerID provided");
-        return;
+        throw PurchaseError.invalidInput();
       }
 
       const purchases = await PurchaseRepository.getAll(customerID);
 
-      res.send(purchases);
+      if (!purchases) {
+        throw PurchaseError.notFound();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Purchases retrieved successfully!",
+        statusCode: 200,
+        data: purchases
+      });
     } catch (error: any) {
-      console.error('Error retrieving purchases:', error);
-      res.status(500).send("Internal Server Error");
-      throw new PurchaseError('Error retrieving purchases', error);
+      this.handlePurchaseError(res, error)
     }
   }
 }
