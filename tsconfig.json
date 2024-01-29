@@ -16,15 +16,16 @@
       "controllers/*": ["app/controllers/*"],
       "middlewares": ["app/middlewares/index.ts"],
       "repositories/*": ["app/repositories/*"],
+      "validators/*": ["app/validators/*.ts"],
       "models/*": ["app/models/*.ts"],
       "helpers/*": ["app/helpers/*"],
       "routes": ["app/routes/index.ts"],
       "schema/*": ["schema/*"],
       "config/*": ["config/*"],
       "lib/*": ["lib/*"],
-      "errors/*": ["app/errors/*.ts"],
+      "builders/*": ["app/builders/*"],
       "types/*": ["app/types/*"],
-      "utils": ["utils/*"]
+      "utils": ["utils/index.ts"]
     },
   },
   "include": [
