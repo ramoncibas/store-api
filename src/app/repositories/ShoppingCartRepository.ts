@@ -1,5 +1,5 @@
 import ShoppingCartModel from "models/ShoppingCartModel";
-import ShoppingCartError from "errors/ShoppingCartError";
+import ShoppingCartError from "builders/errors/ShoppingCartError";
 import { ShoppingCartItem } from "types/Product.type";
 
 class ShoppingCartRepository {

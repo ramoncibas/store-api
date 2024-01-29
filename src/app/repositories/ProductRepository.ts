@@ -1,6 +1,7 @@
 import ProductModel from 'models/ProductModel';
-import ProductError from 'errors/ProductError';
+import ProductError from 'builders/errors/ProductError';
 import Product from 'types/Product.type';
+import { RunResult } from 'sqlite3';
 
 class ProductRepository {
   /**
@@ -8,9 +9,9 @@ class ProductRepository {
    * @param productId - ID of the product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(productId: number | string): Promise<void> {
+  static async delete(productId: number | string): Promise<RunResult> {
     try {
-      await ProductModel.delete(productId);
+      return await ProductModel.delete(productId);
     } catch (error: any) {
       throw new ProductError(`Error deleting product with Product Id ${productId}: ${error.message}`);
     }
@@ -90,14 +91,14 @@ class ProductRepository {
    * @param fields - Object representing the product data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(fields: Product): Promise<void> {
+  static async create(fields: Product): Promise<Product> {
     // Validate price
     if (fields.price < 0) {
       throw new ProductError('Price cannot be negative.');
     }
 
     try {
-      await ProductModel.create(fields);
+      return await ProductModel.create(fields);
     } catch (error: any) {
       throw new ProductError(`Error creating product: ${error.message}`);
     }
@@ -108,7 +109,7 @@ class ProductRepository {
    * @param fields - Object containing the updated product data.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(productId: number | string, fields: Partial<Product>): Promise<void> {
+  static async update(productId: number | string, fields: Partial<Product>): Promise<RunResult> {
     if (fields.price !== undefined && fields.price <= 0) {
       throw new ProductError('Price cannot be negative or zero.');
     }
@@ -119,7 +120,7 @@ class ProductRepository {
     
 
     try {
-      await ProductModel.update(productId, fields);
+      return await ProductModel.update(productId, fields);
     } catch (error: any) {
       throw new ProductError(`Error updating product: ${error.message}`);
     }
