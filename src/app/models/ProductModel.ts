@@ -1,5 +1,7 @@
+import { randomUUID } from 'crypto';
 import DatabaseManager from '../../database/db';
 import Product, { AspectResult } from 'types/Product.type';
+import { RunResult } from 'sqlite3';
 
 class ProductModel {
   private static dbManager: DatabaseManager;
@@ -20,11 +22,11 @@ class ProductModel {
    * @param id - ID of the product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(productId: number | string): Promise<void> {
+  static async delete(productId: number | string): Promise<RunResult> {
     const query: string = 'DELETE FROM product WHERE id = ?';
     const dbManager = this.getDBManager();
 
-    await dbManager.run(query, [productId]);
+    return await dbManager.run(query, [productId]);
   }
 
   /**
@@ -60,11 +62,6 @@ class ProductModel {
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get all aspects");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-        dbManager = null;
-      }
     }
   }
 
@@ -83,10 +80,6 @@ class ProductModel {
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get all products");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-      }
     }
   }
 
@@ -116,10 +109,6 @@ class ProductModel {
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get all products");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-      }
     }
   }
 
@@ -153,10 +142,6 @@ class ProductModel {
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get product by Id");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-      }
     }
   }
 
@@ -176,10 +161,6 @@ class ProductModel {
     } catch (error) {
       console.error(error);
       throw new Error("Failed to get products by Ids");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-      }
     }
   }
 
@@ -188,38 +169,43 @@ class ProductModel {
    * @param fields - Object representing the product data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(fields: Product): Promise<void> {
+  static async create(fields: Product): Promise<Product> {
     let dbManager: DatabaseManager | null = null;
 
     try {
       const query: string = `
         INSERT INTO product (
+          uuid,
           name,
           price,
-          discount_percentage,
-          number_of_installments,
-          product_picture,
           color,
-          size,
+          discount_percentage,
+          product_picture,
+          number_of_installments,
           free_shipping,
-          brand_product_id,
-          gender_product_id,
-          category_product_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          description,
+          size_id,
+          brand_id,
+          gender_id,
+          category_id,
+          quantity_available
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING *;
       `;
 
-      const values = Object.values(fields);
+      // deixar color como uma tabela auxiliar
 
-      dbManager = this.getDBManager();
+      const generatedUuid = randomUUID();
+      const values = [generatedUuid, ...Object.values(fields)];
+      
+      const dbManager = this.getDBManager();
+      const productData = await dbManager.all(query, values);
 
-      await dbManager.run(query, values);
+      return productData[0];
+
     } catch (error) {
       console.error(error);
       throw new Error("Failed to create an product");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-      }
     }
   }
 
@@ -228,7 +214,7 @@ class ProductModel {
    * @param fields - Object containing the updated product data.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(productId: number | string, fields: Partial<Product>): Promise<void> {
+  static async update(productId: number | string, fields: Partial<Product>): Promise<RunResult> {
     let dbManager: DatabaseManager | null = null;
 
     try {
@@ -244,14 +230,10 @@ class ProductModel {
       `;
 
       dbManager = this.getDBManager();
-      await dbManager.run(query, [...values, productId]);
+      return await dbManager.run(query, [...values, productId]);
     } catch (error) {
       console.error(error);
       throw new Error("Failed to fetch all products");
-    } finally {
-      if (dbManager !== null) {
-        dbManager.close();
-      }
     }
   }
 }
