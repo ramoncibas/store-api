@@ -1,5 +1,5 @@
 import UserModel from 'models/UserModel';
-import UserError from 'errors/UserError';
+import UserError from 'builders/errors/UserError';
 import { User } from 'types/User.type';
 
 class UserRepository {

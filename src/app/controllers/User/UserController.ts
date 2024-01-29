@@ -1,10 +1,21 @@
 import { NextFunction, Request, Response } from 'express';
 import UserRepository from 'repositories/UserRepository';
 import UserFile from './UserFile';
-import UserError from 'errors/UserError';
+import UserError from 'builders/errors/UserError';
+import ResponseBuilder from 'builders/response/ResponseBuilder';
 import { CustomRequest, User, UserPicture } from 'types/User.type';
 
 class UserController {
+  private static handleUserError(res: Response, error: any) {
+    if (error instanceof UserError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    console.log(error)
+  }
+
   static async getUser(req: Request, res: Response): Promise<void> {
     const { uuid } = req.params;
 
@@ -12,8 +23,7 @@ class UserController {
       const user = await UserRepository.getByPattern('uuid', uuid);
 
       if (!user) {
-        res.status(404).send(UserError.userNotFound().toResponseObject());
-        return;
+        throw UserError.userNotFound();
       }
 
       if (user?.user_picture_name) {
@@ -21,22 +31,33 @@ class UserController {
         user.user_picture_url = filePath;
       }
 
-      res.send(user);
-
+      return ResponseBuilder.send({
+        response: res,
+        message: "User retrieved successfully!",
+        statusCode: 200,
+        data: user
+      });
     } catch (error: any) {
-      res.status(500).send(UserError.default().toResponseObject());
-      throw UserError.default();
+      this.handleUserError(res, error);
     }
   }
 
   static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
       const users: User[] = await UserRepository.getAll();
-      
-      res.send(users);
+
+      if (!users) {
+        throw UserError.userNotFound();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Users retrieved successfully!",
+        statusCode: 200,
+        data: users
+      });
     } catch (error: any) {
-      res.status(500).send(UserError.default().toResponseObject());
-      throw UserError.default();
+      this.handleUserError(res, error);
     }
   }
 
@@ -59,16 +80,13 @@ class UserController {
 
       await UserRepository.update(userUUID, fields);
 
-      res.status(200).send({
-        type: "success",
-        title: "Success",
-        message: "Your profile has been updated!"
+      return ResponseBuilder.send({
+        response: res,
+        message: "User profile has been updated!",
+        statusCode: 200
       });
     } catch (error: any) {
-      const updateUserError = new UserError('Error updating user', error);
-
-      res.status(500).send(updateUserError.toResponseObject());
-      throw updateUserError;
+      this.handleUserError(res, error);
     }
   }
 }

@@ -1,12 +1,9 @@
-class CustomerError extends Error {
-  private errorCode: number;
-  private originalError?: any;
+import GenericError from "./GenericError";
 
-  constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message);
+class CustomerError extends GenericError {
+  constructor(message: string, errorCode: number = 500, error?: any) {
+    super(message, errorCode);
     this.name = 'CustomerError';
-    this.errorCode = errorCode;
-    this.originalError = error;
     // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
   }
 
@@ -17,46 +14,46 @@ class CustomerError extends Error {
   //   }
   // }
 
-  getErrorCode(): number {
-    return this.errorCode;
-  }
-
   toResponseObject(): any {
     return {
       type: "error",
       title: "Error",
-      errorCode: this.errorCode,
+      errorCode: this.getErrorCode(),
       message: this.message || CustomerError.default(),
       data: null,
     };
   }
 
   static default(): CustomerError {
-    return new CustomerError("Something went wrong!", undefined, 500);
+    return new CustomerError("Something went wrong!", 500);
   }
 
   static customerNotFound(): CustomerError {
-    return new CustomerError("Customer not found!", undefined, 404);
+    return new CustomerError("Customer not found!", 404);
   }
 
   static invalidInput(): CustomerError {
-    return new CustomerError("Invalid input provided.", undefined, 400);
+    return new CustomerError("Invalid input provided.", 400);
   }
 
   static unauthorized(): CustomerError {
-    return new CustomerError("Unauthorized access.",undefined,  401);
+    return new CustomerError("Unauthorized access.", 401);
   }
 
   static customerAlreadyExists(): CustomerError {
-    return new CustomerError("Customer already exists!", undefined, 409);
+    return new CustomerError("Customer already exists!", 409);
+  }
+  
+  static customerCreationFailed(): CustomerError {
+    return new CustomerError("Failed to create the customer.", 500);
   }
 
   static customerUpdateFailed(): CustomerError {
-    return new CustomerError("Failed to update the customer.", undefined, 500);
+    return new CustomerError("Failed to update the customer.", 500);
   }
 
   static customerDeletionFailed(): CustomerError {
-    return new CustomerError("Failed to delete the customer.", undefined, 500);
+    return new CustomerError("Failed to delete the customer.", 500);
   }
 }
 

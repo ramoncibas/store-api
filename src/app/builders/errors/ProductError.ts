@@ -46,6 +46,10 @@ class ProductError extends Error {
     return new ProductError("Unauthorized access.", 401);
   }
 
+  static productCreationFailed(): ProductError {
+    return new ProductError("Failed to create the product.", 500);
+  }
+
   static productAlreadyExists(): ProductError {
     return new ProductError("Product already exists!", 409);
   }

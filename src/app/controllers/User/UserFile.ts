@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import doesFileExist from "utils/doesFileExist";
+import { doesFileExist } from "utils";
 
 const { BUCKET_USER_PICTURE = '' } = process.env;
 

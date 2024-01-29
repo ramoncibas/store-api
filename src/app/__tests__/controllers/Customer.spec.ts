@@ -8,7 +8,7 @@ import supertest from 'supertest';
 import CustomerController from 'controllers/Customer/CustomerController';
 import CustomerRepository from 'repositories/CustomerRepository';
 import UserRepository from 'repositories/UserRepository';
-import CustomerError from 'errors/CustomerError';
+import CustomerError from 'builders/errors/CustomerError';
 import ReviewRepository from 'repositories/ReviewRepository';
 import Customer from 'types/Customer.type';
 import Review from 'types/Review.type';
@@ -443,10 +443,10 @@ describe('Supertest - CustomerController', () => {
     });
   });
 
-  describe('POST /customer/:uuid/review', () => {
+  describe('POST /customer/:uuid/create/review', () => {
     test('should create a new review successfully', async () => {
       const response = await supertest(baseUrl)
-        .post(`/customer/${customer.uuid}/review`)
+        .post(`/customer/${customer.uuid}/create/review`)
         .set('x-access-token', JWT_DEV_TOKEN)
         .send(review)
 

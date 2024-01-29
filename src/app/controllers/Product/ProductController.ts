@@ -1,30 +1,57 @@
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
 import Product from 'types/Product.type';
 import ProductRepository from 'repositories/ProductRepository';
+import ProductError from 'builders/errors/ProductError';
+import ResponseBuilder from 'builders/response/ResponseBuilder';
 
 class ProductController {
+  private static handleProductError(res: Response, error: any) {
+    if (error instanceof ProductError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    console.log(error)
+  }
 
   static async deleteProduct(req: Request, res: Response) {
-    const id = req.body.id;
     try {
-      await ProductRepository.delete(id);
-      res.send("Product deleted successfully");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong, Delete product from Shopping Cart");
+      const id = req.body.id;
+
+      if (!id) {
+        throw ProductError.invalidInput();
+      }
+
+      const productResponse = await ProductRepository.delete(id);
+
+      if (!productResponse) {
+        throw ProductError.productDeletionFailed();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Product deleted successfully!",
+        statusCode: 200
+      });
+    } catch (error: any) {
+      this.handleProductError(res, error);
     }
   }
 
   static async getAllAspects(req: Request, res: Response) {
     try {
       const aspects = await ProductRepository.getAllAspects();
-  
-      // Aproveitar, e melhorar a logica disso aqui
 
-      // res.send(data);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong, Select All Aspects");
+      return ResponseBuilder.send({
+        response: res,
+        message: "Aspects retrieved successfully!",
+        statusCode: 200,
+        data: aspects
+      });
+    } catch (error: any) {
+      this.handleProductError(res, error);
     }
   }
 
@@ -36,77 +63,109 @@ class ProductController {
 
       const product = await ProductRepository.getFiltered(req.query);
 
-      res.send(product);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Something went wrong, Select All Aspects" });
+      return ResponseBuilder.send({
+        response: res,
+        message: "Filtered Product retrieved successfully!",
+        statusCode: 200,
+        data: product
+      });
+    } catch (error: any) {
+      this.handleProductError(res, error);
     }
   }
 
   static async getProductById(req: Request, res: Response) {
-    const id: any = req.params.id;
-
     try {
+      const id: any = req.params.id;
+
       if (!id) {
-        return res.status(400).json({ error: "Missing product ID" });
+        return res.status(400).json({
+          error: "Missing product ID"
+        });
       }
-    
+
       const productId = typeof id === "string" ? parseInt(id, 10) : id;
       const product = await ProductRepository.getById(productId);
 
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
-    
-      res.send(product);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong, Select All Products");
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Product retrieved successfully!",
+        statusCode: 200,
+        data: product
+      });
+    } catch (error: any) {
+      this.handleProductError(res, error);
     }
   }
-  
+
   static async getProducts(req: Request, res: Response) {
     try {
       const products = await ProductRepository.get();
 
-      res.send(products);
+      if (!products) {
+        throw ProductError.productNotFound();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Products retrieved successfully!",
+        statusCode: 200,
+        data: products
+      });
     } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong, Select All Products");
+      this.handleProductError(res, error);
     }
   }
 
   static async createProduct(req: Request, res: Response) {
-    const fields: Product = req.body;
-
-    if (Object.values(fields).includes("") || Object.values(fields).includes(undefined)) {      
-      return res.status(400).send("All fields must be filled out!");
-    } else if (fields.discount_percentage > 90) {
-      return res.status(400).send("Discount percentage exceeds the limit of 90%");
-    }
-    
     try {
-      await ProductRepository.create(fields);
-      res.redirect("/");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong to Create the Product");
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const fields: Product = req.body;
+      const productCreated = await ProductRepository.create(fields);
+
+      if (!productCreated) {
+        throw ProductError.productCreationFailed();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Product created successfully!",
+        statusCode: 200
+      });
+    } catch (error: any) {
+      this.handleProductError(res, error);
     }
   }
 
   static async updateProduct(req: Request, res: Response) {
-    const fields: Product = req.body;
-  
-    if (Object.values(fields).includes("")) {
-      return res.status(400).send("All fields must be filled out!");
-    }
-
     try {
-      await ProductRepository.update(fields.id!, fields);
-      res.redirect("/");
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Something went wrong to Update Product");
+      const fields: Product = req.body;
+
+      if (Object.values(fields).includes("")) {
+        return res.status(400).send("All fields must be filled out!");
+      }
+
+      const productResponse = await ProductRepository.update(fields.id!, fields);
+
+      if (!productResponse) {
+        throw ProductError.productUpdateFailed();
+      }
+      return ResponseBuilder.send({
+        response: res,
+        message: "Product updated successfully!",
+        statusCode: 200
+      });
+    } catch (error: any) {
+      this.handleProductError(res, error);
     }
   }
 }

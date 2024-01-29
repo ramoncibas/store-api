@@ -42,12 +42,24 @@ class UserError extends Error {
     return new UserError("Invalid input provided.", 400);
   }
 
+  static invalidToken(): UserError {
+    return new UserError("Invalid or expired token provided.", 401);
+  }
+
   static unauthorized(): UserError {
     return new UserError("Unauthorized access.", 401);
+  }
+  
+  static userCreationFailed(): UserError {
+    return new UserError("Failed to create the user.", 500);
   }
 
   static userAlreadyExists(): UserError {
     return new UserError("User already exists!", 409);
+  }
+
+  static userAlreadyLogged(): UserError {
+    return new UserError("User already logged out", 200)
   }
 
   static userUpdateFailed(): UserError {

@@ -17,7 +17,7 @@ class CustomerModel {
    * @param customer - Object representing the customer data to be saved.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async save(customer: Customer): Promise<void> {
+  static async save(customer: Customer): Promise<Customer> {
     const query: string = `
       INSERT INTO customer (
         uuid,
@@ -32,12 +32,17 @@ class CustomerModel {
         favorite_brands,
         customer_reviews
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      RETURNING *;
     `;
 
     try {
       const dbManager = this.getDBManager();
       const generatedUuid = randomUUID();
-      await dbManager.run(query, [generatedUuid, ...Object.values(customer)]);
+      const values = [generatedUuid, ...Object.values(customer)];
+
+      const productData = await dbManager.all(query, values);
+
+      return productData[0];
     } catch (error) {
       console.error(error);
       throw error;
@@ -73,7 +78,7 @@ class CustomerModel {
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(customerUUID: string, updatedFields: Partial<Customer>): Promise<void> {
+  static async update(customerUUID: string, updatedFields: Partial<Customer>): Promise<Customer> {
     const keys = Object.keys(updatedFields);
     const values = Object.values(updatedFields);
 
@@ -83,11 +88,14 @@ class CustomerModel {
       UPDATE customer
       SET ${setClause}
       WHERE uuid = ?
+      RETURNING *;
     `;
 
     try {
       const dbManager = this.getDBManager();
-      await dbManager.run(query, [...values, customerUUID]);
+      const customerData = await dbManager.all(query, [...values, customerUUID]);
+
+      return customerData[0];
     } catch (error) {
       console.error(error);
       throw error;
@@ -99,14 +107,16 @@ class CustomerModel {
    * @param customerUUID - UUID of the customer to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(customerUUID: string): Promise<void> {
+  static async delete(customerUUID: string): Promise<boolean> {
     const query: string = `
       DELETE FROM customer WHERE uuid = ?
     `;
 
     try {
       const dbManager = this.getDBManager();
-      await dbManager.run(query, [customerUUID]);
+      const customerDeleted = await dbManager.run(query, [customerUUID]);
+
+      return Boolean(customerDeleted);
     } catch (error) {
       console.error(error);
       throw error;

@@ -1,66 +1,49 @@
 import { Request, Response } from 'express';
 import CustomerRepository from 'repositories/CustomerRepository';
-import ReviewRepository from 'repositories/ReviewRepository';
+import UserRepository from 'repositories/UserRepository';
 import Customer from 'types/Customer.type';
-import Review from 'types/Review.type';
-import CustomerError from 'errors/CustomerError';
-import UserRepository from '../../repositories/UserRepository';
-import UserError from '../../errors/UserError';
+import CustomerError from 'builders/errors/CustomerError';
+import ResponseBuilder from 'builders/response/ResponseBuilder';
 
 class CustomerController {
-  static async createCustomer(req: Request, res: Response): Promise<void> {
-    try {
-      const customer: Customer = req.body;      
-      const existingCustomer = await UserRepository.getByPattern('id', customer.user_id);
-      
-      if (existingCustomer) {
-        res.status(409).json(CustomerError.customerAlreadyExists().toResponseObject());
-        return;
-      }
-
-      await CustomerRepository.create(customer);
-
-      res.status(201).send("Customer created successfully!");
-
-    } catch (error: any) {
-      const customerError = new CustomerError('Error creating customer', error);
-
-      res.status(500).json(customerError.toResponseObject());
-      throw customerError;
+  private static handleCustomerError(res: Response, error: any) {
+    if (error instanceof CustomerError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
     }
+
+    console.log(error)
   }
 
-  static async createReview(req: Request, res: Response): Promise<void> {
+  static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
-      const customerUUID: string = req.params.uuid;
-      const reviewData: Review = req.body;
+      const customer: Customer = req.body;
 
-      if (!reviewData) {
-        res.status(400).json(CustomerError.invalidInput().toResponseObject());
-        return;
+      if (!customer?.user_id) {
+        throw CustomerError.invalidInput();
       }
 
-      const customer: Customer | null = await CustomerRepository.get(customerUUID);
+      const existingCustomer = await UserRepository.getByPattern('id', customer.user_id);
 
-      if (!customer || customer.id === null) {
-        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
-        return;
+      if (existingCustomer) {
+        throw CustomerError.customerAlreadyExists();
       }
 
-      reviewData.customer_id = customer.id as string | number;
+      const customerCreated = await CustomerRepository.create(customer);
 
-      await ReviewRepository.create(reviewData);
+      if (!customerCreated) {
+        throw CustomerError.customerCreationFailed();
+      }
 
-      res.status(200).json({
-        type: "success",
-        title: "Success",
-        message: "Review created successfully!"
+      return ResponseBuilder.send({
+        response: res,
+        message: "Customer created successfully!",
+        statusCode: 201,
+        data: customer
       });
     } catch (error: any) {
-      const customerError = new CustomerError('Error creating review', error);
-
-      res.status(500).json(customerError.toResponseObject());
-      throw customerError;
+      this.handleCustomerError(res, error);
     }
   }
 
@@ -70,17 +53,17 @@ class CustomerController {
       const customer = await CustomerRepository.get(customerIdentifier);
 
       if (!customer) {
-        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
-        return;
+        throw CustomerError.customerNotFound();
       }
 
-      res.status(200).json(customer);
-
+      return ResponseBuilder.send({
+        response: res,
+        message: "Customer retrieved successfully!",
+        statusCode: 200,
+        data: customer
+      });
     } catch (error: any) {
-      const customerError = new CustomerError('Something went wrong while fetching the customer.', error);
-
-      res.status(500).json(customerError.toResponseObject());
-      throw customerError;
+      this.handleCustomerError(res, error);
     }
   }
 
@@ -90,13 +73,12 @@ class CustomerController {
       const updatedFields: Partial<Customer> = req.body;
 
       const areFieldsValid = Object.values(updatedFields).every(value => (
-        (typeof value === 'string' && value.trim() !== '') || 
+        (typeof value === 'string' && value.trim() !== '') ||
         (!isNaN(Number(value)) && value !== '')
       ));
 
-      if (!areFieldsValid) {      
-        res.status(400).json(CustomerError.invalidInput().toResponseObject());
-        return;
+      if (!areFieldsValid) {
+        throw CustomerError.invalidInput();
       }
 
       /**
@@ -112,21 +94,23 @@ class CustomerController {
       const existingCustomer = await CustomerRepository.get(customerUUID);
 
       if (!existingCustomer) {
-        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
-        return;
+        throw CustomerError.customerNotFound();
       }
 
-      await CustomerRepository.update(customerUUID, updatedFields);
+      const customerUpdated = await CustomerRepository.update(customerUUID, updatedFields);
 
-      res.status(200).json({
-        type: "success",
-        title: "Success",
-        message: "Customer updated successfully!"
+      if (!customerUpdated) {
+        throw CustomerError.customerUpdateFailed();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Customer updated successfully!",
+        statusCode: 200,
+        data: customerUpdated
       });
     } catch (error: any) {
-      res.status(500).json(CustomerError.customerUpdateFailed().toResponseObject());
-
-      throw CustomerError.customerUpdateFailed();
+      this.handleCustomerError(res, error);
     }
   }
 
@@ -140,17 +124,20 @@ class CustomerController {
         return;
       }
 
-      await CustomerRepository.delete(customerUUID);
+      const customerDeleted = await CustomerRepository.delete(customerUUID);
 
-      res.status(200).json({
-        type: "success",
-        title: "Success",
-        message: "Customer deleted successfully!"
+      if (!customerDeleted) {
+        throw CustomerError.customerDeletionFailed();
+      }
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Customer deleted successfully!",
+        statusCode: 200,
+        data: customer
       });
     } catch (error: any) {
-      res.status(500).json(CustomerError.customerDeletionFailed().toResponseObject());
-
-      throw CustomerError.customerDeletionFailed();
+      this.handleCustomerError(res, error);
     }
   }
 }

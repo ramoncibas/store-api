@@ -1,40 +1,50 @@
 import { Request, Response } from 'express';
 import ShoppingCartRepository from 'repositories/ShoppingCartRepository';
 import ProductRepository from 'repositories/ProductRepository';
-import ShoppingCartError from 'errors/ShoppingCartError';
+import ShoppingCartError from 'builders/errors/ShoppingCartError';
+import ResponseBuilder from 'builders/response/ResponseBuilder';
 import Product, { ShoppingCartItem } from 'types/Product.type';
 
 class ShoppingCartController {
-  
+  private static handleCartError(res: Response, error: any) {
+    if (error instanceof ShoppingCartError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    console.log(error)
+  }
+
   static async getShoppingCartProducts(req: Request, res: Response): Promise<void> {
     try {
       const { id: customerID } = req.params;
       const numericCustomerID: number = parseInt(customerID, 10);
-  
+
       if (isNaN(numericCustomerID)) {
-        res.status(400).send("Invalid customerID provided");
-        return;
+        throw ShoppingCartError.invalidInput();
       }
-  
+
       const shoppingCartIds: Array<number> | null = await ShoppingCartRepository.get(numericCustomerID);
 
       if (shoppingCartIds === null) {
-        res.status(404).send("No products were found in the shopping cart for the specified customerID.");
-        return;
+        throw ShoppingCartError.itemNotFound();
       }
 
       const products: Product[] = await ProductRepository.getByIds(shoppingCartIds);
 
       if (products === null) {
-        res.status(404).send("No products found for the specified customerID");
-        return;
+        throw ShoppingCartError.itemNotFound();
       }
-  
-      res.send(products);
+
+      return ResponseBuilder.send({
+        response: res,
+        message: "Shopping Cart Products retrieved successfully!",
+        statusCode: 200,
+        data: products
+      });
     } catch (error: any) {
-      console.error('Error retrieving all ShoppingCartProducts:', error);
-      res.status(500).send("Internal Server Error");
-      throw new ShoppingCartError('Error retrieving all ShoppingCartProducts', error);
+      this.handleCartError(res, error);
     }
   }
 
@@ -44,11 +54,13 @@ class ShoppingCartController {
 
       await ShoppingCartRepository.create(fields);
 
-      res.status(201).send("Product saved to ShoppingCart successfully!");
+      return ResponseBuilder.send({
+        response: res,
+        message: "Product saved to ShoppingCart successfully!",
+        statusCode: 201
+      });
     } catch (error: any) {
-      console.error('Error saving product to ShoppingCart:', error);
-      res.status(500).send("Internal Server Error");
-      throw new ShoppingCartError('Error saving product to ShoppingCart', error);
+      this.handleCartError(res, error);
     }
   }
 
@@ -57,17 +69,22 @@ class ShoppingCartController {
       const { id, quantity }: Partial<ShoppingCartItem> = req.body;
 
       if (id === undefined || quantity === undefined || quantity === 1) {
-        res.status(400).send("ID and quantity must be provided and quantity must be greater than 1!");
-        return;
+        throw new ShoppingCartError(
+          "ID and quantity must be provided and quantity must be greater than 1!",
+          undefined,
+          400
+        );
       }
 
       await ShoppingCartRepository.update(id, quantity);
 
-      res.status(201).send("Product updated to ShoppingCart successfully!");
+      return ResponseBuilder.send({
+        response: res,
+        message: "Product updated to ShoppingCart successfully!",
+        statusCode: 201
+      });
     } catch (error: any) {
-      console.error('Error updating product to ShoppingCart:', error);
-      res.status(500).send("Internal Server Error");
-      throw new ShoppingCartError('Error updating product to ShoppingCart', error);
+      this.handleCartError(res, error);
     }
   }
 
@@ -77,11 +94,13 @@ class ShoppingCartController {
 
       await ShoppingCartRepository.delete(id);
 
-      res.send("ShoppingCartProduct deleted successfully");
+      return ResponseBuilder.send({
+        response: res,
+        message: "Shopping Cart Product deleted successfully",
+        statusCode: 200
+      });
     } catch (error: any) {
-      console.error('Error deleting ShoppingCartProduct:', error);
-      res.status(500).send("Internal Server Error");
-      throw new ShoppingCartError('Error deleting ShoppingCartProduct', error);
+      this.handleCartError(res, error);
     }
   }
 }

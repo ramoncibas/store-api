@@ -1,5 +1,5 @@
 import PurchaseModel from "models/PurchaseModel";
-import PurchaseError from "errors/PurchaseError";
+import PurchaseError from "builders/errors/PurchaseError";
 import Purchase from "types/Purchase.type";
 
 class PurchaseRepository {
