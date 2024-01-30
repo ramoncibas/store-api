@@ -109,18 +109,18 @@ class ProductRepository {
    * @param fields - Object containing the updated product data.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(productId: number | string, fields: Partial<Product>): Promise<RunResult> {
+  static async update(productUUID: number | string, fields: Partial<Product>): Promise<RunResult> {
     if (fields.price !== undefined && fields.price <= 0) {
       throw new ProductError('Price cannot be negative or zero.');
     }
   
-    if (productId === undefined || !productId) {
+    if (productUUID === undefined || !productUUID) {
       throw new ProductError('The Product Id could not be null', undefined, 404);
     }
     
 
     try {
-      return await ProductModel.update(productId, fields);
+      return await ProductModel.update(productUUID, fields);
     } catch (error: any) {
       throw new ProductError(`Error updating product: ${error.message}`);
     }
