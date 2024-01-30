@@ -4,13 +4,45 @@ import { authMiddleware, isAdmin } from 'middlewares';
 import ProductSchema from 'validators/ProductSchema';
 
 const router = Router();
-const authRoutesMiddleware  = [authMiddleware, isAdmin];
+const authRoutesMiddleware = [authMiddleware, isAdmin];
 
-router.get("/", ProductController.getProducts);
-router.get("/aspects", ProductController.getAllAspects);
-router.get("/:id", ProductController.getProductById);
-router.post("/create", ...authRoutesMiddleware, ProductSchema.create, ProductController.createProduct);
-router.patch("/edit", ...authRoutesMiddleware, ProductController.updateProduct);
-router.delete("/delete", ...authRoutesMiddleware, ProductController.deleteProduct);
+router.get(
+  "/",
+  ProductSchema.get,
+  ProductController.getProducts
+);
+
+router.get(
+  "/aspects",
+  ProductSchema.get,
+  ProductController.getAllAspects
+);
+
+router.get(
+  "/:id",
+  ProductSchema.getId,
+  ProductController.getProductById
+);
+
+router.post(
+  "/create",
+  ...authRoutesMiddleware,
+  ProductSchema.create,
+  ProductController.createProduct
+);
+
+router.patch(
+  "/edit",
+  ...authRoutesMiddleware,
+  ProductSchema.update,
+  ProductController.updateProduct
+);
+
+router.delete(
+  "/delete",
+  ...authRoutesMiddleware,
+  ProductSchema.remove,
+  ProductController.deleteProduct
+);
 
 export default router;

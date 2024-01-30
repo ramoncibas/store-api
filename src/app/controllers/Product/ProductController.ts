@@ -148,13 +148,27 @@ class ProductController {
 
   static async updateProduct(req: Request, res: Response) {
     try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return ResponseBuilder.send({
+          response: res,
+          title: "Error",
+          type: "error",
+          message: "Ops! Something is wrong",
+          statusCode: 400,
+          data: errors.array()
+        });
+      }
+
       const fields: Product = req.body;
 
       if (Object.values(fields).includes("")) {
         return res.status(400).send("All fields must be filled out!");
       }
 
-      const productResponse = await ProductRepository.update(fields.id!, fields);
+      // ajustar essa logica aqui!, validar se tem um uuid ou id 
+      const productResponse = await ProductRepository.update(fields.uuid, fields);
 
       if (!productResponse) {
         throw ProductError.productUpdateFailed();
