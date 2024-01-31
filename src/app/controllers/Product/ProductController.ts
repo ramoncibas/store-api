@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
 import Product from 'types/Product.type';
 import ProductRepository from 'repositories/ProductRepository';
 import ProductError from 'builders/errors/ProductError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
+import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ProductController {
   private static handleProductError(res: Response, error: any) {
@@ -18,11 +18,9 @@ class ProductController {
 
   static async deleteProduct(req: Request, res: Response) {
     try {
-      const id = req.body.id;
+      schemaResponseError(req, res);
 
-      if (!id) {
-        throw ProductError.invalidInput();
-      }
+      const id = req.body.id;
 
       const productResponse = await ProductRepository.delete(id);
 
@@ -76,14 +74,9 @@ class ProductController {
 
   static async getProductById(req: Request, res: Response) {
     try {
+      schemaResponseError(req, res);
+
       const id: any = req.params.id;
-
-      if (!id) {
-        return res.status(400).json({
-          error: "Missing product ID"
-        });
-      }
-
       const productId = typeof id === "string" ? parseInt(id, 10) : id;
       const product = await ProductRepository.getById(productId);
 
@@ -123,11 +116,7 @@ class ProductController {
 
   static async createProduct(req: Request, res: Response) {
     try {
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+      schemaResponseError(req, res);
 
       const fields: Product = req.body;
       const productCreated = await ProductRepository.create(fields);
@@ -148,18 +137,7 @@ class ProductController {
 
   static async updateProduct(req: Request, res: Response) {
     try {
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        return ResponseBuilder.send({
-          response: res,
-          title: "Error",
-          type: "error",
-          message: "Ops! Something is wrong",
-          statusCode: 400,
-          data: errors.array()
-        });
-      }
+      schemaResponseError(req, res);
 
       const fields: Product = req.body;
 

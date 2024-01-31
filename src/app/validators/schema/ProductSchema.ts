@@ -1,6 +1,5 @@
 import { checkSchema, Schema } from 'express-validator';
 
-
 const get: Schema = {}
 
 const getId: Schema = {
@@ -24,7 +23,7 @@ const create: Schema = {
     },
     notEmpty: {
       errorMessage: 'Name is required',
-    },
+    }
   },
   price: {
     in: ['body'],
@@ -197,11 +196,22 @@ const update: Schema = {
     isNumeric: {
       options: { no_symbols: true },
       errorMessage: 'Quantity available must be a numeric value',
-    },
+    }
   },
 };
 
-const remove: Schema = {}
+const remove: Schema = {
+  id: {
+    in: ['body'],
+    notEmpty: {
+      errorMessage: 'Id is required',
+    },
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'Id should be at least 1 chars',
+    },
+  },
+}
 
 export default {
   get: checkSchema(get),
