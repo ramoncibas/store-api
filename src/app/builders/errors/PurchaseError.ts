@@ -1,30 +1,24 @@
-class PurchaseError extends Error {
-  private errorCode: number;
-  private originalError?: any;
+import GenericError from "./GenericError";
+
+class PurchaseError extends GenericError {
 
   constructor(message: string, error?: any, errorCode: number = 500) {
     super(message);
     this.name = 'PurchaseError';
-    this.errorCode = errorCode;
-    this.originalError = error;
-    this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
+    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
   }
 
-  private logError(): void {
-    if (this.originalError) {
-      // using a logging library (sentry, or something)
-      console.error(`PurchaseError: ${this.message}`, this.originalError);
-    }
-  }
-
-  getErrorCode(): number {
-    return this.errorCode;
-  }
+  // private logError(): void {
+  //   if (this.originalError) {
+  //     // using a logging library (sentry, or something)
+  //     console.error(`PurchaseError: ${this.message}`, this.originalError);
+  //   }
+  // }
 
   toResponseObject(): any {
     return {
       status: "error",
-      errorCode: this.errorCode,
+      errorCode: this.getErrorCode(),
       message: this.message || PurchaseError.default(),
       data: null,
     };
