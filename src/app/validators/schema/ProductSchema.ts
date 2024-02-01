@@ -4,13 +4,12 @@ const get: Schema = {}
 
 const getId: Schema = {
   id: {
-    in: ['params'],
+    in: ['body'],
     notEmpty: {
-      errorMessage: 'Id is required',
+      errorMessage: 'Cart Id is required',
     },
-    isLength: {
-      options: { min: 1 },
-      errorMessage: 'Id should be at least 1 chars',
+    isNumeric: {
+      options: { no_symbols: true }
     },
   },
 }
@@ -204,11 +203,10 @@ const remove: Schema = {
   id: {
     in: ['body'],
     notEmpty: {
-      errorMessage: 'Id is required',
+      errorMessage: 'Cart Id is required',
     },
-    isLength: {
-      options: { min: 1 },
-      errorMessage: 'Id should be at least 1 chars',
+    isNumeric: {
+      options: { no_symbols: true }
     },
   },
 }
