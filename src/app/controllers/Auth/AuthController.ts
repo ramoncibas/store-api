@@ -8,6 +8,7 @@ import UserFile from '../User/UserFile';
 import UserError from 'builders/errors/UserError';
 import { CustomRequest, User, UserLogin, UserPicture } from 'types/User.type';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
+import schemaResponseError from 'validators/response/schemaResponseError';
 
 class AuthController {
   private static JWT_TOKEN_KEY: string;
@@ -53,6 +54,8 @@ class AuthController {
 
   static async loginUser(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const { email, password }: UserLogin = req.body;
 
       if (!email || !password) {
@@ -83,6 +86,8 @@ class AuthController {
 
   static async registerUser(req: CustomRequest, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const {
         first_name,
         last_name,
@@ -152,6 +157,8 @@ class AuthController {
 
   static async logoutUser(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const userToken = req.headers["x-access-token"] as string;
 
       if (!userToken) {

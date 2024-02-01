@@ -4,6 +4,7 @@ import UserRepository from 'repositories/UserRepository';
 import Customer from 'types/Customer.type';
 import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
+import schemaResponseError from 'validators/response/schemaResponseError';
 
 class CustomerController {
   private static handleCustomerError(res: Response, error: any) {
@@ -18,6 +19,8 @@ class CustomerController {
 
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const customer: Customer = req.body;
 
       if (!customer?.user_id) {
@@ -49,6 +52,8 @@ class CustomerController {
 
   static async getCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const customerIdentifier: number | string = req.params.uuid;
       const customer = await CustomerRepository.get(customerIdentifier);
 
@@ -69,15 +74,12 @@ class CustomerController {
 
   static async updateCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const customerUUID: string = req.params.uuid;
       const updatedFields: Partial<Customer> = req.body;
 
-      const areFieldsValid = Object.values(updatedFields).every(value => (
-        (typeof value === 'string' && value.trim() !== '') ||
-        (!isNaN(Number(value)) && value !== '')
-      ));
-
-      if (!areFieldsValid) {
+      if (!updatedFields) {
         throw CustomerError.invalidInput();
       }
 
@@ -116,12 +118,13 @@ class CustomerController {
 
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const customerUUID: string = req.params.uuid;
       const customer = await CustomerRepository.get(customerUUID);
 
       if (!customer) {
-        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
-        return;
+        throw CustomerError.customerNotFound();
       }
 
       const customerDeleted = await CustomerRepository.delete(customerUUID);
@@ -133,8 +136,7 @@ class CustomerController {
       return ResponseBuilder.send({
         response: res,
         message: "Customer deleted successfully!",
-        statusCode: 200,
-        data: customer
+        statusCode: 200
       });
     } catch (error: any) {
       this.handleCustomerError(res, error);
