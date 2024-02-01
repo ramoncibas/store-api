@@ -1,3 +1,5 @@
+import { Response } from "express";
+
 class GenericError extends Error {
   private errorCode: number;
   private originalError?: any;
@@ -27,6 +29,15 @@ class GenericError extends Error {
       message: this.message || GenericError.defaultMessage(),
       data: null,
     };
+  }
+
+  static handleError(res: Response, error: GenericError | any) {
+    if (error instanceof GenericError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+    console.log(error);
   }
 
   static defaultMessage(): string {
