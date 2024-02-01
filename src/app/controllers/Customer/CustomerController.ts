@@ -6,16 +6,6 @@ import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
 
 class CustomerController {
-  private static handleCustomerError(res: Response, error: any) {
-    if (error instanceof CustomerError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
       const customer: Customer = req.body;
@@ -43,7 +33,7 @@ class CustomerController {
         data: customer
       });
     } catch (error: any) {
-      this.handleCustomerError(res, error);
+      CustomerError.handleError(res, error);
     }
   }
 
@@ -63,7 +53,7 @@ class CustomerController {
         data: customer
       });
     } catch (error: any) {
-      this.handleCustomerError(res, error);
+      CustomerError.handleError(res, error);
     }
   }
 
@@ -110,7 +100,7 @@ class CustomerController {
         data: customerUpdated
       });
     } catch (error: any) {
-      this.handleCustomerError(res, error);
+      CustomerError.handleError(res, error);
     }
   }
 
@@ -137,7 +127,7 @@ class CustomerController {
         data: customer
       });
     } catch (error: any) {
-      this.handleCustomerError(res, error);
+      CustomerError.handleError(res, error);
     }
   }
 }

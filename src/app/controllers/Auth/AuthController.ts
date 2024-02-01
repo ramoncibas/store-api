@@ -41,16 +41,6 @@ class AuthController {
     );
   }
 
-  private static handleUserError(res: Response, error: any) {
-    if (error instanceof UserError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async loginUser(req: Request, res: Response): Promise<void> {
     try {
       const { email, password }: UserLogin = req.body;
@@ -77,12 +67,14 @@ class AuthController {
         data: user
       });
     } catch (error: any) {
-      this.handleUserError(res, error)
+      UserError.handleError(res, error);
     }
   }
 
   static async registerUser(req: CustomRequest, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const {
         first_name,
         last_name,
@@ -146,7 +138,7 @@ class AuthController {
       });
 
     } catch (error: any) {
-      this.handleUserError(res, error)
+      UserError.handleError(res, error);
     }
   }
 
@@ -186,7 +178,7 @@ class AuthController {
         throw UserError.default();
       }
     } catch (error: any) {
-      this.handleUserError(res, error)
+      UserError.handleError(res, error);
     }
   }
 }
