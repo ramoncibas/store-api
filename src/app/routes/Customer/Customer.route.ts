@@ -6,26 +6,25 @@ import CustomerSchema from 'validators/schema/CustomerSchema';
 
 const router = Router();
 
+router.use(authMiddleware);
+
 router.get("/:uuid",
-  authMiddleware,
   CustomerSchema.get,
   CustomerController.getCustomer
 );
 
 router.post("/create",
-  authMiddleware,
   CustomerSchema.create,
   CustomerController.createCustomer
 );
 
 router.patch("/update/:uuid",
-  authMiddleware,
   CustomerSchema.update,
   CustomerController.updateCustomer
 );
 
 router.delete("/delete/:uuid",
-  ...[authMiddleware, isAdmin],
+  isAdmin,
   CustomerSchema.remove,
   CustomerController.deleteCustomer
 );
