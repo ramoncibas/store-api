@@ -16,7 +16,7 @@ class ShoppingCartController {
     console.log(error)
   }
 
-  static async getShoppingCartProducts(req: Request, res: Response): Promise<void> {
+  static async getCartItems(req: Request, res: Response): Promise<void> {
     try {
       const { id: customerID } = req.params;
       const numericCustomerID: number = parseInt(customerID, 10);
@@ -44,11 +44,11 @@ class ShoppingCartController {
         data: products
       });
     } catch (error: any) {
-      this.handleCartError(res, error);
+      ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async createShoppingCartProduct(req: Request, res: Response): Promise<void> {
+  static async addToCart(req: Request, res: Response): Promise<void> {
     try {
       const fields: ShoppingCartItem = req.body;
 
@@ -60,11 +60,11 @@ class ShoppingCartController {
         statusCode: 201
       });
     } catch (error: any) {
-      this.handleCartError(res, error);
+      ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async updateShoppingCartProduct(req: Request, res: Response): Promise<void> {
+  static async updateCartItemQuantity(req: Request, res: Response): Promise<void> {
     try {
       const { id, quantity }: Partial<ShoppingCartItem> = req.body;
 
@@ -84,13 +84,13 @@ class ShoppingCartController {
         statusCode: 201
       });
     } catch (error: any) {
-      this.handleCartError(res, error);
+      ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async deleteShoppingCartItem(req: Request, res: Response): Promise<void> {
+  static async removeCartItem(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.body;
+      const { id } = req.params;
 
       await ShoppingCartRepository.delete(id);
 
@@ -100,7 +100,27 @@ class ShoppingCartController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleCartError(res, error);
+      ShoppingCartError.handleError(res, error);
+    }
+  }
+
+  static async cleanCart(req: Request, res: Response): Promise<void> {
+    try {
+      const { customer_id } = req.params;
+      
+      const result = await ShoppingCartRepository.clearAll(customer_id);
+
+      if (!result) {
+        throw ShoppingCartError.itemDeletionFailed();
+      }
+      
+      return ResponseBuilder.send({
+        response: res,
+        message: "Shopping Cart Product deleted successfully",
+        statusCode: 200
+      });
+    } catch (error: any) {
+      ShoppingCartError.handleError(res, error);
     }
   }
 }

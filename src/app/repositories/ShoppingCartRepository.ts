@@ -68,6 +68,19 @@ class ShoppingCartRepository {
       throw new ShoppingCartError('Error deleting Shopping Cart Product', error);
     }
   }
+
+  /**
+   * Deletes all product items in the shopping cart by clearing the database based on the customer ID.
+   * @param customerID - ID of the cart owner of the shopping cart to be deleted.
+   * @returns A Promise that resolves when the operation is completed.
+   */
+  static async clearAll(customerID: number | string): Promise<any> {
+    try {
+      return await ShoppingCartModel.clearAll(customerID);
+    } catch (error: any) {
+      throw new ShoppingCartError('Error deleting Shopping Cart Product', error);
+    }
+  }
 }
 
 export default ShoppingCartRepository;
