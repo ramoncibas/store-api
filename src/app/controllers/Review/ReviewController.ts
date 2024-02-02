@@ -8,16 +8,6 @@ import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
 
 class ReviewController {
-  private static handleReviewError(res: Response, error: any) {
-    if (error instanceof CustomerError || error instanceof ReviewError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async createReview(req: Request, res: Response): Promise<void> {
     try {
       const customerUUID: string = req.params.uuid;
@@ -47,7 +37,7 @@ class ReviewController {
         statusCode: 201
       });
     } catch (error: any) {
-      this.handleReviewError(res, error);
+      ReviewError.handleError(res, error);
     }
   }
   static async updateReview(req: Request, res: Response): Promise<void> {
@@ -72,7 +62,7 @@ class ReviewController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleReviewError(res, error);
+      ReviewError.handleError(res, error);
     }
   }
 
@@ -93,7 +83,7 @@ class ReviewController {
         data: review
       });
     } catch (error: any) {
-      this.handleReviewError(res, error);
+      ReviewError.handleError(res, error);
     }
   }
 
@@ -114,7 +104,7 @@ class ReviewController {
         data: review
       });
     } catch (error: any) {
-      this.handleReviewError(res, error);
+      ReviewError.handleError(res, error);
     }
   }
 
@@ -134,7 +124,7 @@ class ReviewController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleReviewError(res, error);
+      ReviewError.handleError(res, error);
     }
   }
 }

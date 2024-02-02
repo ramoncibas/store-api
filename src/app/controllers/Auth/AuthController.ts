@@ -42,16 +42,6 @@ class AuthController {
     );
   }
 
-  private static handleUserError(res: Response, error: any) {
-    if (error instanceof UserError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async loginUser(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
@@ -80,7 +70,7 @@ class AuthController {
         data: user
       });
     } catch (error: any) {
-      this.handleUserError(res, error)
+      UserError.handleError(res, error);
     }
   }
 
@@ -151,7 +141,7 @@ class AuthController {
       });
 
     } catch (error: any) {
-      this.handleUserError(res, error)
+      UserError.handleError(res, error);
     }
   }
 
@@ -193,7 +183,7 @@ class AuthController {
         throw UserError.default();
       }
     } catch (error: any) {
-      this.handleUserError(res, error)
+      UserError.handleError(res, error);
     }
   }
 }

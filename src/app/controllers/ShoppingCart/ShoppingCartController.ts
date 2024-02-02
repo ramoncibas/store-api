@@ -6,16 +6,6 @@ import ResponseBuilder from 'builders/response/ResponseBuilder';
 import Product, { ShoppingCartItem } from 'types/Product.type';
 
 class ShoppingCartController {
-  private static handleCartError(res: Response, error: any) {
-    if (error instanceof ShoppingCartError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async getCartItems(req: Request, res: Response): Promise<void> {
     try {
       const { id: customerID } = req.params;
