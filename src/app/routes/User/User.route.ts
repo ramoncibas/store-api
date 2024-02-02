@@ -1,12 +1,31 @@
 import { Router, static as static_ } from 'express';
+import { authMiddleware, isAdmin, fileUpload } from 'middlewares';
 import UserController from 'controllers/User/UserController';
-import { authMiddleware, fileUpload } from 'middlewares';
+import UserSchema from 'validators/schema/UserSchema';
 
 const router = Router();
-const { BUCKET_USER_PICTURE = '' } = process.env;
 
-router.use('/profile/user_picture', static_(BUCKET_USER_PICTURE));
-router.get("/profile/:uuid", authMiddleware, UserController.getUser);
-router.patch("/profile/:uuid", authMiddleware, fileUpload, UserController.updateUser);
+router.use(authMiddleware);
+
+router.use("/profile/user_picture",
+  static_(process.env.BUCKET_USER_PICTURE!)
+);
+
+router.get("/profile/:uuid",
+  UserSchema.get,
+  UserController.getUser
+);
+
+router.get("/users/all",
+  isAdmin,
+  UserSchema.getAll,
+  UserController.getAllUsers
+);
+
+router.patch("/profile/:uuid",
+  fileUpload,
+  UserSchema.update,
+  UserController.updateUser
+);
 
 export default router;

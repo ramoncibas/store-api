@@ -1,5 +1,6 @@
 export default interface Product {
   id?: number | string;
+  uuid: string;
   name: string;
   price: number;
   discount_percentage: number;

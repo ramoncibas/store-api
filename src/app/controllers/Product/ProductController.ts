@@ -1,18 +1,26 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
 import Product from 'types/Product.type';
 import ProductRepository from 'repositories/ProductRepository';
 import ProductError from 'builders/errors/ProductError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
+import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ProductController {
+  private static handleProductError(res: Response, error: any) {
+    if (error instanceof ProductError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    console.log(error)
+  }
+
   static async deleteProduct(req: Request, res: Response) {
     try {
-      const id = req.body.id;
+      schemaResponseError(req, res);
 
-      if (!id) {
-        throw ProductError.invalidInput();
-      }
+      const id = req.body.id;
 
       const productResponse = await ProductRepository.delete(id);
 
@@ -26,7 +34,7 @@ class ProductController {
         statusCode: 200
       });
     } catch (error: any) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 
@@ -41,7 +49,7 @@ class ProductController {
         data: aspects
       });
     } catch (error: any) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 
@@ -60,20 +68,15 @@ class ProductController {
         data: product
       });
     } catch (error: any) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 
   static async getProductById(req: Request, res: Response) {
     try {
+      schemaResponseError(req, res);
+
       const id: any = req.params.id;
-
-      if (!id) {
-        return res.status(400).json({
-          error: "Missing product ID"
-        });
-      }
-
       const productId = typeof id === "string" ? parseInt(id, 10) : id;
       const product = await ProductRepository.getById(productId);
 
@@ -88,7 +91,7 @@ class ProductController {
         data: product
       });
     } catch (error: any) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 
@@ -107,17 +110,13 @@ class ProductController {
         data: products
       });
     } catch (error) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 
   static async createProduct(req: Request, res: Response) {
     try {
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
+      schemaResponseError(req, res);
 
       const fields: Product = req.body;
       const productCreated = await ProductRepository.create(fields);
@@ -132,19 +131,22 @@ class ProductController {
         statusCode: 200
       });
     } catch (error: any) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 
   static async updateProduct(req: Request, res: Response) {
     try {
+      schemaResponseError(req, res);
+
       const fields: Product = req.body;
 
       if (Object.values(fields).includes("")) {
         return res.status(400).send("All fields must be filled out!");
       }
 
-      const productResponse = await ProductRepository.update(fields.id!, fields);
+      // ajustar essa logica aqui!, validar se tem um uuid ou id 
+      const productResponse = await ProductRepository.update(fields.uuid, fields);
 
       if (!productResponse) {
         throw ProductError.productUpdateFailed();
@@ -155,7 +157,7 @@ class ProductController {
         statusCode: 200
       });
     } catch (error: any) {
-      ProductError.handleError(res, error);
+      this.handleProductError(res, error);
     }
   }
 }

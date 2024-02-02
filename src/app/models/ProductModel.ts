@@ -214,7 +214,7 @@ class ProductModel {
    * @param fields - Object containing the updated product data.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(productId: number | string, fields: Partial<Product>): Promise<RunResult> {
+  static async update(productUUID: number | string, fields: Partial<Product>): Promise<RunResult> {
     let dbManager: DatabaseManager | null = null;
 
     try {
@@ -224,13 +224,13 @@ class ProductModel {
       const setClause = keys.map((key) => `${key} = ?`).join(", ");
 
       const query: string = `
-        UPDATE customer
+        UPDATE product
         SET ${setClause}
         WHERE uuid = ?
       `;
-
+      
       dbManager = this.getDBManager();
-      return await dbManager.run(query, [...values, productId]);
+      return await dbManager.run(query, [...values, productUUID]);
     } catch (error) {
       console.error(error);
       throw new Error("Failed to fetch all products");

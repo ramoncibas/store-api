@@ -4,10 +4,23 @@ import UserRepository from 'repositories/UserRepository';
 import Customer from 'types/Customer.type';
 import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
+import schemaResponseError from 'validators/response/schemaResponseError';
 
 class CustomerController {
+  private static handleCustomerError(res: Response, error: any) {
+    if (error instanceof CustomerError) {
+      res.status(error.getErrorCode()).json(error.toResponseObject());
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    console.log(error)
+  }
+
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const customer: Customer = req.body;
 
       if (!customer?.user_id) {
@@ -33,12 +46,14 @@ class CustomerController {
         data: customer
       });
     } catch (error: any) {
-      CustomerError.handleError(res, error);
+      this.handleCustomerError(res, error);
     }
   }
 
   static async getCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const customerIdentifier: number | string = req.params.uuid;
       const customer = await CustomerRepository.get(customerIdentifier);
 
@@ -53,21 +68,18 @@ class CustomerController {
         data: customer
       });
     } catch (error: any) {
-      CustomerError.handleError(res, error);
+      this.handleCustomerError(res, error);
     }
   }
 
   static async updateCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const customerUUID: string = req.params.uuid;
       const updatedFields: Partial<Customer> = req.body;
 
-      const areFieldsValid = Object.values(updatedFields).every(value => (
-        (typeof value === 'string' && value.trim() !== '') ||
-        (!isNaN(Number(value)) && value !== '')
-      ));
-
-      if (!areFieldsValid) {
+      if (!updatedFields) {
         throw CustomerError.invalidInput();
       }
 
@@ -100,18 +112,19 @@ class CustomerController {
         data: customerUpdated
       });
     } catch (error: any) {
-      CustomerError.handleError(res, error);
+      this.handleCustomerError(res, error);
     }
   }
 
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+      
       const customerUUID: string = req.params.uuid;
       const customer = await CustomerRepository.get(customerUUID);
 
       if (!customer) {
-        res.status(404).json(CustomerError.customerNotFound().toResponseObject());
-        return;
+        throw CustomerError.customerNotFound();
       }
 
       const customerDeleted = await CustomerRepository.delete(customerUUID);
@@ -123,11 +136,10 @@ class CustomerController {
       return ResponseBuilder.send({
         response: res,
         message: "Customer deleted successfully!",
-        statusCode: 200,
-        data: customer
+        statusCode: 200
       });
     } catch (error: any) {
-      CustomerError.handleError(res, error);
+      this.handleCustomerError(res, error);
     }
   }
 }
