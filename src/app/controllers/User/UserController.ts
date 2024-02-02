@@ -6,16 +6,6 @@ import ResponseBuilder from 'builders/response/ResponseBuilder';
 import { CustomRequest, User, UserPicture } from 'types/User.type';
 
 class UserController {
-  private static handleUserError(res: Response, error: any) {
-    if (error instanceof UserError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async getUser(req: Request, res: Response): Promise<void> {
     const { uuid } = req.params;
 
@@ -38,7 +28,7 @@ class UserController {
         data: user
       });
     } catch (error: any) {
-      this.handleUserError(res, error);
+      UserError.handleError(res, error);
     }
   }
 
@@ -57,7 +47,7 @@ class UserController {
         data: users
       });
     } catch (error: any) {
-      this.handleUserError(res, error);
+      UserError.handleError(res, error);
     }
   }
 
@@ -86,7 +76,7 @@ class UserController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleUserError(res, error);
+      UserError.handleError(res, error);
     }
   }
 }

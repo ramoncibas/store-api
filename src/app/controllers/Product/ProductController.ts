@@ -6,16 +6,6 @@ import ResponseBuilder from 'builders/response/ResponseBuilder';
 import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ProductController {
-  private static handleProductError(res: Response, error: any) {
-    if (error instanceof ProductError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
-
   static async deleteProduct(req: Request, res: Response) {
     try {
       schemaResponseError(req, res);
@@ -34,7 +24,7 @@ class ProductController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 
@@ -49,7 +39,7 @@ class ProductController {
         data: aspects
       });
     } catch (error: any) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 
@@ -68,7 +58,7 @@ class ProductController {
         data: product
       });
     } catch (error: any) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 
@@ -91,7 +81,7 @@ class ProductController {
         data: product
       });
     } catch (error: any) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 
@@ -110,7 +100,7 @@ class ProductController {
         data: products
       });
     } catch (error) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 
@@ -131,7 +121,7 @@ class ProductController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 
@@ -157,7 +147,7 @@ class ProductController {
         statusCode: 200
       });
     } catch (error: any) {
-      this.handleProductError(res, error);
+      ProductError.handleError(res, error);
     }
   }
 }

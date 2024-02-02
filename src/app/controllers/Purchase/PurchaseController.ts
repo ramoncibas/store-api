@@ -12,15 +12,6 @@ import ResponseBuilder from 'builders/response/ResponseBuilder';
 import ShoppingCartError from 'builders/errors/ShoppingCartError';
 
 class PurchaseController {
-  private static handlePurchaseError(res: Response, error: any) {
-    if (error instanceof UserError || error instanceof PurchaseError) {
-      res.status(error.getErrorCode()).json(error.toResponseObject());
-    } else {
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-
-    console.log(error)
-  }
   // Validar a necessidade de implementar uma arquitetura somente para o estoque
   // Implementar uma classe separada para esse metodo, ela será utilizada aqui, e quando um admin inserir um novo produto por exemplo
   static async updateStock(
@@ -107,7 +98,7 @@ class PurchaseController {
         statusCode: 201
       });
     } catch (error: any) {
-      this.handlePurchaseError(res, error)
+      ShoppingCartError.handleError(res, error);
     }
   }
 
@@ -133,7 +124,7 @@ class PurchaseController {
         data: purchase
       });
     } catch (error: any) {
-      this.handlePurchaseError(res, error)
+      PurchaseError.handleError(res, error);
     }
   }
 
@@ -159,7 +150,7 @@ class PurchaseController {
         data: purchases
       });
     } catch (error: any) {
-      this.handlePurchaseError(res, error)
+      PurchaseError.handleError(res, error);
     }
   }
 }
