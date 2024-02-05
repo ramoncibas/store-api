@@ -1,8 +1,8 @@
 export default interface Review {
-  id: number | string;
+  id: number;
   uuid: string;
-  product_id: number | string;
-  customer_id: number | string;
+  product_id: number;
+  customer_id: number;
   rating: number;
   comment: string;
   review_date?: string;
