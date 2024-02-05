@@ -1,14 +1,11 @@
-import DatabaseManager from "../../database/db";
+import { randomUUID } from "crypto";
 import { ShoppingCartItem } from "types/Product.type";
+import { RunResult } from "sqlite3";
+import BaseModel from "./BaseModel";
 
-class ShoppingCartModel {
-  private static dbManager: DatabaseManager;
-
-  private static getDBManager(): DatabaseManager {
-    if (!this.dbManager) {
-      this.dbManager = new DatabaseManager();
-    }
-    return this.dbManager;
+class ShoppingCartModel extends BaseModel<ShoppingCartModel> {
+  constructor() {
+    super("shopping_cart");
   }
 
   /**
@@ -16,18 +13,25 @@ class ShoppingCartModel {
    * @param produt - Object representing the shopping cart Product product data to be saved.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async save(product: ShoppingCartItem): Promise<void> {
-    const query: string = `
-      INSERT INTO shopping_cart (
-        customer_id,
-        product_id,
-        quantity
-      ) VALUES (?, ?, ?)
-    `;
-
+  static async save(customerID: number, product: ShoppingCartItem): Promise<any> {
     try {
-      const dbManager = this.getDBManager();
-      await dbManager.run(query, [...Object.values(product)]);
+      const query: string = `
+        INSERT INTO shopping_cart (
+          uuid,
+          customer_id,
+          product_id,
+          quantity
+        ) VALUES (?, ?, ?, ?)
+        RETURNING *;
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const generatedUuid = randomUUID();
+        const values = [generatedUuid, customerID, ...Object.values(product)];
+        const result = await dbManager.all(query, values);
+
+        return result;
+      });
     } catch (error) {
       console.error(error);
       throw error;
@@ -39,15 +43,15 @@ class ShoppingCartModel {
    * @param shoppingCarID - Numeric ID of the Shopping Cart Product.
    * @returns A Promise that resolves with the customer data or null if not found.
    */
-  static async get(customerID: number | string): Promise<Array<number> | null> {
-    const query: string = `
-      SELECT product_id FROM shopping_cart WHERE customer_id = ?
-    `;
-
+  static async get(customerID: number): Promise<Array<{ product_id: number }> | null> {
     try {
-      const dbManager = this.getDBManager();
-      const row = await dbManager.get(query, [customerID]);
-      return row || null;
+      const query: string = `
+        SELECT product_id FROM shopping_cart WHERE customer_id = ?
+      `;
+
+      const rows = await this.dbManager.all(query, [customerID]);
+      
+      return rows;
     } catch (error) {
       console.error(error);
       throw error;
@@ -59,20 +63,20 @@ class ShoppingCartModel {
    * @param shoppingCarID - Numeric ID of the Shopping Cart Product.
    * @returns A Promise that resolves with the customer data or null if not found.
    */
-    static async getAll(customerID: number | string): Promise<ShoppingCartItem[] | null> {
+  static async getAll(customerID: number): Promise<ShoppingCartItem[] | null> {
+    try {
       const query: string = `
         SELECT * FROM shopping_cart WHERE customer_id = ?
       `;
-  
-      try {
-        const dbManager = this.getDBManager();
-        const row = await dbManager.get(query, [customerID]);
-        return row || null;
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
+
+      const rows = await this.dbManager.all(query, [customerID]);
+      
+      return rows;
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
+  }
 
   /**
    * Update the data of a Shopping Cart Product in the database.
@@ -80,16 +84,20 @@ class ShoppingCartModel {
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(shoppingCarID: number | string, quantity: number): Promise<void> {  
-    const query: string = `
-      UPDATE shopping_cart
-      SET quantity = ?
-      WHERE id = ?
-    `;
-
+  static async update(shoppingCarID: number, quantity: number): Promise<RunResult> {
     try {
-      const dbManager = this.getDBManager();
-      await dbManager.run(query, [quantity, shoppingCarID]);
+      const query: string = `
+        UPDATE shopping_cart
+        SET quantity = ?
+        WHERE id = ?
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const rows = await dbManager.run(query, [quantity, shoppingCarID]);
+
+        return rows;
+      });
+
     } catch (error) {
       console.error(error);
       throw error;
@@ -101,14 +109,17 @@ class ShoppingCartModel {
    * @param shoppingCarID - ID of the Shopping Cart Product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(shoppingCarID: number | string): Promise<void> {
-    const query: string = `
-      DELETE FROM shopping_cart WHERE id = ?
-    `;
-
+  static async delete(shoppingCarID: number): Promise<RunResult> {
     try {
-      const dbManager = this.getDBManager();
-      await dbManager.run(query, [shoppingCarID]);
+      const query: string = `
+        DELETE FROM shopping_cart WHERE id = ?
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const rows = await dbManager.run(query, [shoppingCarID]);
+
+        return rows;
+      });
     } catch (error) {
       console.error(error);
       throw error;
@@ -120,17 +131,15 @@ class ShoppingCartModel {
    * @param customerID - ID of the cart owner of the shopping cart to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-   static async clearAll(customerID: number | string): Promise<any> {
-    const customerIdStr: string = String(customerID);
-
-    const query: string = `
-      DELETE FROM shopping_cart WHERE customer_id = ?
-    `;
-
+  static async clear(customerID: number): Promise<any> {
     try {
-      return await DatabaseManager.executeTransaction(async (dbManager) => {
-        const result = await dbManager.run(query, [customerIdStr]);
-        
+      const query: string = `
+        DELETE FROM shopping_cart WHERE customer_id = ?
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const result = await dbManager.run(query, [customerID]);
+
         return result.changes;
       });
 

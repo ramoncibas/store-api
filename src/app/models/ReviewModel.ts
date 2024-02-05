@@ -1,16 +1,11 @@
-import DatabaseManager from "../../database/db";
 import Review from "types/Review.type";
 import { randomUUID } from 'crypto';
 import { RunResult } from "sqlite3";
+import BaseModel from "./BaseModel";
 
-class ReviewModel {
-  private static dbManager: DatabaseManager;
-
-  private static getDBManager(): DatabaseManager {
-    if (!this.dbManager) {
-      this.dbManager = new DatabaseManager();
-    }
-    return this.dbManager;
+class ReviewModel extends BaseModel<ReviewModel> {
+  constructor() {
+    super("review");
   }
 
   /**
@@ -19,18 +14,18 @@ class ReviewModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async save(review: Review): Promise<Review> {
-    const query: string = `
-      INSERT INTO review (
-        uuid,
-        product_id,
-        customer_id,
-        rating,
-        comment
-      ) VALUES (?, ?, ?, ?, ?)
-      RETURNING *;
-    `;
-
     try {
+      const query: string = `
+        INSERT INTO review (
+          uuid,
+          product_id,
+          customer_id,
+          rating,
+          comment
+        ) VALUES (?, ?, ?, ?, ?)
+        RETURNING *;
+      `;
+
       const generatedUuid = randomUUID();
 
       const values = [
@@ -41,10 +36,12 @@ class ReviewModel {
         review.comment,
       ];
 
-      const dbManager = this.getDBManager();
-      const reviewData = await dbManager.all(query, values);
+      return await this.dbManager.transaction(async (dbManager) => {
+        const [reviewData] = await dbManager.all(query, values);
 
-      return reviewData[0];
+        return reviewData;
+      });
+
     } catch (error) {
       console.error(error);
       throw error;
@@ -57,39 +54,13 @@ class ReviewModel {
    * @returns A Promise that resolves with the review data or null if not found.
    */
   static async get(reviewUUID: string): Promise<Review | null> {
-
-    const query: string = `
-      SELECT * FROM review WHERE uuid = ?
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      const row = await dbManager.get(query, [reviewUUID]);
-      return row || null;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
+      const query: string = `
+        SELECT * FROM review WHERE uuid = ?
+      `;
 
-   /**
-   * Get a review from the database based on the provided pattern and value.
-   * @param pattern - A string or array of strings representing the fields to filter on.
-   * @param values - A string or array of strings corresponding values for the filter pattern.
-   * @returns A Promise that resolves with the review data or null if not found.
-   */
-   static async getByPattern(pattern: string | Array<string>, values: number | string | Array<string>): Promise<Review[] | null> {
-    const conditions = Array.isArray(pattern) ? pattern.join(' AND ') : pattern;
-    const placeholders = Array.isArray(values) ? values.map(() => '?').join(', ') : '?';
-    const queryValues = Array.isArray(values) ? values : [values];
-    
-    const query: string = `
-      SELECT * FROM review WHERE ${conditions} = ${placeholders}
-    `;
+      const row = await this.dbManager.get(query, [reviewUUID]);
 
-    try {
-      const dbManager = this.getDBManager();
-      const row: Review[] = await dbManager.all(query, queryValues);
       return row;
     } catch (error) {
       console.error(error);
@@ -104,23 +75,24 @@ class ReviewModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(reviewUUID: string, updatedFields: Partial<Review>): Promise<Review> {
-    const keys = Object.keys(updatedFields);
-    const values = Object.values(updatedFields);
-
-    const setClause = keys.map((key) => `${key} = ?`).join(", ");
-
-    const query: string = `
-      UPDATE review
-      SET ${setClause}
-      WHERE uuid = ?
-      RETURNING *;
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      const reviewData = await dbManager.all(query, [...values, reviewUUID]);
+      const keys = Object.keys(updatedFields);
+      const values = Object.values(updatedFields);
 
-      return reviewData[0];   
+      const setClause = keys.map((key) => `${key} = ?`).join(", ");
+
+      const query: string = `
+        UPDATE review
+        SET ${setClause}
+        WHERE uuid = ?
+        RETURNING *;
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const [reviewData] = await dbManager.all(query, [...values, reviewUUID]);
+
+        return reviewData;
+      });
     } catch (error) {
       console.error(error);
       throw error;
@@ -133,13 +105,14 @@ class ReviewModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(reviewUUID: string): Promise<RunResult> {
-    const query: string = `
-      DELETE FROM review WHERE uuid = ?
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      return await dbManager.run(query, [reviewUUID]);
+      const query: string = `
+        DELETE FROM review WHERE uuid = ?
+      `;
+      
+      const row = await this.dbManager.run(query, [reviewUUID]);
+
+      return row;
     } catch (error) {
       console.error(error);
       throw error;
