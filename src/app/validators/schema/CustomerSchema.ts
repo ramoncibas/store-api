@@ -13,19 +13,11 @@ const get: Schema = {
 }
 
 const create: Schema = {
-  uuid: {
-    in: ['body'],
-    isString: {
-      errorMessage: 'UUID must be a string',
-    },
-    notEmpty: {
-      errorMessage: 'UUID is required',
-    }
-  },
   user_id: {
     in: ['body'],
-    isString: {
-      errorMessage: 'UserId must be a string',
+    isNumeric: {
+      options: { no_symbols: true },
+      errorMessage: 'UserId must be a number',
     },
     notEmpty: {
       errorMessage: 'UserId is required',
