@@ -23,7 +23,7 @@ class ReviewController {
         throw CustomerError.customerNotFound();
       }
 
-      reviewData.customer_id = customer.id as string | number;
+      reviewData.customer_id = customer.id as number;
 
       const reviewCreated = await ReviewRepository.create(reviewData);
 
