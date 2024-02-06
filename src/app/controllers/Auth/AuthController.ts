@@ -52,7 +52,7 @@ class AuthController {
         throw UserError.invalidInput();
       }
 
-      const user: User | null = await UserRepository.getByPattern('email', email);
+      const user: User | null = await UserRepository.search('email', email);
 
       if (!(user && user.id && (await bcrypt.compare(password, user.password)))) {
         throw UserError.invalidInput();
@@ -96,7 +96,7 @@ class AuthController {
         throw UserError.invalidInput();
       }
 
-      const existingUser = await UserRepository.getByPattern('email', email);
+      const existingUser = await UserRepository.search('email', email);
 
       if (existingUser) {
         throw UserError.userAlreadyExists();

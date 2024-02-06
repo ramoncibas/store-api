@@ -22,9 +22,9 @@ class UserRepository {
    * @param value - The corresponding value for the filter pattern.
    * @returns A Promise that resolves with the user data or null if not found.
    */
-  static async getByPattern(pattern: string | Array<string>, value: number | string | Array<string>): Promise<User | null> {
+  static async search(pattern: string | Array<string>, value: number | string | Array<string>): Promise<User | null> {
     try {
-      return await UserModel.getByPattern(pattern, value);
+      return await UserModel.search(pattern, value);
     } catch (error: any) {
       throw new UserError('Error retrieving user', error);
     }

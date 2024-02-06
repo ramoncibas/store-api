@@ -4,26 +4,32 @@ import ProductRepository from 'repositories/ProductRepository';
 import ShoppingCartError from 'builders/errors/ShoppingCartError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
 import Product, { ShoppingCartItem } from 'types/Product.type';
+import schemaResponseError from 'validators/response/schemaResponseError';
+import { isNumeric } from 'utils/isNumeric';
 
 class ShoppingCartController {
   static async getCartItems(req: Request, res: Response): Promise<void> {
     try {
-      const { id: customerID } = req.params;
-      const numericCustomerID: number = parseInt(customerID, 10);
+      schemaResponseError(req, res);
 
-      if (isNaN(numericCustomerID)) {
+      const { customer_id } = req.params as unknown as { customer_id: number };
+
+      if (!isNumeric(customer_id)) {
         throw ShoppingCartError.invalidInput();
       }
 
-      const shoppingCartIds: Array<number> | null = await ShoppingCartRepository.get(numericCustomerID);
+      const shoppingCartIds: Array<{ product_id: number }> | null = await ShoppingCartRepository.get(customer_id);
 
-      if (shoppingCartIds === null) {
+
+      if (!shoppingCartIds) {
         throw ShoppingCartError.itemNotFound();
       }
 
-      const products: Product[] = await ProductRepository.getByIds(shoppingCartIds);
+      const arrayOfProducts: Array<number> = shoppingCartIds.map(item => item.product_id);
+      
+      const products: Product[] = await ProductRepository.getByIds(arrayOfProducts);
 
-      if (products === null) {
+      if (!products) {
         throw ShoppingCartError.itemNotFound();
       }
 
@@ -40,9 +46,26 @@ class ShoppingCartController {
 
   static async addToCart(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
+      const { customer_id } = req.params as unknown as { customer_id: number };
+
       const fields: ShoppingCartItem = req.body;
 
-      await ShoppingCartRepository.create(fields);
+      if (!isNumeric(customer_id) || !fields) {
+        throw ShoppingCartError.invalidInput();
+      }
+
+      const productExist = await ShoppingCartRepository.search(
+        ['customer_id ', 'product_id'],
+        [customer_id, fields.product_id]
+      );
+
+      if (productExist) {
+        throw ShoppingCartError.itemAlreadyExists();
+      }
+      
+      await ShoppingCartRepository.create(customer_id, fields);
 
       return ResponseBuilder.send({
         response: res,
@@ -56,17 +79,17 @@ class ShoppingCartController {
 
   static async updateCartItemQuantity(req: Request, res: Response): Promise<void> {
     try {
-      const { id, quantity }: Partial<ShoppingCartItem> = req.body;
+      schemaResponseError(req, res);
 
-      if (id === undefined || quantity === undefined || quantity === 1) {
-        throw new ShoppingCartError(
-          "ID and quantity must be provided and quantity must be greater than 1!",
-          undefined,
-          400
-        );
+      const { cart_id } = req.params as unknown as { cart_id: number };
+
+      const { quantity } = req.body;
+
+      if (!isNumeric(cart_id) || !isNumeric(quantity)) {
+        throw ShoppingCartError.invalidInput();
       }
 
-      await ShoppingCartRepository.update(id, quantity);
+      await ShoppingCartRepository.update(cart_id, quantity);
 
       return ResponseBuilder.send({
         response: res,
@@ -80,7 +103,13 @@ class ShoppingCartController {
 
   static async removeCartItem(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
+      schemaResponseError(req, res);
+      
+      const { id } = req.params as unknown as { id: number };
+
+      if (!isNumeric(id)) {
+        throw ShoppingCartError.invalidInput();
+      }
 
       await ShoppingCartRepository.delete(id);
 
@@ -96,9 +125,15 @@ class ShoppingCartController {
 
   static async cleanCart(req: Request, res: Response): Promise<void> {
     try {
-      const { customer_id } = req.params;
-      
-      const result = await ShoppingCartRepository.clearAll(customer_id);
+      schemaResponseError(req, res);
+            
+      const { customer_id } = req.params as unknown as { customer_id: number };
+
+      if (!isNumeric(customer_id)) {
+        throw ShoppingCartError.invalidInput();
+      }
+
+      const result = await ShoppingCartRepository.clear(customer_id);
 
       if (!result) {
         throw ShoppingCartError.itemDeletionFailed();

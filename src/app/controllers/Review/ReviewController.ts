@@ -70,7 +70,7 @@ class ReviewController {
     try {
       const reviewUUID: string = req.params.reviewUUID;
 
-      const review: Review[] | null = await ReviewRepository.getByPattern('uuid', reviewUUID);
+      const review: Review[] | null = await ReviewRepository.search('uuid', reviewUUID);
 
       if (!review) {
         throw ReviewError.reviewNotFound();
@@ -91,7 +91,7 @@ class ReviewController {
     try {
       const product_id: string = req.params.id;
 
-      const review: Review[] | null = await ReviewRepository.getByPattern('product_id', product_id);
+      const review: Review[] | null = await ReviewRepository.search('product_id', product_id);
 
       if (!review) {
         throw ReviewError.reviewNotFound();

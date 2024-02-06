@@ -29,7 +29,7 @@ jest.mock('repositories/ReviewRepository', () => ({
 
 jest.mock('repositories/UserRepository', () => ({
   ...jest.requireActual('repositories/UserRepository'),
-  getByPattern: jest.fn(),
+  search: jest.fn(),
 }));
 
 const randomID = () => Math.floor(Math.random() * 100000);
@@ -148,11 +148,11 @@ describe('Mock - CustomerController', () => {
 
     test('should create a new customer successfully', async () => {
       try {
-        (UserRepository.getByPattern as jest.Mock).mockResolvedValue(null);
+        (UserRepository.search as jest.Mock).mockResolvedValue(null);
 
         await CustomerController.createCustomer(req, res);
 
-        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 1);
+        expect(UserRepository.search).toHaveBeenCalledWith('id', 1);
         expect(CustomerRepository.create).toHaveBeenCalledWith(customer);
         expect(res.status).toHaveBeenCalledWith(201);
         expect(res.send).toHaveBeenCalledWith('Customer created successfully!');
@@ -164,11 +164,11 @@ describe('Mock - CustomerController', () => {
 
     test('should handle existing customer and return 409 status', async () => {
       try {
-        (UserRepository.getByPattern as jest.Mock).mockResolvedValue(customer);
+        (UserRepository.search as jest.Mock).mockResolvedValue(customer);
 
         await CustomerController.createCustomer(req, res);
 
-        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 1);
+        expect(UserRepository.search).toHaveBeenCalledWith('id', 1);
         expect(res.status).toHaveBeenCalledWith(409);
         expect(res.json).toHaveBeenCalledWith({
           "type": "error",
@@ -185,11 +185,11 @@ describe('Mock - CustomerController', () => {
 
     test('should handle errors and return 500 status', async () => {
       try {
-        (UserRepository.getByPattern as jest.Mock).mockRejectedValue(new Error('Mocked error'));
+        (UserRepository.search as jest.Mock).mockRejectedValue(new Error('Mocked error'));
 
         await expect(CustomerController.createCustomer(req, res)).rejects.toThrow(CustomerError);
 
-        expect(UserRepository.getByPattern).toHaveBeenCalledWith('id', 1);
+        expect(UserRepository.search).toHaveBeenCalledWith('id', 1);
         expect(res.status).toHaveBeenCalledWith(500);
         expect(res.json).toHaveBeenCalledWith({
           "type": "error",
