@@ -5,5 +5,6 @@ export default interface Review {
   customer_id: number;
   rating: number;
   comment: string;
-  review_date?: string;
+  created_at?: string;
+  updated_at?: string;
 }
