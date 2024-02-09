@@ -99,7 +99,8 @@ const config: Config = {
     '^routes$': '<rootDir>/src/app/routes/index.ts',
     '^config/(.*)$': '<rootDir>/src/config/$1',
     '^schema/(.*)$': '<rootDir>/src/app/schema/$1',
-    '^errors/(.*)$': '<rootDir>/src/app/errors/$1',
+    '^builders/(.*)$': '<rootDir>/src/app/builders/$1',
+    '^validators/(.*)$': '<rootDir>/src/app/validators/$1',
     '^types/(.*)$': '<rootDir>/src/app/types/$1',
     '^utils/(.*)$': '<rootDir>/src/utils/$1'
   },
