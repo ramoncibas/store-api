@@ -1,5 +1,5 @@
 export default interface Product {
-  id?: number | string;
+  id?: number;
   uuid: string;
   name: string;
   price: number;
@@ -16,8 +16,9 @@ export default interface Product {
 }
 
 export interface ShoppingCartItem {
-  id: number | string;
+  id: number;
   product_id: number;
+  customer_id: number;
   quantity: number;
 }
 

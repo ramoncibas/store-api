@@ -1,15 +1,10 @@
 import { randomUUID } from "crypto";
-import DatabaseManager from "../../database/db";
 import Customer from "types/Customer.type";
+import BaseModel from "./BaseModel";
 
-class CustomerModel {
-  private static dbManager: DatabaseManager;
-
-  private static getDBManager(): DatabaseManager {
-    if (!this.dbManager) {
-      this.dbManager = new DatabaseManager();
-    }
-    return this.dbManager;
+class CustomerModel extends BaseModel<CustomerModel> {
+  constructor() {
+    super("customer");
   }
 
   /**
@@ -18,31 +13,31 @@ class CustomerModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async save(customer: Customer): Promise<Customer> {
-    const query: string = `
-      INSERT INTO customer (
-        uuid,
-        user_id,
-        shipping_address,
-        card_number,
-        card_expiry_date,
-        card_security_code,
-        last_purchase_date,
-        total_purchases,
-        favorite_categories,
-        favorite_brands,
-        customer_reviews
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      RETURNING *;
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      const generatedUuid = randomUUID();
-      const values = [generatedUuid, ...Object.values(customer)];
+      const query: string = `
+        INSERT INTO customer (
+          uuid,
+          user_id,
+          shipping_address,
+          card_number,
+          card_expiry_date,
+          card_security_code,
+          last_purchase_date,
+          total_purchases,
+          favorite_categories,
+          favorite_brands,
+          customer_reviews
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING *;
+      `;
 
-      const productData = await dbManager.all(query, values);
+      return await this.dbManager.transaction(async (dbManager) => {
+        const generatedUuid = randomUUID();
+        const values = [generatedUuid, ...Object.values(customer)];
 
-      return productData[0];
+        const [ customerCreated ] = await dbManager.all(query, values);
+        return customerCreated;
+      });
     } catch (error) {
       console.error(error);
       throw error;
@@ -63,9 +58,9 @@ class CustomerModel {
     `;
 
     try {
-      const dbManager = this.getDBManager();
-      const row = await dbManager.get(query, [customerIdentifier]);
-      return row || null;
+      const row = await this.dbManager.get(query, [customerIdentifier]);
+
+      return row;
     } catch (error) {
       console.error(error);
       throw error;
@@ -79,23 +74,24 @@ class CustomerModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(customerUUID: string, updatedFields: Partial<Customer>): Promise<Customer> {
-    const keys = Object.keys(updatedFields);
-    const values = Object.values(updatedFields);
-
-    const setClause = keys.map((key) => `${key} = ?`).join(", ");
-
-    const query: string = `
-      UPDATE customer
-      SET ${setClause}
-      WHERE uuid = ?
-      RETURNING *;
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      const customerData = await dbManager.all(query, [...values, customerUUID]);
+      const keys = Object.keys(updatedFields);
+      const values = Object.values(updatedFields);
 
-      return customerData[0];
+      const setClause = keys.map((key) => `${key} = ?`).join(", ");
+
+      const query: string = `
+        UPDATE customer
+        SET ${setClause}
+        WHERE uuid = ?
+        RETURNING *;
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const [customer] = await dbManager.all(query, [...values, customerUUID]);
+
+        return customer;
+      });
     } catch (error) {
       console.error(error);
       throw error;
@@ -108,15 +104,17 @@ class CustomerModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async delete(customerUUID: string): Promise<boolean> {
-    const query: string = `
-      DELETE FROM customer WHERE uuid = ?
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      const customerDeleted = await dbManager.run(query, [customerUUID]);
+      const query: string = `
+        DELETE FROM customer WHERE uuid = ?
+      `;
 
-      return Boolean(customerDeleted);
+      return await this.dbManager.transaction(async (dbManager) => {
+        const row: any = await dbManager.run(query, [customerUUID]);
+
+        return row;
+      });
+
     } catch (error) {
       console.error(error);
       throw error;

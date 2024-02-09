@@ -8,9 +8,9 @@ class ShoppingCartRepository {
    * @param Shopping Cart Product - Object representing the Shopping Cart Product data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(product: ShoppingCartItem): Promise<void> {
+  static async create(customerID: number, product: ShoppingCartItem): Promise<void> {
     try {
-      await ShoppingCartModel.save(product);
+      await ShoppingCartModel.save(customerID, product);
     } catch (error: any) {
       throw new ShoppingCartError('Error creating Shopping Cart Product', error);
     }
@@ -21,7 +21,7 @@ class ShoppingCartRepository {
    * @param customerID - Numeric ID of customer.
    * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
    */
-  static async get(customerID: number): Promise<Array<number> | null> {
+  static async get(customerID: number): Promise<Array<{ product_id: number }> | null> {
     try {
       return await ShoppingCartModel.get(customerID);
     } catch (error: any) {
@@ -34,13 +34,27 @@ class ShoppingCartRepository {
    * @param customerID - Numeric ID of customer.
    * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
    */
-    static async getAll(customerID: number): Promise<ShoppingCartItem[] | null> {
-      try {
-        return await ShoppingCartModel.getAll(customerID);
-      } catch (error: any) {
-        throw new ShoppingCartError('Error retrieving All Shopping Cart Product', error);
-      }
+  static async getAll(customerID: number): Promise<ShoppingCartItem[] | null> {
+    try {
+      return await ShoppingCartModel.getAll(customerID);
+    } catch (error: any) {
+      throw new ShoppingCartError('Error retrieving All Shopping Cart Product', error);
     }
+  }
+
+  /**
+   * Get a shopping cart from the database based on the provided pattern and value.
+   * @param pattern - A string or array of strings representing the fields to filter on.
+   * @param value - The corresponding value for the filter pattern.
+   * @returns A Promise that resolves with the shopping cart data or null if not found.
+   */
+  static async search(pattern: string | Array<string>, value: number | string | Array<string | number>): Promise<ShoppingCartItem | null> {
+    try {
+      return await ShoppingCartModel.search(pattern, value);
+    } catch (error: any) {
+      throw new ShoppingCartError('Error retrieving Shopping Cart Product', error);
+    }
+  }
 
   /**
    * Updates the data of a Shopping Cart Product in the database.
@@ -48,7 +62,7 @@ class ShoppingCartRepository {
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(shoppingCarID: string | number, quantity: number): Promise<void> {
+  static async update(shoppingCarID: number, quantity: number): Promise<void> {
     try {
       await ShoppingCartModel.update(shoppingCarID, quantity);
     } catch (error: any) {
@@ -61,7 +75,7 @@ class ShoppingCartRepository {
    * @param shoppingCarID - ID of the Shopping Cart Product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(shoppingCarID: number | string): Promise<void> {
+  static async delete(shoppingCarID: number): Promise<void> {
     try {
       await ShoppingCartModel.delete(shoppingCarID);
     } catch (error: any) {
@@ -74,9 +88,9 @@ class ShoppingCartRepository {
    * @param customerID - ID of the cart owner of the shopping cart to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async clearAll(customerID: number | string): Promise<any> {
+  static async clear(customerID: number): Promise<any> {
     try {
-      return await ShoppingCartModel.clearAll(customerID);
+      return await ShoppingCartModel.clear(customerID);
     } catch (error: any) {
       throw new ShoppingCartError('Error deleting Shopping Cart Product', error);
     }

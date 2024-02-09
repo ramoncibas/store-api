@@ -1,14 +1,14 @@
 import { checkSchema, Schema } from 'express-validator';
 
 const get: Schema = {
-  id: {
+  customer_id: {
     in: ['params'],
     notEmpty: {
-      errorMessage: 'Id is required',
+      errorMessage: 'Customer Id is required',
     },
     isLength: {
       options: { min: 1 },
-      errorMessage: 'Id should be at least 1 chars',
+      errorMessage: 'Customer Id should be at least 1 chars',
     },
   },
 }
@@ -37,8 +37,8 @@ const create: Schema = {
 }
 
 const update: Schema = {
-  id: {
-    in: ['body'],
+  cart_id: {
+    in: ['params'],
     notEmpty: {
       errorMessage: 'Cart Id is required',
     },
@@ -61,7 +61,7 @@ const update: Schema = {
 
 const remove: Schema = {
   id: {
-    in: ['body'],
+    in: ['params'],
     notEmpty: {
       errorMessage: 'Cart Id is required',
     },

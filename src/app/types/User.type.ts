@@ -9,7 +9,7 @@ export interface UserLogin {
 }
 
 export interface User extends UserLogin {
-  id?: number | string;
+  id?: number;
   uuid: string;
   first_name: string;
   last_name: string;

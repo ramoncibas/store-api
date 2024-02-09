@@ -17,7 +17,7 @@ class CustomerController {
         throw CustomerError.invalidInput();
       }
 
-      const existingCustomer = await UserRepository.getByPattern('id', customer.user_id);
+      const existingCustomer = await UserRepository.search('id', customer.user_id);
 
       if (existingCustomer) {
         throw CustomerError.customerAlreadyExists();

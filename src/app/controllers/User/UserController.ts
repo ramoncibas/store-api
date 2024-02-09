@@ -10,7 +10,7 @@ class UserController {
     const { uuid } = req.params;
 
     try {
-      const user = await UserRepository.getByPattern('uuid', uuid);
+      const user = await UserRepository.search('uuid', uuid);
 
       if (!user) {
         throw UserError.userNotFound();

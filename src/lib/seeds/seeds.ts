@@ -60,8 +60,9 @@ const seeds = async () => {
     product: [
       {
         uuid: '1jihbn',
-        name: 'Product A',
+        name: 'Product Seeds  - A',
         price: 49.99,
+        color: 'blue',
         discount_percentage: 10,
         product_picture: 'product_a.jpg',
         number_of_installments: 3,
@@ -72,6 +73,22 @@ const seeds = async () => {
         gender_id: 1,
         category_id: 1,
         quantity_available: 100,
+      },
+      {
+        uuid: 'juhgfrtfd',
+        name: 'Product Seeds  - B',
+        price: 132.99,
+        color: 'black',
+        discount_percentage: 15,
+        product_picture: 'product_b.jpg',
+        number_of_installments: 12,
+        free_shipping: 1,
+        description: 'Lorem ipsum...',
+        size_id: 2,
+        brand_id: 2,
+        gender_id: 2,
+        category_id: 2,
+        quantity_available: 10,
       },
     ],
 

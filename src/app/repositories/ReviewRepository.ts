@@ -34,9 +34,9 @@ class ReviewRepository {
    * Gets all the reviews from the database.
    * @returns A Promise that resolves with the reviews data or null if not found.
    */
-    static async getByPattern(pattern: string | Array<string>, values: number | string | Array<string>): Promise<Review[] | null> {
+    static async search(pattern: string | Array<string>, values: number | string | Array<string>): Promise<Review[] | null> {
       try {
-        return await ReviewModel.getByPattern(pattern, values);
+        return await ReviewModel.search(pattern, values);
       } catch (error: any) {
         throw new ReviewError('Error retrieving review', error);
       }

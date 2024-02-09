@@ -13,7 +13,7 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   }
   
   try {
-    const user: User | null = await UserRepository.getByPattern('uuid', uuid);
+    const user: User | null = await UserRepository.search('uuid', uuid);
 
     if(user && user?.type != 'admin') {
       return res.status(403).send(messageWrongUser);

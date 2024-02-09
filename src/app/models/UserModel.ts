@@ -1,15 +1,11 @@
-import DatabaseManager from "../../database/db";
 import { User } from "types/User.type";
 import { randomUUID } from 'crypto';
+import BaseModel from "./BaseModel";
+import { RunResult } from "sqlite3";
 
-class UserModel {
-  private static dbManager: DatabaseManager;
-
-  private static getDBManager(): DatabaseManager {
-    if (!this.dbManager) {
-      this.dbManager = new DatabaseManager();
-    }
-    return this.dbManager;
+class UserModel extends BaseModel<UserModel> {
+  constructor() {
+    super("user");
   }
 
   /**
@@ -18,55 +14,29 @@ class UserModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async create(user: User): Promise<User> {
-    const query: string = `
-      INSERT INTO user (
-        uuid,
-        first_name,
-        last_name,
-        email,
-        password,
-        phone,
-        user_picture_name,
-        type
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      RETURNING *;
-    `;
-
     try {
-      console.log(user)
-      const dbManager = this.getDBManager();
+      const query: string = `
+        INSERT INTO user (
+          uuid,
+          first_name,
+          last_name,
+          email,
+          password,
+          phone,
+          user_picture_name,
+          type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING *;
+      `;
+
       const generatedUuid = randomUUID();
-      
-      const userData: User[] = await dbManager.all(query, [generatedUuid, ...Object.values(user)]);
 
-      console.log(userData)
+      return await this.dbManager.transaction(async (dbManager) => {
+        const [userData] = await dbManager.all(query, [generatedUuid, ...Object.values(user)]);
 
-      return userData[0];
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
+        return userData[0];
+      });
 
-  /**
-   * Get a user from the database based on the provided pattern and value.
-   * @param pattern - A string or array of strings representing the fields to filter on.
-   * @param values - A string or array of strings corresponding values for the filter pattern.
-   * @returns A Promise that resolves with the user data or null if not found.
-   */
-  static async getByPattern(pattern: string | Array<string>, values: number | string | Array<string>): Promise<User | null> {
-    const conditions = Array.isArray(pattern) ? pattern.join(' AND ') : pattern;
-    const placeholders = Array.isArray(values) ? values.map(() => '?').join(', ') : '?';
-    const queryValues = Array.isArray(values) ? values : [values];
-    
-    const query: string = `
-      SELECT * FROM user WHERE ${conditions} = ${placeholders}
-    `;
-
-    try {
-      const dbManager = this.getDBManager();
-      const row = await dbManager.get(query, queryValues);
-      return row || null;
     } catch (error) {
       console.error(error);
       throw error;
@@ -78,11 +48,10 @@ class UserModel {
    * @returns A Promise that resolves with an array of all users.
    */
   static async getAll(): Promise<User[]> {
-    const query: string = 'SELECT * FROM user';
-
     try {
-      const dbManager = this.getDBManager();
-      const users = await dbManager.all(query, []);
+      const query: string = 'SELECT * FROM user';
+
+      const users = await this.dbManager.all(query, []);
 
       return users;
     } catch (error) {
@@ -98,20 +67,23 @@ class UserModel {
    * @returns A Promise that resolves when the operation is completed.
    */
   static async update(userUUID: string, updatedFields: Partial<User>): Promise<void> {
-    const keys = Object.keys(updatedFields);
-    const values = Object.values(updatedFields);
-
-    const setClause = keys.map((key) => `${key} = ?`).join(", ");
-
-    const query: string = `
-      UPDATE user
-      SET ${setClause}
-      WHERE uuid = ?
-    `;
-
     try {
-      const dbManager = this.getDBManager();
-      await dbManager.run(query, [...values, userUUID]);
+      const keys = Object.keys(updatedFields);
+      const values = Object.values(updatedFields);
+
+      const setClause = keys.map((key) => `${key} = ?`).join(", ");
+
+      const query: string = `
+        UPDATE user
+        SET ${setClause}
+        WHERE uuid = ?
+      `;
+
+      return await this.dbManager.transaction(async (dbManager) => {
+        const [product]: any = await dbManager.run(query, [...values, userUUID]);
+
+        return product;
+      });
     } catch (error) {
       console.error(error);
       throw error;
@@ -123,14 +95,15 @@ class UserModel {
    * @param userUUID - UUID of the user to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(userUUID: string): Promise<void> {
-    const query: string = `
-      DELETE FROM user WHERE uuid = ?
-    `;
-
+  static async delete(userUUID: string): Promise<RunResult> {
     try {
-      const dbManager = this.getDBManager();
-      await dbManager.run(query, [userUUID]);
+      const query: string = `
+        DELETE FROM user WHERE uuid = ?
+      `;
+
+      const row = await this.dbManager.run(query, [userUUID]);
+
+      return row;
     } catch (error) {
       console.error(error);
       throw error;
