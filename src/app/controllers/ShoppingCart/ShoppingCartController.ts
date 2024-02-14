@@ -5,7 +5,6 @@ import ShoppingCartError from 'builders/errors/ShoppingCartError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
 import Product, { ShoppingCartItem } from 'types/Product.type';
 import schemaResponseError from 'validators/response/schemaResponseError';
-import { isNumeric } from 'utils/isNumeric';
 
 class ShoppingCartController {
   static async getCartItems(req: Request, res: Response): Promise<void> {
@@ -13,10 +12,6 @@ class ShoppingCartController {
       schemaResponseError(req, res);
 
       const { customer_id } = req.params as unknown as { customer_id: number };
-
-      if (!isNumeric(customer_id)) {
-        throw ShoppingCartError.invalidInput();
-      }
 
       const shoppingCartIds: Array<{ product_id: number }> | null = await ShoppingCartRepository.get(customer_id);
 
@@ -52,10 +47,6 @@ class ShoppingCartController {
 
       const fields: ShoppingCartItem = req.body;
 
-      if (!isNumeric(customer_id) || !fields) {
-        throw ShoppingCartError.invalidInput();
-      }
-
       const productExist = await ShoppingCartRepository.search(
         ['customer_id ', 'product_id'],
         [customer_id, fields.product_id]
@@ -85,10 +76,6 @@ class ShoppingCartController {
 
       const { quantity } = req.body;
 
-      if (!isNumeric(cart_id) || !isNumeric(quantity)) {
-        throw ShoppingCartError.invalidInput();
-      }
-
       await ShoppingCartRepository.update(cart_id, quantity);
 
       return ResponseBuilder.send({
@@ -107,10 +94,6 @@ class ShoppingCartController {
       
       const { id } = req.params as unknown as { id: number };
 
-      if (!isNumeric(id)) {
-        throw ShoppingCartError.invalidInput();
-      }
-
       await ShoppingCartRepository.delete(id);
 
       return ResponseBuilder.send({
@@ -128,10 +111,6 @@ class ShoppingCartController {
       schemaResponseError(req, res);
             
       const { customer_id } = req.params as unknown as { customer_id: number };
-
-      if (!isNumeric(customer_id)) {
-        throw ShoppingCartError.invalidInput();
-      }
 
       const result = await ShoppingCartRepository.clear(customer_id);
 
