@@ -29,7 +29,7 @@ class CustomerController {
         throw CustomerError.customerCreationFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer created successfully!",
         statusCode: 201,
@@ -43,15 +43,15 @@ class CustomerController {
   static async getCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-      
-      const customerIdentifier: number | string = req.params.uuid;
-      const customer = await CustomerRepository.get(customerIdentifier);
+
+      const customerUUID: string = req.params.uuid;
+      const customer = await CustomerRepository.get(customerUUID);
 
       if (!customer) {
         throw CustomerError.customerNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer retrieved successfully!",
         statusCode: 200,
@@ -65,7 +65,7 @@ class CustomerController {
   static async updateCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-      
+
       const customerUUID: string = req.params.uuid;
       const updatedFields: Partial<Customer> = req.body;
 
@@ -95,7 +95,7 @@ class CustomerController {
         throw CustomerError.customerUpdateFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer updated successfully!",
         statusCode: 200,
@@ -109,7 +109,7 @@ class CustomerController {
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-      
+
       const customerUUID: string = req.params.uuid;
       const customer = await CustomerRepository.get(customerUUID);
 
@@ -123,7 +123,7 @@ class CustomerController {
         throw CustomerError.customerDeletionFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer deleted successfully!",
         statusCode: 200

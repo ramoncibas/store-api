@@ -28,7 +28,7 @@ class ShoppingCartController {
         throw ShoppingCartError.itemNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Shopping Cart Products retrieved successfully!",
         statusCode: 200,
@@ -58,7 +58,7 @@ class ShoppingCartController {
       
       await ShoppingCartRepository.create(customer_id, fields);
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product saved to ShoppingCart successfully!",
         statusCode: 201
@@ -78,7 +78,7 @@ class ShoppingCartController {
 
       await ShoppingCartRepository.update(cart_id, quantity);
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product updated to ShoppingCart successfully!",
         statusCode: 201
@@ -96,7 +96,7 @@ class ShoppingCartController {
 
       await ShoppingCartRepository.delete(id);
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Shopping Cart Product deleted successfully",
         statusCode: 200
@@ -118,7 +118,7 @@ class ShoppingCartController {
         throw ShoppingCartError.itemDeletionFailed();
       }
       
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Shopping Cart Product deleted successfully",
         statusCode: 200

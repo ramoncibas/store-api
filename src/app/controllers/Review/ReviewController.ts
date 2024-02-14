@@ -31,7 +31,7 @@ class ReviewController {
         throw ReviewError.reviewCreationFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review created successfully!",
         statusCode: 201
@@ -56,7 +56,7 @@ class ReviewController {
         throw ReviewError.reviewCreationFailed()
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review updated successfully!",
         statusCode: 200
@@ -76,7 +76,7 @@ class ReviewController {
         throw ReviewError.reviewNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review retrieved successfully!",
         statusCode: 200,
@@ -97,7 +97,7 @@ class ReviewController {
         throw ReviewError.reviewNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review retrieved successfully!",
         statusCode: 200,
@@ -118,7 +118,7 @@ class ReviewController {
         throw ReviewError.reviewDeletionFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review deleted successfully!",
         statusCode: 200
