@@ -46,19 +46,16 @@ class CustomerModel extends BaseModel<CustomerModel> {
 
   /**
    * Get a customer from the database based on the provided ID or UUID.
-   * @param customerIdentifier - Numeric ID or UUID of the customer.
+   * @param customerUUID - Numeric ID of the customer.
    * @returns A Promise that resolves with the customer data or null if not found.
    */
-  static async get(customerIdentifier: number | string): Promise<Customer | null> {
-    const isNumericId = typeof customerIdentifier === "number";
-    const column = isNumericId ? "id" : "uuid";
-
+  static async get(customerUUID: string): Promise<Customer | null> {
     const query: string = `
-      SELECT * FROM customer WHERE ${column} = ?
+      SELECT * FROM customer WHERE uuid = ?
     `;
 
     try {
-      const row = await this.dbManager.get(query, [customerIdentifier]);
+      const row = await this.dbManager.get(query, [customerUUID]);
 
       return row;
     } catch (error) {
