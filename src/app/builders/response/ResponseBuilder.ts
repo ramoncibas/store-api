@@ -21,6 +21,23 @@ class ResponseBuilder {
    * @param data - Additional data to be included in the response (default: null).
    * @param type - Type of the response (default: 'success').
    * @param title - Title of the response (default: 'Success').
+   * @example
+   * // Return a data
+   * ResponseBuilder.send({
+        type = "info",
+        title = "Customer allready created",
+        message: "The customer already exists in the database!",
+        data: customer,
+        response: res,
+        statusCode: 201
+    });
+   *
+   * // Default value
+   * ResponseBuilder.send({
+        message: "Customer created successfully!",
+        response: res,
+        statusCode: 201
+    });
    */
   static send({
     response,
