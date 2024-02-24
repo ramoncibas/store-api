@@ -1,14 +1,10 @@
 import DatabaseManager from "../../database/db";
 
 class BaseModel<T> {
-  protected static dbManager: DatabaseManager;
+  protected static dbManager: DatabaseManager = new DatabaseManager();
   private table: string;
 
   constructor(table: string) {
-    if (!BaseModel.dbManager) {
-      BaseModel.dbManager = new DatabaseManager();
-    }
-
     this.table = table;
   }
 
