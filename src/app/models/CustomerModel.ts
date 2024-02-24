@@ -12,7 +12,7 @@ class CustomerModel extends BaseModel<CustomerModel> {
    * @param customer - Object representing the customer data to be saved.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async save(customer: Customer): Promise<Customer> {
+  static async save(customer: Omit<Customer, "id" | "uuid">): Promise<Customer> {
     try {
       const query: string = `
         INSERT INTO customer (
@@ -36,6 +36,7 @@ class CustomerModel extends BaseModel<CustomerModel> {
         const values = [generatedUuid, ...Object.values(customer)];
 
         const [ customerCreated ] = await dbManager.all(query, values);
+
         return customerCreated;
       });
     } catch (error) {

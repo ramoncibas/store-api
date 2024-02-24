@@ -8,7 +8,7 @@ class CustomerRepository {
    * @param customer - Object representing the customer data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(customer: Customer): Promise<Customer> {
+  static async create(customer: Omit<Customer, "id" | "uuid">): Promise<Customer> {
     try {
       return await CustomerModel.save(customer);
     } catch (error: any) {
