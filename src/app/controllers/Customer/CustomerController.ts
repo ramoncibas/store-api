@@ -11,7 +11,7 @@ class CustomerController {
     try {
       schemaResponseError(req, res);
 
-      const customer: Customer = req.body;
+      const customer: Omit<Customer, "id" | "uuid"> = req.body;
 
       if (!customer?.user_id) {
         throw CustomerError.invalidInput();
@@ -25,7 +25,7 @@ class CustomerController {
 
       const customerCreated = await CustomerRepository.create(customer);
 
-      if (!customerCreated) {
+      if (!customerCreated) {   
         throw CustomerError.customerCreationFailed();
       }
 
@@ -33,7 +33,7 @@ class CustomerController {
         response: res,
         message: "Customer created successfully!",
         statusCode: 201,
-        data: customer
+        data: customerCreated
       });
     } catch (error: any) {
       CustomerError.handleError(res, error);
@@ -90,7 +90,7 @@ class CustomerController {
       }
 
       const customerUpdated = await CustomerRepository.update(customerUUID, updatedFields);
-
+      
       if (!customerUpdated) {
         throw CustomerError.customerUpdateFailed();
       }
