@@ -8,7 +8,7 @@ class CustomerRepository {
    * @param customer - Object representing the customer data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(customer: Customer): Promise<Customer> {
+  static async create(customer: Omit<Customer, "id" | "uuid">): Promise<Customer> {
     try {
       return await CustomerModel.save(customer);
     } catch (error: any) {
@@ -18,12 +18,12 @@ class CustomerRepository {
 
   /**
    * Gets a customer from the database based on the provided ID or UUID.
-   * @param customerIdentifier - Numeric ID or UUID of the customer.
+   * @param customerUUID - Numeric ID or UUID of the customer.
    * @returns A Promise that resolves with the customer data or null if not found.
    */
-  static async get(customerIdentifier: number | string): Promise<Customer | null> {
+  static async get(customerUUID: string): Promise<Customer | null> {
     try {
-      return await CustomerModel.get(customerIdentifier);
+      return await CustomerModel.get(customerUUID);
     } catch (error: any) {
       throw new CustomerError('Error retrieving customer', error);
     }

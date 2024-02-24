@@ -127,8 +127,9 @@ const update: Schema = {
   },
   user_id: {
     in: ['body'],
-    isString: {
-      errorMessage: 'UserId must be a string',
+    isNumeric: {
+      options: { no_symbols: true },
+      errorMessage: 'UserId must be a number',
     },
     notEmpty: {
       errorMessage: 'UserId is required',

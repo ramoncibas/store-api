@@ -38,6 +38,8 @@ class GenericError extends Error {
       res.status(500).json({ error: 'Internal Server Error' });
     }
     console.log(error);
+
+    // return Promise.reject(error);
   }
 
   static defaultMessage(): string {

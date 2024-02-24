@@ -23,7 +23,7 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     console.log(error)
     res.status(401).send(messageWrongUser);
-    throw new UserError(messageWrongUser, error, 401);
+    throw new UserError(messageWrongUser, 401, error);
   }
 };
 

@@ -92,7 +92,7 @@ class PurchaseController {
 
       await this.updateStock(shoppingCartItems, products);
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Purchase created successfully!",
         statusCode: 201
@@ -117,7 +117,7 @@ class PurchaseController {
         throw PurchaseError.notFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Purchase retrieved successfully!",
         statusCode: 200,
@@ -143,7 +143,7 @@ class PurchaseController {
         throw PurchaseError.notFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Purchases retrieved successfully!",
         statusCode: 200,
