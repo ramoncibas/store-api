@@ -15,6 +15,7 @@
     "paths": {
       "controllers/*": ["app/controllers/*"],
       "middlewares": ["app/middlewares/index.ts"],
+      "__mocks__": ["app/__mocks__/index.ts"],
       "repositories/*": ["app/repositories/*"],
       "validators/*": ["app/validators/*.ts"],
       "models/*": ["app/models/*.ts"],
@@ -30,7 +31,6 @@
   },
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts",
     "src/swagger.json"
 ],
   "exclude": [

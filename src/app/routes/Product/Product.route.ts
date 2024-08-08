@@ -6,7 +6,7 @@ import ProductSchema from 'validators/schema/ProductSchema';
 const router = Router();
 const authRoutesMiddleware = [authMiddleware, isAdmin];
 
-router.get("/",
+router.get("/all",
   ProductSchema.get,
   ProductController.getProducts
 );
@@ -19,6 +19,11 @@ router.get("/aspects",
 router.get("/:id",
   ProductSchema.getId,
   ProductController.getProductById
+);
+
+router.get("/filter",
+  // ProductSchema.getId,
+  ProductController.getFilteredProduct
 );
 
 router.post("/create",

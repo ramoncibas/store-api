@@ -1,6 +1,6 @@
 import supertest from 'supertest';
 
-describe('AuthController', () => {
+describe('Supertest - AuthController', () => {
   let
     authToken: string,
     baseUrl: string = 'http://localhost:5000';

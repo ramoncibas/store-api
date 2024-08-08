@@ -15,7 +15,6 @@ class ShoppingCartController {
 
       const shoppingCartIds: Array<{ product_id: number }> | null = await ShoppingCartRepository.get(customer_id);
 
-
       if (!shoppingCartIds) {
         throw ShoppingCartError.itemNotFound();
       }
@@ -92,9 +91,9 @@ class ShoppingCartController {
     try {
       schemaResponseError(req, res);
       
-      const { id } = req.params as unknown as { id: number };
+      const { customer_id, id } = req.params as unknown as { customer_id: number, id: number };
 
-      await ShoppingCartRepository.delete(id);
+      await ShoppingCartRepository.delete(customer_id, id);
 
       ResponseBuilder.send({
         response: res,

@@ -1,5 +1,5 @@
 import Customer from "types/Customer.type";
-import Review from "../types/Review.type";
+import Review from "types/Review.type";
 
 export const randomID = () => Math.floor(Math.random() * 100000);
 
@@ -44,19 +44,23 @@ export const customerMockToUpdate: Partial<Customer> = {
 };
 
 // Review
-export const reviewBase: Omit<Review, "id" | "uuid"> = {
-  product_id: randomID(),
-  customer_id: randomID(),
+export const reviewBase: Partial<Review> = {
   rating: 5,
+  product_id: randomID(),
   comment: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-  created_at: '2023-12-29 13:00:50',
-  updated_at: '2024-02-04 19:25:03'
 }
 
-export const review: Review = {
-  ...reviewBase,
+export const enumReview: { id: number, uuid: string, customer_id: number } = {
   id: 1,
-  uuid: 'review1uuid'
+  uuid: 'review1uuid',
+  customer_id: 1
+};
+
+export const review: Review = {
+  ...(reviewBase as Review),
+  ...enumReview,
+  created_at: '2023-12-29 13:00:50',
+  updated_at: '2024-02-04 19:25:03'
 };
 
 

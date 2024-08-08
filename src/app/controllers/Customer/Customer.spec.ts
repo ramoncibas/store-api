@@ -16,7 +16,7 @@ import {
   customerBase,
   customerMockToUpdate,
   randomID,
-} from '../../mock/_mock';
+} from '__mocks__';
 
 const JWT_DEV_TOKEN = process.env.JWT_DEV_TOKEN || '';
 

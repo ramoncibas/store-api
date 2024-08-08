@@ -109,14 +109,17 @@ class ShoppingCartModel extends BaseModel<ShoppingCartModel> {
    * @param shoppingCarID - ID of the Shopping Cart Product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(shoppingCarID: number): Promise<RunResult> {
+  static async delete(customerID: number, shoppingCarID: number): Promise<RunResult> {
     try {
       const query: string = `
-        DELETE FROM shopping_cart WHERE id = ?
+        DELETE FROM shopping_cart 
+        WHERE 
+          customer_id = ?
+          AND id = ?
       `;
 
       return await this.dbManager.transaction(async (dbManager) => {
-        const rows = await dbManager.run(query, [shoppingCarID]);
+        const rows = await dbManager.run(query, [customerID, shoppingCarID]);
 
         return rows;
       });

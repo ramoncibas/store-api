@@ -31,7 +31,7 @@ class ProductController {
   static async getAllAspects(req: Request, res: Response) {
     try {
       const aspects = await ProductRepository.getAllAspects();
-
+      console.log(aspects)
       ResponseBuilder.send({
         response: res,
         message: "Aspects retrieved successfully!",
