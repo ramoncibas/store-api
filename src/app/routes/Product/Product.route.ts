@@ -16,14 +16,14 @@ router.get("/aspects",
   ProductController.getAllAspects
 );
 
-router.get("/:id",
-  ProductSchema.getId,
-  ProductController.getProductById
-);
-
 router.get("/filter",
   // ProductSchema.getId,
   ProductController.getFilteredProduct
+);
+
+router.get("/:id",
+  ProductSchema.getId,
+  ProductController.getProductById
 );
 
 router.post("/create",
