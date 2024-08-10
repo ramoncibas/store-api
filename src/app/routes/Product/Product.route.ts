@@ -16,8 +16,8 @@ router.get("/aspects",
   ProductController.getAllAspects
 );
 
-router.get("/filter",
-  // ProductSchema.getId,
+router.post("/filter",
+  ProductSchema.filter,
   ProductController.getFilteredProduct
 );
 

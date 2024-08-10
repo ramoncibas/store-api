@@ -31,7 +31,7 @@ class ProductController {
   static async getAllAspects(req: Request, res: Response) {
     try {
       const aspects = await ProductRepository.getAllAspects();
-      console.log(aspects)
+
       ResponseBuilder.send({
         response: res,
         message: "Aspects retrieved successfully!",
@@ -45,11 +45,9 @@ class ProductController {
 
   static async getFilteredProduct(req: Request, res: Response) {
     try {
-      if (!req.query) {
-        return res.status(400).json({ error: "Missing required parameters" });
-      }
+      schemaResponseError(req, res);
 
-      const product = await ProductRepository.getFiltered(req.query);
+      const product = await ProductRepository.getFiltered(req.body);
 
       ResponseBuilder.send({
         response: res,
