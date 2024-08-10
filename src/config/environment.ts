@@ -1,6 +1,17 @@
 import schema from "../database/schema";
 
-const environments : any = {
+interface EnvironmentConfig {
+  schema: string;
+  envFilePath: {
+    path: string;
+  };
+}
+
+interface Environments {
+  [key: string]: EnvironmentConfig;
+}
+
+const environments: Environments = {
   production: {
     schema,
     envFilePath: {
@@ -16,6 +27,6 @@ const environments : any = {
 };
 
 const env = process.env.NODE_ENV || 'development';
-const config = environments[env];
+const config: EnvironmentConfig = environments[env];
 
 export default config;

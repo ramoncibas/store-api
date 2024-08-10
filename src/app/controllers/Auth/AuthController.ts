@@ -63,7 +63,7 @@ class AuthController {
       user.token = token;
       user.expiresIn = AuthController.JWT_EXPIRE_IN;
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "User logged in successfully!",
         statusCode: 200,
@@ -133,7 +133,7 @@ class AuthController {
 
       user.token = token;
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "User registered successfully!",
         statusCode: 201,
@@ -174,7 +174,7 @@ class AuthController {
         // await ActivityLogger.logUserActivity(decodedToken.user_id, 'logout');
 
         AuthController.invalidTokens.add(userToken);
-        return ResponseBuilder.send({
+        ResponseBuilder.send({
           response: res,
           message: "User successfully logged out!",
           statusCode: 200

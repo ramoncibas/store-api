@@ -1,8 +1,8 @@
 import GenericError from "./GenericError";
 
 class UserError extends GenericError {
-  constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message);
+  constructor(message: string, errorCode: number = 500, error?: any) {
+    super(message, errorCode, error);
     this.name = 'UserError';
     // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
   }

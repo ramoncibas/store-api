@@ -6,7 +6,7 @@ import ProductSchema from 'validators/schema/ProductSchema';
 const router = Router();
 const authRoutesMiddleware = [authMiddleware, isAdmin];
 
-router.get("/",
+router.get("/all",
   ProductSchema.get,
   ProductController.getProducts
 );
@@ -14,6 +14,11 @@ router.get("/",
 router.get("/aspects",
   ProductSchema.get,
   ProductController.getAllAspects
+);
+
+router.get("/filter",
+  // ProductSchema.getId,
+  ProductController.getFilteredProduct
 );
 
 router.get("/:id",

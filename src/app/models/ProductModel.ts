@@ -39,7 +39,7 @@ class ProductModel extends BaseModel<ProductModel> {
       const categoryQuery = 'SELECT id, name FROM category_product';
       const sizeQuery = 'SELECT id, size FROM size_product';
 
-      const [brands, genders, categories, sizes] = await Promise.all([
+      const [brand_product, gender_product, category_product, size_product] = await Promise.all([
         this.dbManager.all(brandQuery, []),
         this.dbManager.all(genderQuery, []),
         this.dbManager.all(categoryQuery, []),
@@ -47,10 +47,7 @@ class ProductModel extends BaseModel<ProductModel> {
       ]);
 
       const aspects: any = {
-        brands,
-        genders,
-        categories,
-        sizes
+        brand_product, gender_product, category_product, size_product
       };
 
       return aspects;
@@ -82,6 +79,8 @@ class ProductModel extends BaseModel<ProductModel> {
    * @returns A Promise that resolves with an array of filtered products.
    */
   static async getFiltered(filters: Partial<Product>): Promise<Product[]> {
+    // TODO: Ajustar o Filter, para passar um payload ao inves de queryParams
+    // Colocar um schemaValidator customizado para ele
     try {
       const conditions: string[] = [];
       const values: any[] = [];

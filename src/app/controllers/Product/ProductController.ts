@@ -18,7 +18,7 @@ class ProductController {
         throw ProductError.productDeletionFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product deleted successfully!",
         statusCode: 200
@@ -31,8 +31,8 @@ class ProductController {
   static async getAllAspects(req: Request, res: Response) {
     try {
       const aspects = await ProductRepository.getAllAspects();
-
-      return ResponseBuilder.send({
+      console.log(aspects)
+      ResponseBuilder.send({
         response: res,
         message: "Aspects retrieved successfully!",
         statusCode: 200,
@@ -51,7 +51,7 @@ class ProductController {
 
       const product = await ProductRepository.getFiltered(req.query);
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Filtered Product retrieved successfully!",
         statusCode: 200,
@@ -74,7 +74,7 @@ class ProductController {
         return res.status(404).json({ error: "Product not found" });
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product retrieved successfully!",
         statusCode: 200,
@@ -93,7 +93,7 @@ class ProductController {
         throw ProductError.productNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Products retrieved successfully!",
         statusCode: 200,
@@ -115,7 +115,7 @@ class ProductController {
         throw ProductError.productCreationFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product created successfully!",
         statusCode: 200
@@ -141,7 +141,7 @@ class ProductController {
       if (!productResponse) {
         throw ProductError.productUpdateFailed();
       }
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product updated successfully!",
         statusCode: 200

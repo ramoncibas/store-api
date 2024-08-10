@@ -2,7 +2,7 @@ import GenericError from "./GenericError";
 
 class ShoppingCartError extends GenericError {
   constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message);
+    super(message, errorCode, error);
     this.name = 'ShoppingCartError';
     // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
   }

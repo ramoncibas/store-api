@@ -6,7 +6,7 @@ const getId: Schema = {
   id: {
     in: ['body'],
     notEmpty: {
-      errorMessage: 'Cart Id is required',
+      errorMessage: 'Product Id is required',
     },
     isNumeric: {
       options: { no_symbols: true }

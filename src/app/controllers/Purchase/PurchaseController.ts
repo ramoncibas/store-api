@@ -15,6 +15,7 @@ class PurchaseController {
   // Validar a necessidade de implementar uma arquitetura somente para o estoque
   // Implementar uma classe separada para esse metodo, ela será utilizada aqui, e quando um admin inserir um novo produto por exemplo
   static async updateStock(
+    customerID: number,
     shoppingCartItems: ShoppingCartItem[],
     productList: Partial<Product>[]
   ): Promise<any> {
@@ -37,7 +38,7 @@ class PurchaseController {
           };
 
           await ProductRepository.update(cartId, updatedProduct);
-          await ShoppingCartRepository.delete(cartId);
+          await ShoppingCartRepository.delete(customerID, cartId);
         })
       );
     } catch (error) {
@@ -90,9 +91,9 @@ class PurchaseController {
         }
       }
 
-      await this.updateStock(shoppingCartItems, products);
+      await this.updateStock(numericCustomerID, shoppingCartItems, products);
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Purchase created successfully!",
         statusCode: 201
@@ -117,7 +118,7 @@ class PurchaseController {
         throw PurchaseError.notFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Purchase retrieved successfully!",
         statusCode: 200,
@@ -143,7 +144,7 @@ class PurchaseController {
         throw PurchaseError.notFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Purchases retrieved successfully!",
         statusCode: 200,

@@ -2,7 +2,7 @@ import GenericError from "./GenericError";
 
 class ReviewError extends GenericError {
   constructor(message: string, errorCode: number = 500, error?: any) {
-    super(message, errorCode);
+    super(message, errorCode, error);
     this.name = 'ReviewError';
     // this.logError(); // future implementation: Error.captureStackTrace(this, ReviewError);
   }

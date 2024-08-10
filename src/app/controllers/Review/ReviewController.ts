@@ -6,10 +6,13 @@ import Review from 'types/Review.type';
 import ReviewError from 'builders/errors/ReviewError';
 import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
+import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ReviewController {
-  static async createReview(req: Request, res: Response): Promise<void> {
+  static async create(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const customerUUID: string = req.params.uuid;
       const reviewData: Review = req.body;
 
@@ -18,12 +21,15 @@ class ReviewController {
       }
 
       const customer: Customer | null = await CustomerRepository.get(customerUUID);
+      const customerNotFound: boolean = [customer, customer?.id, customer?.uuid].some(
+        value => value === null || value === undefined
+      );
 
-      if (!customer || customer.id === null) {
+      if (customerNotFound) {
         throw CustomerError.customerNotFound();
       }
 
-      reviewData.customer_id = customer.id as number;
+      reviewData.customer_id = customer!.id as number;
 
       const reviewCreated = await ReviewRepository.create(reviewData);
 
@@ -31,7 +37,7 @@ class ReviewController {
         throw ReviewError.reviewCreationFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review created successfully!",
         statusCode: 201
@@ -40,8 +46,11 @@ class ReviewController {
       ReviewError.handleError(res, error);
     }
   }
-  static async updateReview(req: Request, res: Response): Promise<void> {
+
+  static async update(req: Request, res: Response): Promise<void> {
     try {
+      schemaResponseError(req, res);
+
       const reviewUUID: string = req.params.uuid;
       const updatedFields: Partial<Review> = req.body;
 
@@ -56,7 +65,7 @@ class ReviewController {
         throw ReviewError.reviewCreationFailed()
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review updated successfully!",
         statusCode: 200
@@ -66,17 +75,19 @@ class ReviewController {
     }
   }
 
-  static async getReview(req: Request, res: Response): Promise<void> {
+  static async getByCustomer(req: Request, res: Response): Promise<void> {
     try {
-      const reviewUUID: string = req.params.reviewUUID;
+      schemaResponseError(req, res);
 
-      const review: Review[] | null = await ReviewRepository.search('uuid', reviewUUID);
+      const customerID = req.params.uuid;
+
+      const review: Review[] | null = await ReviewRepository.search('customer_id', customerID);
 
       if (!review) {
         throw ReviewError.reviewNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review retrieved successfully!",
         statusCode: 200,
@@ -87,17 +98,19 @@ class ReviewController {
     }
   }
 
-  static async getReviewByProduct(req: Request, res: Response): Promise<void> {
+  static async getByProduct(req: Request, res: Response): Promise<void> {
     try {
-      const product_id: string = req.params.id;
+      schemaResponseError(req, res);
 
-      const review: Review[] | null = await ReviewRepository.search('product_id', product_id);
+      const productID = req.params.id;
+
+      const review: Review[] | null = await ReviewRepository.search('product_id', productID);
 
       if (!review) {
         throw ReviewError.reviewNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review retrieved successfully!",
         statusCode: 200,
@@ -108,9 +121,11 @@ class ReviewController {
     }
   }
 
-  static async deleteReview(req: Request, res: Response): Promise<void> {
+  static async delete(req: Request, res: Response): Promise<void> {
     try {
-      const reviewUUID: string = req.params.reviewUUID;
+      schemaResponseError(req, res);
+
+      const reviewUUID: string = req.params.uuid;
 
       const reviewDeleted = await ReviewRepository.delete(reviewUUID);
 
@@ -118,7 +133,7 @@ class ReviewController {
         throw ReviewError.reviewDeletionFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Review deleted successfully!",
         statusCode: 200
