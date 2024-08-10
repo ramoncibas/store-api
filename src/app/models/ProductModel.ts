@@ -39,7 +39,7 @@ class ProductModel extends BaseModel<ProductModel> {
       const categoryQuery = 'SELECT id, name FROM category_product';
       const sizeQuery = 'SELECT id, size FROM size_product';
 
-      const [brand_product, gender_product, category_product, size_product] = await Promise.all([
+      const [brand_id, gender_id, category_id, size_id] = await Promise.all([
         this.dbManager.all(brandQuery, []),
         this.dbManager.all(genderQuery, []),
         this.dbManager.all(categoryQuery, []),
@@ -47,7 +47,7 @@ class ProductModel extends BaseModel<ProductModel> {
       ]);
 
       const aspects: any = {
-        brand_product, gender_product, category_product, size_product
+        brand_id, gender_id, category_id, size_id
       };
 
       return aspects;
@@ -78,16 +78,21 @@ class ProductModel extends BaseModel<ProductModel> {
    * @param filters - Object containing filters for the products.
    * @returns A Promise that resolves with an array of filtered products.
    */
-  static async getFiltered(filters: Partial<Product>): Promise<Product[]> {
+  static async getFiltered(filters: Partial<any>): Promise<Product[]> {
     // TODO: Ajustar o Filter, para passar um payload ao inves de queryParams
     // Colocar um schemaValidator customizado para ele
     try {
-      const conditions: string[] = [];
-      const values: any[] = [];
+      let conditions: string[] = [];
+      let values: any[] = [];
+
+      console.log(filters)
 
       Object.entries(filters).forEach(([key, value]) => {
-        conditions.push(`${key} = ?`);
-        values.push(value);
+        if (value.length > 0) {
+          conditions.push(`${key} IN (${value.map(() => '?').join(',')})`);
+          console.log('value: ', value)
+          values.push(...value);
+        }
       });
 
       const conditionString = conditions.join(' AND ');
