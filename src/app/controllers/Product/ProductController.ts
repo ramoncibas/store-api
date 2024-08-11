@@ -46,9 +46,19 @@ class ProductController {
   static async getFilteredProduct(req: Request, res: Response) {
     try {
       schemaResponseError(req, res);
+            
+      const hasFilteredValue = Object.values(req.body).some((arr) => Array.isArray(arr) && arr.length != 0);
+      
+      if (!hasFilteredValue) {
+        throw ProductError.defaultMessage();
+      }
 
       const product = await ProductRepository.getFiltered(req.body);
-
+      
+      if (!product) {
+        throw ProductError.productNotFound();
+      }
+      
       ResponseBuilder.send({
         response: res,
         message: "Filtered Product retrieved successfully!",
@@ -69,7 +79,7 @@ class ProductController {
       const product = await ProductRepository.getById(productId);
 
       if (!product) {
-        return res.status(404).json({ error: "Product not found" });
+        throw ProductError.productNotFound();
       }
 
       ResponseBuilder.send({
@@ -128,10 +138,6 @@ class ProductController {
       schemaResponseError(req, res);
 
       const fields: Product = req.body;
-
-      if (Object.values(fields).includes("")) {
-        return res.status(400).send("All fields must be filled out!");
-      }
 
       // ajustar essa logica aqui!, validar se tem um uuid ou id 
       const productResponse = await ProductRepository.update(fields.uuid, fields);
