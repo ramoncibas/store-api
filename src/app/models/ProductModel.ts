@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
-import Product, { AspectResult } from 'types/Product.type';
 import { RunResult } from 'sqlite3';
 import BaseModel from './BaseModel';
+import Product, { AspectResult } from 'types/Product.type';
 
 class ProductModel extends BaseModel<ProductModel> {
   constructor() {
@@ -37,17 +37,20 @@ class ProductModel extends BaseModel<ProductModel> {
       const brandQuery = 'SELECT id, name FROM brand_product';
       const genderQuery = 'SELECT id, name FROM gender_product';
       const categoryQuery = 'SELECT id, name FROM category_product';
-      const sizeQuery = 'SELECT id, size FROM size_product';
+      const sizeQuery = 'SELECT min(size) as min, max(size) as max FROM product';
 
-      const [brand_id, gender_id, category_id, size_id] = await Promise.all([
+      const [brand_id, gender_id, category_id, size] = await Promise.all([
         this.dbManager.all(brandQuery, []),
         this.dbManager.all(genderQuery, []),
         this.dbManager.all(categoryQuery, []),
-        this.dbManager.all(sizeQuery, []),
+        this.dbManager.get(sizeQuery, []),
       ]);
 
       const aspects: any = {
-        brand_id, gender_id, category_id, size_id
+        brand_id,
+        gender_id,
+        category_id,
+        size
       };
 
       return aspects;
@@ -79,18 +82,13 @@ class ProductModel extends BaseModel<ProductModel> {
    * @returns A Promise that resolves with an array of filtered products.
    */
   static async getFiltered(filters: Partial<any>): Promise<Product[]> {
-    // TODO: Ajustar o Filter, para passar um payload ao inves de queryParams
-    // Colocar um schemaValidator customizado para ele
     try {
       let conditions: string[] = [];
       let values: any[] = [];
 
-      console.log(filters)
-
       Object.entries(filters).forEach(([key, value]) => {
         if (value.length > 0) {
           conditions.push(`${key} IN (${value.map(() => '?').join(',')})`);
-          console.log('value: ', value)
           values.push(...value);
         }
       });
@@ -126,7 +124,6 @@ class ProductModel extends BaseModel<ProductModel> {
           INNER JOIN brand_product bp on p.brand_id = bp.id
           INNER JOIN gender_product gp on p.gender_id = gp.id
           INNER JOIN category_product cp on p.category_id = cp.id
-          INNER JOIN size_product sz on p.size_id = sz.id
         WHERE p.id = ?
       `;
 
@@ -178,7 +175,7 @@ class ProductModel extends BaseModel<ProductModel> {
           number_of_installments,
           free_shipping,
           description,
-          size_id,
+          size,
           brand_id,
           gender_id,
           category_id,

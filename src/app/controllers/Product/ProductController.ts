@@ -46,15 +46,14 @@ class ProductController {
   static async getFilteredProduct(req: Request, res: Response) {
     try {
       schemaResponseError(req, res);
-            
-      const hasFilteredValue = Object.values(req.body).some((arr) => Array.isArray(arr) && arr.length != 0);
-      
+      const body = req.body;
+
+      const hasFilteredValue = Object.values(body).some((arr) => Array.isArray(arr) && arr.length != 0);
       if (!hasFilteredValue) {
         throw ProductError.defaultMessage();
       }
-
-      const product = await ProductRepository.getFiltered(req.body);
       
+      const product = await ProductRepository.getFiltered(body);
       if (!product) {
         throw ProductError.productNotFound();
       }
@@ -138,8 +137,11 @@ class ProductController {
       schemaResponseError(req, res);
 
       const fields: Product = req.body;
+      
+      if (!fields.uuid) {
+        throw ProductError.invalidInput();
+      }
 
-      // ajustar essa logica aqui!, validar se tem um uuid ou id 
       const productResponse = await ProductRepository.update(fields.uuid, fields);
 
       if (!productResponse) {
