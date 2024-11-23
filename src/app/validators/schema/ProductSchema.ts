@@ -24,10 +24,10 @@ const filter: Schema = {
       errorMessage: 'Category Product must be a Array value',
     },
   },
-  size_product: {
+  size: {
     in: ['body'],
     optional: true,
-    isArray: {
+    isObject: {
       errorMessage: 'Size Product must be a Array value',
     },
   }
