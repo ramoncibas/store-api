@@ -4,12 +4,6 @@ const encryptedPassword = async () => await bcrypt.hash('store#123', 10);
 
 const seeds = async () => {
   return {
-    size_product: [
-      { size: 'Small' },
-      { size: 'Medium' },
-      { size: 'Large' },
-    ],
-
     brand_product: [
       { name: 'Nike' },
       { name: 'Adidas' },
@@ -68,7 +62,7 @@ const seeds = async () => {
         "number_of_installments": 4,
         "free_shipping": 1,
         "description": "Blusa técnica Nike, ideal para atividades esportivas e uso diário.",
-        "size_id": 2,
+        "size": 42,
         "brand_id": 1,
         "gender_id": 1,
         "category_id": 1,
@@ -84,7 +78,7 @@ const seeds = async () => {
         "number_of_installments": 6,
         "free_shipping": 1,
         "description": "Tênis Adidas Ultraboost com conforto máximo e estilo moderno.",
-        "size_id": 3,
+        "size": 12,
         "brand_id": 2,
         "gender_id": 1,
         "category_id": 2,
@@ -100,7 +94,7 @@ const seeds = async () => {
         "number_of_installments": 3,
         "free_shipping": 0,
         "description": "Calças esportivas Puma, perfeitas para treinos e conforto diário.",
-        "size_id": 1,
+        "size": 34,
         "brand_id": 3,
         "gender_id": 1,
         "category_id": 3,
@@ -116,7 +110,7 @@ const seeds = async () => {
         "number_of_installments": 5,
         "free_shipping": 1,
         "description": "Blusa casual Nike com design moderno e confortável para o dia a dia.",
-        "size_id": 2,
+        "size": 29,
         "brand_id": 1,
         "gender_id": 2,
         "category_id": 1,
@@ -132,7 +126,7 @@ const seeds = async () => {
         "number_of_installments": 4,
         "free_shipping": 1,
         "description": "Tênis Adidas Supernova com suporte e amortecimento avançados.",
-        "size_id": 4,
+        "size": 49,
         "brand_id": 2,
         "gender_id": 2,
         "category_id": 2,
@@ -148,7 +142,7 @@ const seeds = async () => {
         "number_of_installments": 2,
         "free_shipping": 0,
         "description": "Calças casuais Puma com ajuste perfeito e conforto durante o uso.",
-        "size_id": 3,
+        "size": 35,
         "brand_id": 3,
         "gender_id": 1,
         "category_id": 3,
