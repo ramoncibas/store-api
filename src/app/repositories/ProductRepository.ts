@@ -115,9 +115,8 @@ class ProductRepository {
     }
   
     if (productUUID === undefined || !productUUID) {
-      throw new ProductError('The Product Id could not be null', undefined, 404);
+      throw new ProductError('The Product UUID could not be null', undefined, 404);
     }
-    
 
     try {
       return await ProductModel.update(productUUID, fields);
