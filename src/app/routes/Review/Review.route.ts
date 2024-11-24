@@ -2,31 +2,37 @@ import { Router } from 'express';
 
 import { authMiddleware } from 'middlewares';
 import ReviewController from 'controllers/Review/ReviewController';
+import ReviewSchema from 'validators/schema/ReviewSchema';
 
 const router = Router();
 
-router.get("/product/:id",
-  ReviewController.getReviewByProduct
-);
-
 router.get("/customer/:uuid",
   authMiddleware,
-  ReviewController.getReview
+  ReviewSchema.getByUUID,
+  ReviewController.getByCustomer
 );
 
-router.post("/:uuid/create",
+router.get("/product/:id",
+  ReviewSchema.getByID,
+  ReviewController.getByProduct
+);
+
+router.post("/customer/:uuid/create",
   authMiddleware,
-  ReviewController.createReview
+  ReviewSchema.create,
+  ReviewController.create
 );
 
 router.patch("/:uuid",
   authMiddleware,
-  ReviewController.updateReview
+  ReviewSchema.update,
+  ReviewController.update
 );
 
 router.delete("/:uuid/delete",
   authMiddleware,
-  ReviewController.deleteReview
+  ReviewSchema.remove,
+  ReviewController.delete
 );
 
 

@@ -12,7 +12,7 @@ router.get("/:customer_id",
   ShoppingCartController.getCartItems
 ); // Lembrar de armazenar os produtos local, caso o customer não esteja logado, para economizar nessa request
 
-router.post("/create/:customer_id",
+router.post("/add/:customer_id",
   ShoppingCartSchema.create,
   ShoppingCartController.addToCart
 );
@@ -22,7 +22,7 @@ router.patch("/update/:cart_id",
   ShoppingCartController.updateCartItemQuantity
 );
 
-router.delete("/remove/item/:id",
+router.delete("/:customer_id/remove/item/:id",
   ShoppingCartSchema.remove,
   ShoppingCartController.removeCartItem
 );

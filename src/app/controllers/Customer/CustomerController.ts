@@ -11,7 +11,7 @@ class CustomerController {
     try {
       schemaResponseError(req, res);
 
-      const customer: Customer = req.body;
+      const customer: Omit<Customer, "id" | "uuid"> = req.body;
 
       if (!customer?.user_id) {
         throw CustomerError.invalidInput();
@@ -25,15 +25,15 @@ class CustomerController {
 
       const customerCreated = await CustomerRepository.create(customer);
 
-      if (!customerCreated) {
+      if (!customerCreated) {   
         throw CustomerError.customerCreationFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer created successfully!",
         statusCode: 201,
-        data: customer
+        data: customerCreated
       });
     } catch (error: any) {
       CustomerError.handleError(res, error);
@@ -43,15 +43,15 @@ class CustomerController {
   static async getCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-      
-      const customerIdentifier: number | string = req.params.uuid;
-      const customer = await CustomerRepository.get(customerIdentifier);
+
+      const customerUUID: string = req.params.uuid;
+      const customer = await CustomerRepository.get(customerUUID);
 
       if (!customer) {
         throw CustomerError.customerNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer retrieved successfully!",
         statusCode: 200,
@@ -65,7 +65,7 @@ class CustomerController {
   static async updateCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-      
+
       const customerUUID: string = req.params.uuid;
       const updatedFields: Partial<Customer> = req.body;
 
@@ -90,12 +90,12 @@ class CustomerController {
       }
 
       const customerUpdated = await CustomerRepository.update(customerUUID, updatedFields);
-
+      
       if (!customerUpdated) {
         throw CustomerError.customerUpdateFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer updated successfully!",
         statusCode: 200,
@@ -109,7 +109,7 @@ class CustomerController {
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-      
+
       const customerUUID: string = req.params.uuid;
       const customer = await CustomerRepository.get(customerUUID);
 
@@ -123,7 +123,7 @@ class CustomerController {
         throw CustomerError.customerDeletionFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Customer deleted successfully!",
         statusCode: 200

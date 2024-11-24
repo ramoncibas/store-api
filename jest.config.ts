@@ -93,6 +93,7 @@ const config: Config = {
   moduleNameMapper: {
     '^controllers/(.*)$': '<rootDir>/src/app/controllers/$1',
     '^middlewares$': '<rootDir>/src/app/middlewares',
+    '^__mocks__$': '<rootDir>/src/app/__mocks__',
     '^repositories/(.*)$': '<rootDir>/src/app/repositories/$1',
     '^models/(.*)$': '<rootDir>/src/app/models/$1',
     '^helpers/(.*)$': '<rootDir>/src/app/helpers/$1',

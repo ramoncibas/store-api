@@ -18,7 +18,7 @@ class ProductController {
         throw ProductError.productDeletionFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product deleted successfully!",
         statusCode: 200
@@ -32,7 +32,7 @@ class ProductController {
     try {
       const aspects = await ProductRepository.getAllAspects();
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Aspects retrieved successfully!",
         statusCode: 200,
@@ -45,13 +45,20 @@ class ProductController {
 
   static async getFilteredProduct(req: Request, res: Response) {
     try {
-      if (!req.query) {
-        return res.status(400).json({ error: "Missing required parameters" });
+      schemaResponseError(req, res);
+      const body = req.body;
+
+      const hasFilteredValue = Object.values(body).some((arr) => Array.isArray(arr) && arr.length != 0);
+      if (!hasFilteredValue) {
+        throw ProductError.defaultMessage();
       }
-
-      const product = await ProductRepository.getFiltered(req.query);
-
-      return ResponseBuilder.send({
+      
+      const product = await ProductRepository.getFiltered(body);
+      if (!product) {
+        throw ProductError.productNotFound();
+      }
+      
+      ResponseBuilder.send({
         response: res,
         message: "Filtered Product retrieved successfully!",
         statusCode: 200,
@@ -71,10 +78,10 @@ class ProductController {
       const product = await ProductRepository.getById(productId);
 
       if (!product) {
-        return res.status(404).json({ error: "Product not found" });
+        throw ProductError.productNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product retrieved successfully!",
         statusCode: 200,
@@ -93,7 +100,7 @@ class ProductController {
         throw ProductError.productNotFound();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Products retrieved successfully!",
         statusCode: 200,
@@ -115,7 +122,7 @@ class ProductController {
         throw ProductError.productCreationFailed();
       }
 
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product created successfully!",
         statusCode: 200
@@ -130,18 +137,17 @@ class ProductController {
       schemaResponseError(req, res);
 
       const fields: Product = req.body;
-
-      if (Object.values(fields).includes("")) {
-        return res.status(400).send("All fields must be filled out!");
+      
+      if (!fields.uuid) {
+        throw ProductError.invalidInput();
       }
 
-      // ajustar essa logica aqui!, validar se tem um uuid ou id 
       const productResponse = await ProductRepository.update(fields.uuid, fields);
 
       if (!productResponse) {
         throw ProductError.productUpdateFailed();
       }
-      return ResponseBuilder.send({
+      ResponseBuilder.send({
         response: res,
         message: "Product updated successfully!",
         statusCode: 200

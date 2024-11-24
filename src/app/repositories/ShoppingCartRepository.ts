@@ -75,9 +75,9 @@ class ShoppingCartRepository {
    * @param shoppingCarID - ID of the Shopping Cart Product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(shoppingCarID: number): Promise<void> {
+  static async delete(customerID: number, shoppingCarID: number): Promise<void> {
     try {
-      await ShoppingCartModel.delete(shoppingCarID);
+      await ShoppingCartModel.delete(customerID, shoppingCarID);
     } catch (error: any) {
       throw new ShoppingCartError('Error deleting Shopping Cart Product', error);
     }

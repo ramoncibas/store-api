@@ -2,11 +2,42 @@ import { checkSchema, Schema } from 'express-validator';
 
 const get: Schema = {}
 
+const filter: Schema = {
+  brand_product: {
+    in: ['body'],
+    optional: true,
+    isArray: {
+      errorMessage: 'Brand Product must be a Array value',
+    },
+  },
+  gender_product: {
+    in: ['body'],
+    optional: true,
+    isArray: {
+      errorMessage: 'Gender Product must be a Array value',
+    },
+  },
+  category_product: {
+    in: ['body'],
+    optional: true,
+    isArray: {
+      errorMessage: 'Category Product must be a Array value',
+    },
+  },
+  size: {
+    in: ['body'],
+    optional: true,
+    isObject: {
+      errorMessage: 'Size Product must be a Array value',
+    },
+  }
+}
+
 const getId: Schema = {
   id: {
     in: ['body'],
     notEmpty: {
-      errorMessage: 'Cart Id is required',
+      errorMessage: 'Product Id is required',
     },
     isNumeric: {
       options: { no_symbols: true }
@@ -214,6 +245,7 @@ const remove: Schema = {
 export default {
   get: checkSchema(get),
   getId: checkSchema(getId),
+  filter: checkSchema(filter),
   create: checkSchema(create),
   update: checkSchema(update),
   remove: checkSchema(remove),

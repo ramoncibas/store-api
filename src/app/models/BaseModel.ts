@@ -2,10 +2,14 @@ import DatabaseManager from "../../database/db";
 
 class BaseModel<T> {
   protected static dbManager: DatabaseManager = new DatabaseManager();
-  protected static table: string;
+  private table: string;
 
   constructor(table: string) {
-    BaseModel.table = table;
+    this.table = table;
+  }
+
+  private static getInstance(): BaseModel<any> {
+    return new this("");
   }
 
   /**
@@ -19,6 +23,13 @@ class BaseModel<T> {
    * @throws Will throw an error if there's any issue with the database operation.
    *
    * @example
+   * // First, extend the 'BaseModel' class and define the corresponding table
+   * class YourClass extends BaseModel<YourClass> {
+        constructor() {
+          super("user");
+        }   
+      }
+   *
    * // Single condition, single value
    * const result1 = await BaseModel.search('customer_id', 1);
    *
@@ -48,6 +59,8 @@ class BaseModel<T> {
     values: number | string | Array<string | number>
   ): Promise<any> {
     try {
+      const currentInstance = this.getInstance();
+
       const isArrayPattern = Array.isArray(conditions);
       const isArrayValues = Array.isArray(values);
 
@@ -57,12 +70,11 @@ class BaseModel<T> {
       const placeholders = (!isArrayPattern && isArrayValues) ? 'IN (' + values.map(() => '?').join(', ') + ')' : '= ?';
 
       const query: string = `
-        SELECT * FROM ${BaseModel.table} WHERE ${pattern} ${placeholders}
+        SELECT * FROM ${currentInstance.table} WHERE ${pattern} ${placeholders}
       `;
 
-      return await this.dbManager.transaction(async (dbManager) => {
+      return await BaseModel.dbManager.transaction(async (dbManager) => {
         const row = await dbManager.get(query, queryValues);
-        console.log(row);
         return row;
       });
     } catch (error) {
