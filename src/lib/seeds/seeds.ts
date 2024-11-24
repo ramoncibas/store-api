@@ -5,8 +5,8 @@ const encryptedPassword = async () => await bcrypt.hash("store#123", 10);
 const seeds = async () => {
   return {
     brand_product: [
-      { name: "Nike" },
       { name: "Adidas" },
+      { name: "Nike" },
       { name: "Puma" },
     ],
 
@@ -63,7 +63,7 @@ const seeds = async () => {
         free_shipping: 1,
         description: "Blusa técnica Nike, ideal para atividades esportivas e uso diário.",
         size: 42,
-        brand_id: 1,
+        brand_id: 2,
         gender_id: 1,
         category_id: 1,
         quantity_available: 50
@@ -79,7 +79,7 @@ const seeds = async () => {
         free_shipping: 1,
         description: "Tênis Adidas Ultraboost com conforto máximo e estilo moderno.",
         size: 12,
-        brand_id: 2,
+        brand_id: 1,
         gender_id: 1,
         category_id: 2,
         quantity_available: 30
@@ -111,7 +111,7 @@ const seeds = async () => {
         free_shipping: 1,
         description: "Blusa casual Nike com design moderno e confortável para o dia a dia.",
         size: 29,
-        brand_id: 1,
+        brand_id: 2,
         gender_id: 2,
         category_id: 1,
         quantity_available: 60
@@ -127,7 +127,7 @@ const seeds = async () => {
         free_shipping: 1,
         description: "Tênis Adidas Supernova com suporte e amortecimento avançados.",
         size: 49,
-        brand_id: 2,
+        brand_id: 1,
         gender_id: 2,
         category_id: 2,
         quantity_available: 40

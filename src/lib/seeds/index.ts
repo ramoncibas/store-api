@@ -17,18 +17,25 @@ class Seeder extends DatabaseManager {
       const columns = Object.keys(data[0]).join(', ');
       const placeholders = Object.keys(data[0]).map(() => '?').join(', ');
   
-      const insertionPromises = data.map(async (item) => {
+      for (const item of data) {
         const values = Object.values(item);
         const query = `INSERT OR IGNORE INTO ${tableName} (${columns}) VALUES (${placeholders})`;
   
         try {
-          this.db.run(query, values);        
+          await new Promise<void>((resolve, reject) => {
+            this.db.run(query, values, (err) => {
+              if (err) {
+                console.error(`Error inserting into ${tableName}:`, err.message);
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
+          });
         } catch (error) {
           console.log(`Record already exists in table ${tableName}. Skipping insertion.`);
         }
-      });
-  
-      await Promise.all(insertionPromises);
+      }
     } catch (error: any) {
       console.error('Error in insertData:', error.message);
     }
