@@ -3,41 +3,46 @@ import config from 'config/environment';
 dotenv.config(config.envFilePath);
 
 import express, { Application } from 'express';
-import cors from 'cors';
-import cookiesMiddleware from 'universal-cookie-express';
-// import session from 'express-session';
 import appRoutes from 'routes';
-import { errorHandler } from 'middlewares';
-import { cleanupTempFiles, cleanupAndExit } from 'utils';
-import Seeder from 'lib/seeds';
+import setupMiddlewares from './middlewares';
+import { createAndSeedDatabase } from 'lib/seeds';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerOutput from './swagger.json';
+import { cleanupTempFiles, setupProcessListeners } from 'utils';
+import { reset, red, blue, cyan, green } from 'app/common/colors';
 
-const { NODE_ENV = 'development', PORT = 5000 } = process.env;
+const { PORT = 5000 } = process.env;
 
 const app: Application = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookiesMiddleware());
-// app.use(session({secret: 'key'}));
-app.use(errorHandler);
+
+// Set up middlewares for security, logging, request handling, and rate-limiting
+setupMiddlewares(app);
+
+// Set up application routes (e.g., API endpoints)
 app.use(appRoutes);
+
+// Set up Swagger UI for API documentation
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerOutput));
 
-process.on('beforeExit', cleanupAndExit);
-process.on('SIGINT', cleanupAndExit);
-process.on('SIGTERM', cleanupAndExit);
+// Set up process listeners for handling process termination signals
+setupProcessListeners();
 
-app.listen(PORT, () => {
-  console.log(`Server is running - http://localhost:${PORT}`);
-  console.log(`Swagger is running - http://localhost:${PORT}/docs`);
-  cleanupTempFiles();
+// Start the server and handle initialization
+app.listen(PORT, async () => {
+  try {
+    const _BASE_URL = `http://localhost:${PORT}`;
+    console.log(`${red}🚀 Server is running:${reset} ${blue}${_BASE_URL}${reset}`);
+    console.log(`${green}📜 Swagger is available at:${reset} ${cyan}${_BASE_URL}/docs${reset}`);
 
-  if (NODE_ENV === 'development') {
-    const seeds = new Seeder();
-    seeds.createDatabase();
-    seeds.seedDatabase();
+    // Cleanup temporary files (e.g., after previous operations or server crashes)
+    await cleanupTempFiles();
+
+    // Create and seed the database if necessary (e.g., for development or testing)
+    await createAndSeedDatabase();
+  } catch (err) {
+    console.error('❌ Error during server initialization:', err);
   }
+}).on('error', (err) => {
+  console.error(`${red}❌ Server failed to start:${reset}`, err);
 });
