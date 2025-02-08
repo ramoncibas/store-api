@@ -1,9 +1,10 @@
 import fs from 'fs/promises'
 import path from 'path';
+import { reset, red, yellow } from 'app/common/colors';
 
 const TEMP_DIR = 'temp';
 const TEMP_FILE_PREFIX = 'tmp-1';
-const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // Intervalo de 24 horas
+const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // Interval of  24 hours
 
 /**
  * Cleans up temporary files in the specified directory and sets up periodic cleanup.
@@ -16,9 +17,10 @@ async function cleanupTempFiles() {
 
       await Promise.all(tempFiles.map((file: any) => fs.unlink(path.join(TEMP_DIR, file))));
     
-      console.log('Temporary files successfully removed.');
+        console.log(`${yellow}🗑️  Temporary files successfully removed.${reset}`);
+
     } catch (error: any) {
-      console.error('Error removing temporary files:', error.message);
+      console.error(`${red}❌  Error removing temporary files:${reset} ${error.message}`);
     }
   }
 
