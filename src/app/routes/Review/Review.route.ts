@@ -6,14 +6,14 @@ import ReviewSchema from 'validators/schema/ReviewSchema';
 
 const router = Router();
 
-router.get("/customer/:uuid",
+router.get("/customer/:id",
   authMiddleware,
-  ReviewSchema.getByUUID,
+  ReviewSchema.getByCustomerId,
   ReviewController.getByCustomer
 );
 
 router.get("/product/:id",
-  ReviewSchema.getByID,
+  ReviewSchema.getById,
   ReviewController.getByProduct
 );
 
