@@ -8,7 +8,7 @@ import setupMiddlewares from './middlewares';
 import { createAndSeedDatabase } from 'lib/seeds';
 
 import swaggerUi from 'swagger-ui-express';
-import swaggerOutput from './swagger.json';
+import swaggerOutput from './app/docs/swagger/swagger.json';
 import { cleanupTempFiles, setupProcessListeners } from 'utils';
 import { reset, red, blue, cyan, green } from 'app/common/colors';
 

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import DatabaseManager from "../../database/db";
+import DatabaseManager from "database/db";
 import config from 'config/environment';
 import seeds from './seeds';
 import { reset, red, green } from 'app/common/colors';
