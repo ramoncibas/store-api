@@ -1,8 +1,8 @@
 import { Response } from "express";
 
 class GenericError extends Error {
-  private errorCode: number;
-  private originalError?: any;
+  protected errorCode: number;
+  protected originalError?: any;
 
   constructor(message: string, errorCode: number = 500, error?: any) {
     super(message);
@@ -12,7 +12,7 @@ class GenericError extends Error {
     this.logError();
   }
 
-  private logError(): void {
+  protected logError(): void {
     if (this.originalError) {
       console.error(`${this.name}: ${this.message}`, this.originalError);
     }
