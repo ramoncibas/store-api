@@ -5,7 +5,7 @@ import ProductRepository from 'repositories/ProductRepository';
 
 import ProductHelper from 'helpers/ProductHelper';
 
-import Product, { ShoppingCartItem } from 'types/Product.type';
+import { Product, ShoppingCartItem } from 'types/Product.type';
 import UserError from 'builders/errors/UserError';
 import PurchaseError from 'builders/errors/PurchaseError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
@@ -21,11 +21,11 @@ class PurchaseController {
   ): Promise<any> {
     try {
       return await Promise.all(
-        shoppingCartItems.map(async ({ id: cartId, quantity }: ShoppingCartItem) => {
-          const product = productList.find(product => product.id === cartId);
+        shoppingCartItems.map(async ({ product_id, quantity }: ShoppingCartItem) => {
+          const product = productList.find(product => product.id === product_id);
 
           if (!product || typeof product.quantity_available !== 'number') {
-            throw new UserError(`Product with ID ${cartId} not found or invalid stock information`);
+            throw new UserError(`Product with ID ${product_id} not found or invalid stock information`);
           }
 
           if (product.quantity_available < quantity) {
@@ -33,12 +33,12 @@ class PurchaseController {
           }
 
           const updatedProduct: Partial<Product> = {
-            id: cartId,
-            quantity_available: product.quantity_available - quantity,
+            id: product_id,
+            quantity_available: (product.quantity_available - quantity),
           };
 
-          await ProductRepository.update(cartId, updatedProduct);
-          await ShoppingCartRepository.delete(customerID, cartId);
+          await ProductRepository.update(product_id, updatedProduct);
+          await ShoppingCartRepository.delete(customerID, product_id);
         })
       );
     } catch (error) {
@@ -47,6 +47,7 @@ class PurchaseController {
     }
   }
 
+  // Botão de "Comprar Produtos" na interface do cliente
   static async buyProduct(req: Request, res: Response): Promise<void> {
     try {
       const { id: customerID } = req.params;
@@ -56,21 +57,24 @@ class PurchaseController {
         throw UserError.invalidInput();
       }
 
-      const shoppingCartItems: ShoppingCartItem[] | null = await ShoppingCartRepository.getAll(numericCustomerID);
+      // Busco os produtos que estão no carrinho de compras
+      const shoppingCartItems: Array<ShoppingCartItem> | null = await ShoppingCartRepository.findByCustomerId(numericCustomerID);
 
       if (!shoppingCartItems || shoppingCartItems?.length === 0) {
         throw ShoppingCartError.isEmpty();
       }
 
-      const shoppingCartIds: number[] = shoppingCartItems.map(obj => {
-        const idAsNumber = Number(obj.id);
+      // Retorna apenas os IDs dos produtos que estão no carrinho de compras
+      const productCartIds: Array<number> = shoppingCartItems.map(obj => {
+        const idAsNumber = Number(obj.product_id);
         if (isNaN(idAsNumber)) {
-          throw ShoppingCartError.invalidValue(obj.id);
+          throw ShoppingCartError.invalidValue(obj.product_id);
         }
         return idAsNumber;
       });
 
-      const products: Product[] | null = await ProductRepository.getByIds(shoppingCartIds);
+      // TODO: Melhorar a logica de compra e produtos, validar se o produto ainda existe, se o estoque é suficiente, etc
+      const products: Array<Product> | null = await ProductRepository.findByAmount(productCartIds);
 
       if (!Array.isArray(products) || products.length === 0) {
         throw ShoppingCartError.itemNotFound();

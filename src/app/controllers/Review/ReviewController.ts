@@ -9,7 +9,7 @@ import ResponseBuilder from 'builders/response/ResponseBuilder';
 import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ReviewController {
-  static async create(req: Request, res: Response): Promise<void> {
+  public async create(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
 
@@ -30,7 +30,7 @@ class ReviewController {
       }
 
       reviewData.customer_id = customer!.id as number;
-
+      
       const reviewCreated = await ReviewRepository.create(reviewData);
 
       if (!reviewCreated) {
@@ -47,7 +47,7 @@ class ReviewController {
     }
   }
 
-  static async update(req: Request, res: Response): Promise<void> {
+  public async update(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
 
@@ -75,13 +75,13 @@ class ReviewController {
     }
   }
 
-  static async getByCustomer(req: Request, res: Response): Promise<void> {
+  public async getByCustomer(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
 
       const customerID = req.params.uuid;
 
-      const review: Review[] | null = await ReviewRepository.search('customer_id', customerID);
+      const review: Review[] | null = await ReviewRepository.findByCustomerId(customerID);
 
       if (!review) {
         throw ReviewError.reviewNotFound();
@@ -98,14 +98,13 @@ class ReviewController {
     }
   }
 
-  static async getByProduct(req: Request, res: Response): Promise<void> {
+  public async getByProduct(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
-
-      const productID = req.params.id;
-
-      const review: Review[] | null = await ReviewRepository.search('product_id', productID);
-
+      
+      const productID: number = Number(req.params.id);
+      const review: Review[] | null = await ReviewRepository.findByProductId(productID);
+      
       if (!review) {
         throw ReviewError.reviewNotFound();
       }
@@ -121,7 +120,7 @@ class ReviewController {
     }
   }
 
-  static async delete(req: Request, res: Response): Promise<void> {
+  public async delete(req: Request, res: Response): Promise<void> {
     try {
       schemaResponseError(req, res);
 
@@ -144,4 +143,4 @@ class ReviewController {
   }
 }
 
-export default ReviewController;
+export default new ReviewController;

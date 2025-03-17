@@ -3,7 +3,7 @@ import ShoppingCartRepository from 'repositories/ShoppingCartRepository';
 import ProductRepository from 'repositories/ProductRepository';
 import ShoppingCartError from 'builders/errors/ShoppingCartError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
-import Product, { ShoppingCartItem } from 'types/Product.type';
+import { Product, ShoppingCartItem } from 'types/Product.type';
 import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ShoppingCartController {
@@ -13,15 +13,15 @@ class ShoppingCartController {
 
       const { customer_id } = req.params as unknown as { customer_id: number };
 
-      const shoppingCartIds: Array<{ product_id: number }> | null = await ShoppingCartRepository.get(customer_id);
+      const shoppingCartItems: Array<ShoppingCartItem> = await ShoppingCartRepository.findByCustomerId(customer_id);
 
-      if (!shoppingCartIds) {
+      if (!shoppingCartItems) {
         throw ShoppingCartError.itemNotFound();
       }
 
-      const arrayOfProducts: Array<number> = shoppingCartIds.map(item => item.product_id);
+      const arrayOfProductsIds: Array<number> = shoppingCartItems.map(item => item.product_id);
       
-      const products: Product[] = await ProductRepository.getByIds(arrayOfProducts);
+      const products: Product[] = await ProductRepository.findByIds(arrayOfProductsIds);
 
       if (!products) {
         throw ShoppingCartError.itemNotFound();
@@ -45,15 +45,6 @@ class ShoppingCartController {
       const { customer_id } = req.params as unknown as { customer_id: number };
 
       const fields: ShoppingCartItem = req.body;
-
-      const productExist = await ShoppingCartRepository.search(
-        ['customer_id ', 'product_id'],
-        [customer_id, fields.product_id]
-      );
-
-      if (productExist) {
-        throw ShoppingCartError.itemAlreadyExists();
-      }
       
       await ShoppingCartRepository.create(customer_id, fields);
 
@@ -73,9 +64,9 @@ class ShoppingCartController {
 
       const { cart_id } = req.params as unknown as { cart_id: number };
 
-      const { quantity } = req.body;
+      const { customer_id, quantity } = req.body;
 
-      await ShoppingCartRepository.update(cart_id, quantity);
+      await ShoppingCartRepository.update(customer_id, cart_id, quantity);
 
       ResponseBuilder.send({
         response: res,

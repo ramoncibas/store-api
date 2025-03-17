@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
-import Product from 'types/Product.type';
-import ProductRepository from 'repositories/ProductRepository';
-import ProductError from 'builders/errors/ProductError';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
-import schemaResponseError from 'validators/response/schemaResponseError';
+import { Request, Response } from "express";
+import ProductRepository from "repositories/ProductRepository";
+import ProductError from "builders/errors/ProductError";
+import ResponseBuilder from "builders/response/ResponseBuilder";
+import schemaResponseError from "validators/response/schemaResponseError";
+import { Product } from "types/Product.type";
 
 class ProductController {
   static async deleteProduct(req: Request, res: Response) {
@@ -52,12 +52,12 @@ class ProductController {
       if (!hasFilteredValue) {
         throw ProductError.defaultMessage();
       }
-      
+
       const product = await ProductRepository.getFiltered(body);
       if (!product) {
         throw ProductError.productNotFound();
       }
-      
+
       ResponseBuilder.send({
         response: res,
         message: "Filtered Product retrieved successfully!",
@@ -94,7 +94,7 @@ class ProductController {
 
   static async getProducts(req: Request, res: Response) {
     try {
-      const products = await ProductRepository.get();
+      const products = await ProductRepository.getAll();
 
       if (!products) {
         throw ProductError.productNotFound();
@@ -137,7 +137,7 @@ class ProductController {
       schemaResponseError(req, res);
 
       const fields: Product = req.body;
-      
+
       if (!fields.uuid) {
         throw ProductError.invalidInput();
       }
