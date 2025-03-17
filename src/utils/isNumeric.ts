@@ -4,6 +4,8 @@
  * @param value - The value to be checked for numeric representation.
  * @returns True if the value is numeric, false otherwise.
  */
-export function isNumeric(value: any): boolean {
+function isNumeric(value: any): boolean {
   return !isNaN(Number(value)) && isFinite(value);
 }
+
+export default isNumeric;
