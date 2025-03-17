@@ -1,4 +1,4 @@
-import Product, { ShoppingCartItem } from "types/Product.type";
+import { Product, ShoppingCartItem } from "types/Product.type";
 
 class ProductHelper {
   static calculateTotalAmount(cartItems: ShoppingCartItem[], productList: Product[]): number {
