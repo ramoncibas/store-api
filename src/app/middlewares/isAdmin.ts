@@ -4,7 +4,7 @@ import UserError from "builders/errors/UserError";
 import { User } from "types/User.type";
 
 const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
-  const uuid: string | undefined = req.headers["user-uuid"] as string;
+  const uuid: number | undefined = Number(req.headers["user-uuid"]) as number;
 
   const messageWrongUser: string = "Ops! You are not able to acces this page";
 
@@ -13,7 +13,7 @@ const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   }
   
   try {
-    const user: User | null = await UserRepository.search('uuid', uuid);
+    const user: User | null = await UserRepository.findByUserID(uuid);
 
     if(user && user?.type != 'admin') {
       return res.status(403).send(messageWrongUser);

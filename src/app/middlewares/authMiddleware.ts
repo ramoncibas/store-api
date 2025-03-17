@@ -9,6 +9,11 @@ export interface AuthRequest extends Request {
 
 const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const token: string | undefined = req.headers["x-access-token"] as string;
+  console.log(process.env.NODE_ENV)
+  if (process.env.NODE_ENV === 'development') {
+    next();
+    return;
+  }
 
   if (!token) {
     res.status(403).send("A token is required for authentication");
