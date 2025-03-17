@@ -1,3 +1,100 @@
+// TODO: Implementar seeds para popular o banco de dados com dados aleatórios
+// import bcrypt from 'bcryptjs';
+// import { faker } from '@faker-js/faker';
+
+// const encryptedPassword = async () => await bcrypt.hash("store#123", 10);
+
+// const generateRandomData = async () => {
+//   const brands = Array.from({ length: 10 }, () => ({ name: faker.company.name() }));
+//   const genders = ["Male", "Female", "Unisex"].map(name => ({ name }));
+//   const categories = Array.from({ length: 10 }, () => ({ name: faker.commerce.department() }));
+
+//   const users = Array.from({ length: 10 }, () => ({
+//     uuid: faker.datatype.uuid(),
+//     first_name: faker.name.firstName(),
+//     last_name: faker.name.lastName(),
+//     email: faker.internet.email(),
+//     password: await encryptedPassword(),
+//     phone: faker.phone.number(),
+//     user_picture_name: faker.image.avatar(),
+//     type: "user"
+//   }));
+
+//   const customers = users.map((user, index) => ({
+//     user_id: index + 1,
+//     uuid: faker.datatype.uuid(),
+//     card_expiry_date: faker.date.future().toISOString().split('T')[0].replace(/-/g, ''),
+//     card_number: faker.finance.creditCardNumber(),
+//     card_security_code: faker.finance.creditCardCVV(),
+//     customer_reviews: faker.datatype.number({ min: 1, max: 10 }).toString(),
+//     favorite_brands: faker.company.name(),
+//     favorite_categories: faker.commerce.department(),
+//     last_purchase_date: faker.date.past().toISOString().split('T')[0],
+//     shipping_address: faker.address.streetAddress(),
+//     total_purchases: faker.datatype.number({ min: 100, max: 10000 })
+//   }));
+
+//   const products = Array.from({ length: 10 }, () => ({
+//     uuid: faker.datatype.uuid(),
+//     name: faker.commerce.productName(),
+//     price: parseFloat(faker.commerce.price()),
+//     color: faker.color.human(),
+//     discount_percentage: faker.datatype.number({ min: 0, max: 50 }),
+//     product_picture: faker.image.imageUrl(),
+//     number_of_installments: faker.datatype.number({ min: 1, max: 12 }),
+//     free_shipping: faker.datatype.boolean() ? 1 : 0,
+//     description: faker.commerce.productDescription(),
+//     size: faker.datatype.number({ min: 30, max: 50 }),
+//     brand_id: faker.datatype.number({ min: 1, max: brands.length }),
+//     gender_id: faker.datatype.number({ min: 1, max: genders.length }),
+//     category_id: faker.datatype.number({ min: 1, max: categories.length }),
+//     quantity_available: faker.datatype.number({ min: 0, max: 100 })
+//   }));
+
+//   const reviews = Array.from({ length: 10 }, () => ({
+//     uuid: faker.datatype.uuid(),
+//     product_id: faker.datatype.number({ min: 1, max: products.length }),
+//     customer_id: faker.datatype.number({ min: 1, max: customers.length }),
+//     rating: faker.datatype.number({ min: 1, max: 10 }),
+//     comment: faker.lorem.sentence()
+//   }));
+
+//   const shoppingCarts = Array.from({ length: 10 }, () => ({
+//     uuid: faker.datatype.uuid(),
+//     customer_id: faker.datatype.number({ min: 1, max: customers.length }),
+//     product_id: faker.datatype.number({ min: 1, max: products.length }),
+//     quantity: faker.datatype.number({ min: 1, max: 5 })
+//   }));
+
+//   const purchases = Array.from({ length: 10 }, () => ({
+//     customer_id: faker.datatype.number({ min: 1, max: customers.length }),
+//     total_amount: parseFloat(faker.commerce.price()),
+//     total_value: parseFloat(faker.commerce.price()),
+//     purchase_date: faker.date.recent().toISOString()
+//   }));
+
+//   const revokedTokens = Array.from({ length: 10 }, () => ({
+//     token: faker.datatype.uuid()
+//   }));
+
+//   return {
+//     brand_product: brands,
+//     gender_product: genders,
+//     category_product: categories,
+//     user: users,
+//     customer: customers,
+//     product: products,
+//     review: reviews,
+//     shopping_cart: shoppingCarts,
+//     purchase: purchases,
+//     revoked_tokens: revokedTokens
+//   };
+// };
+
+// const seeds = async () => await generateRandomData();
+
+// export default seeds;
+
 import bcrypt from 'bcryptjs';
 
 const encryptedPassword = async () => await bcrypt.hash("store#123", 10);
@@ -157,6 +254,20 @@ const seeds = async () => {
         customer_id: 1,
         rating: 4,
         comment: "Good product!",
+      },
+      {
+        uuid: "k12djnkjn12d",
+        product_id: 2,
+        customer_id: 2,
+        rating: 10,
+        comment: "FATALITY product!",
+      },
+      {
+        uuid: "dk12jnd1dkj",
+        product_id: 3,
+        customer_id: 3,
+        rating: 7,
+        comment: "INSANE product!",
       },
     ],
 
