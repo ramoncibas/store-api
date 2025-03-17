@@ -8,25 +8,24 @@ class UserRepository {
    * @param user - Object representing the user data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(user: User): Promise<User> {
+  static async findByUserID(user: number): Promise<User> {
     try {
-      return await UserModel.create(user);
+      return await UserModel.findByUserID(user);
     } catch (error: any) {
       throw new UserError('Error creating user', error);
     }
   }
 
   /**
-   * Get a user from the database based on the provided pattern and value.
-   * @param pattern - A string or array of strings representing the fields to filter on.
-   * @param value - The corresponding value for the filter pattern.
-   * @returns A Promise that resolves with the user data or null if not found.
+   * Creates a new user in the database.
+   * @param user - Object representing the user data to be created.
+   * @returns A Promise that resolves when the operation is completed.
    */
-  static async search(pattern: string | Array<string>, value: number | string | Array<string>): Promise<User | null> {
+  static async create(user: User): Promise<User> {
     try {
-      return await UserModel.search(pattern, value);
+      return await UserModel.create(user);
     } catch (error: any) {
-      throw new UserError('Error retrieving user', error);
+      throw new UserError('Error creating user', error);
     }
   }
 
@@ -50,7 +49,7 @@ class UserRepository {
    */
   static async update(userUUID: string, updatedFields: Partial<User>): Promise<void> {
     try {
-      await UserModel.update(userUUID, updatedFields);
+      await UserModel.updateRecord(userUUID, updatedFields);
     } catch (error: any) {
       throw new UserError('Error updating user', error);
     }
