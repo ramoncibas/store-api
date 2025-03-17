@@ -1,6 +1,6 @@
 import { checkSchema, Schema } from 'express-validator';
 
-const login: Schema = {
+export const loginSchema: Schema = {
   email: {
     in: ['body'],
     isEmail: {
@@ -33,7 +33,7 @@ const login: Schema = {
   },
 }
 
-const logout: Schema = {
+export const logoutSchema: Schema = {
   email: {
     in: ['body'],
     isEmail: {
@@ -59,7 +59,7 @@ const logout: Schema = {
   },
 }
 
-const register: Schema = {
+export const registerSchema: Schema = {
   first_name: {
     in: ['body'],
     isString: {
@@ -140,7 +140,7 @@ const register: Schema = {
 }
 
 export default {
-  login: checkSchema(login),
-  logout: checkSchema(logout),
-  register: checkSchema(register),
+  login: checkSchema(loginSchema),
+  logout: checkSchema(logoutSchema),
+  register: checkSchema(registerSchema),
 };

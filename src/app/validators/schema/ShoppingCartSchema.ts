@@ -1,6 +1,6 @@
 import { checkSchema, Schema } from 'express-validator';
 
-const get: Schema = {
+export const getCartSchema: Schema = {
   customer_id: {
     in: ['params'],
     notEmpty: {
@@ -13,7 +13,17 @@ const get: Schema = {
   },
 }
 
-const create: Schema = {
+export const createCartSchema: Schema = {
+  customer_id: {
+    in: ['params'],
+    notEmpty: {
+      errorMessage: 'Customer Id is required',
+    },
+    isLength: {
+      options: { min: 1 },
+      errorMessage: 'Customer Id should be at least 1 chars',
+    },
+  },
   product_id: {
     in: ['body'],
     notEmpty: {
@@ -36,7 +46,7 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
+export const updateCartSchema: Schema = {
   cart_id: {
     in: ['params'],
     notEmpty: {
@@ -45,6 +55,16 @@ const update: Schema = {
     isNumeric: {
       options: { no_symbols: true },
       errorMessage: 'Cart Id must be a number',
+    },
+  },
+  customer_id: {
+    in: ['body'],
+    notEmpty: {
+      errorMessage: 'Customer Id is required',
+    },
+    isNumeric: {
+      options: { no_symbols: true },
+      errorMessage: 'Customer Id must be a number',
     },
   },
   quantity: {
@@ -59,7 +79,7 @@ const update: Schema = {
   },
 }
 
-const remove: Schema = {
+export const removeCartSchema: Schema = {
   id: {
     in: ['params'],
     notEmpty: {
@@ -71,7 +91,7 @@ const remove: Schema = {
   },
 }
 
-const clean: Schema = {
+export const cleanCartSchema: Schema = {
   customer_id: {
     in: ['params'],
     notEmpty: {
@@ -84,9 +104,9 @@ const clean: Schema = {
 }
 
 export default {
-  get: checkSchema(get),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
-  clean: checkSchema(clean),
+  get: checkSchema(getCartSchema),
+  create: checkSchema(createCartSchema),
+  update: checkSchema(updateCartSchema),
+  remove: checkSchema(removeCartSchema),
+  clean: checkSchema(cleanCartSchema),
 };

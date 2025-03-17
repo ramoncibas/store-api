@@ -1,4 +1,4 @@
-export default interface Product {
+export interface Product {
   id?: number;
   uuid: string;
   name: string;
@@ -17,6 +17,7 @@ export default interface Product {
 
 export interface ShoppingCartItem {
   id: number;
+  uuid: string;
   product_id: number;
   customer_id: number;
   quantity: number;

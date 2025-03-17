@@ -1,8 +1,8 @@
 import { checkSchema, Schema } from 'express-validator';
 
-const get: Schema = {}
+export const getProductSchema: Schema = {}
 
-const filter: Schema = {
+export const filterProductSchema: Schema = {
   brand_product: {
     in: ['body'],
     optional: true,
@@ -33,7 +33,7 @@ const filter: Schema = {
   }
 }
 
-const getId: Schema = {
+export const getProductIdSchema: Schema = {
   id: {
     in: ['body'],
     notEmpty: {
@@ -45,7 +45,7 @@ const getId: Schema = {
   },
 }
 
-const create: Schema = {
+export const createProductSchema: Schema = {
   name: {
     in: ['body'],
     isString: {
@@ -88,7 +88,7 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
+export const updateProductSchema: Schema = {
   uuid: {
     in: ['body'],
     isUUID: {
@@ -230,7 +230,7 @@ const update: Schema = {
   },
 };
 
-const remove: Schema = {
+export const removeProductSchema: Schema = {
   id: {
     in: ['body'],
     notEmpty: {
@@ -243,10 +243,10 @@ const remove: Schema = {
 }
 
 export default {
-  get: checkSchema(get),
-  getId: checkSchema(getId),
-  filter: checkSchema(filter),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
+  get: checkSchema(getProductSchema),
+  getId: checkSchema(getProductIdSchema),
+  filter: checkSchema(filterProductSchema),
+  create: checkSchema(createProductSchema),
+  update: checkSchema(updateProductSchema),
+  remove: checkSchema(removeProductSchema),
 };

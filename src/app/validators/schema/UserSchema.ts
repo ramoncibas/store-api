@@ -1,6 +1,6 @@
 import { checkSchema, Schema } from 'express-validator';
 
-const get: Schema = {
+export const getUserSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -9,9 +9,9 @@ const get: Schema = {
   },
 };
 
-const getAll: Schema = {};
+export const getAllUserSchema: Schema = {};
 
-const update: Schema = {
+export const updateUserSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -42,7 +42,7 @@ const update: Schema = {
 };
 
 export default {
-  get: checkSchema(get),
-  getAll: checkSchema(getAll),
-  update: checkSchema(update),
+  get: checkSchema(getUserSchema),
+  getAll: checkSchema(getAllUserSchema),
+  update: checkSchema(updateUserSchema),
 };

@@ -1,8 +1,8 @@
 import { checkSchema, Schema } from 'express-validator';
 
-const getByID: Schema = {
+export const getReviewByIdSchema: Schema = {
   id: {
-    in: ['body'],
+    in: ['params'],
     notEmpty: {
       errorMessage: 'Product Id is required',
     },
@@ -13,19 +13,19 @@ const getByID: Schema = {
   },
 }
 
-const getByUUID: Schema = {
+export const getReviewByCustomerIdSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
-      errorMessage: 'Customer UUID is required',
+      errorMessage: 'Customer Id is required',
     },
     isString: {
-      errorMessage: 'Customer UUID must be a string',
+      errorMessage: 'Customer Id must be a string',
     },
   },
 }
 
-const create: Schema = {
+export const createReviewSchema: Schema = {
   uuid: {
     in: ['params'],
     isString: {
@@ -67,7 +67,7 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
+export const updateReviewSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -100,7 +100,7 @@ const update: Schema = {
   },
 }
 
-const remove: Schema = {
+export const removeReviewSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -113,9 +113,9 @@ const remove: Schema = {
 }
 
 export default {
-  getByID: checkSchema(getByID),
-  getByUUID: checkSchema(getByUUID),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
+  getById: checkSchema(getReviewByIdSchema),
+  getByCustomerId: checkSchema(getReviewByCustomerIdSchema),
+  create: checkSchema(createReviewSchema),
+  update: checkSchema(updateReviewSchema),
+  remove: checkSchema(removeReviewSchema),
 };
