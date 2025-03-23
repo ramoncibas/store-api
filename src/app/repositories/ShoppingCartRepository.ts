@@ -3,6 +3,7 @@ import ShoppingCartError from "builders/errors/ShoppingCartError";
 import { ShoppingCartItem } from "types/Product.type";
 import CacheService from "lib/cache";
 import ProductModel from "../models/ProductModel";
+import ProductError from "../builders/errors/ProductError";
 
 class ShoppingCartRepository {
   private cache;
@@ -20,46 +21,18 @@ class ShoppingCartRepository {
   }
 
   /**
-   * Creates a new Shopping Cart Product in the database.
-   * @param Shopping Cart Product - Object representing the Shopping Cart Product data to be created.
-   * @returns A Promise that resolves when the operation is completed.
-   */
-  public async create(customerID: number, product: ShoppingCartItem): Promise<ShoppingCartItem> {
-    try {
-      const productExist = await ProductModel.findById(product.product_id);
-
-      if (productExist) {
-        throw ShoppingCartError.itemAlreadyExists();
-      }
-
-      const newCartItem = await ShoppingCartModel.create(customerID, product);
-
-      if (!newCartItem) {
-        throw ShoppingCartError.itemCreationFailed();
-      }
-
-      const cacheKey = this.cacheKey.customer(customerID);
-      this.cache.set(cacheKey, newCartItem);
-      
-      return newCartItem;
-    } catch (error: any) {
-      throw new ShoppingCartError('Error creating Shopping Cart Product', error);
-    }
-  }
-
-  /**
    * Gets a Shopping Cart Product Ids from the database based on the provided ID.
-   * @param customerID - Numeric ID of customer.
+   * @param customerId - Numeric ID of customer.
    * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
    */
-  public async findByCustomerId(customerID: number): Promise<Array<ShoppingCartItem>> {
+  public async findByCustomerId(customerId: number): Promise<Array<ShoppingCartItem>> {
     try {
-      const cacheKey = this.cacheKey.customer(customerID);
+      const cacheKey = this.cacheKey.customer(customerId);
       const cachedReviews = await this.cache.get<ShoppingCartItem[]>(cacheKey);
 
       if (cachedReviews) return cachedReviews;
 
-      const cartItems = await ShoppingCartModel.findByCustomerId(customerID);
+      const cartItems = await ShoppingCartModel.findByCustomerId(customerId);
 
       if (cartItems) {
         this.cache.set(cacheKey, cartItems);
@@ -72,18 +45,130 @@ class ShoppingCartRepository {
   }
 
   /**
+   * Gets a Shopping Cart Product Ids from the database based on the provided ID.
+   * @param customerId - Numeric ID of customer.
+   * @param productId - Numeric ID of product.
+   * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
+   */
+  public async findByProductId(customerId: number, productId: number): Promise<Array<ShoppingCartItem>> {
+    try {
+      const cacheKey = this.cacheKey.customer(customerId);
+      const cachedReviews = await this.cache.get<ShoppingCartItem[]>(cacheKey);
+
+      if (cachedReviews) return cachedReviews;
+
+      const cartItems = await ShoppingCartModel.findByProductId(customerId, productId);
+
+      if (cartItems) {
+        this.cache.set(cacheKey, cartItems);
+      }
+
+      return cartItems!;
+    } catch (error: any) {
+      throw new ShoppingCartError('Error retrieving Shopping Cart Product', error);
+    }
+  }
+
+  /**
+   * Gets a Shopping Cart Product Ids from the database based on the provided ID.
+   * @param cartId - Numeric ID of customer.
+   * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
+   */
+  public async findByCartId(cartId: number): Promise<ShoppingCartItem | null> {
+    try {
+      // const cacheKey = this.cacheKey.customer(cartId);
+      // const cachedReviews = await this.cache.get<ShoppingCartItem[]>(cacheKey);
+
+      // if (cachedReviews) return cachedReviews;
+
+      const cartItems = await ShoppingCartModel.findByCartId(cartId);
+
+      // if (cartItems) {
+      //   this.cache.set(cacheKey, cartItems);
+      // }
+
+      return cartItems;
+    } catch (error: any) {
+      throw new ShoppingCartError('Error retrieving Shopping Cart Product', error);
+    }
+  }
+
+  /**
+ * Creates a new Shopping Cart Product in the database.
+ * @param Shopping Cart Product - Object representing the Shopping Cart Product data to be created.
+ * @returns A Promise that resolves when the operation is completed.
+ */
+  public async save(customerId: number, product: ShoppingCartItem): Promise<ShoppingCartItem> {
+    try {
+      const productId = Number(product.product_id);
+      const productExist = await ProductModel.findById(productId);
+
+      if (!productExist) {
+        throw ProductError.productNotFound();
+      }
+
+      const cartItemExist = await ShoppingCartModel.findByProductId(customerId, productId);
+
+      if (cartItemExist && cartItemExist.length > 0) {
+
+        const updatedItems = await Promise.all(cartItemExist.map(async (item) => {
+          const cartProductId = Number(item.product_id);
+
+          if (cartProductId === productId) {
+            const updatedQuantity = Number(item.quantity) + Number(product.quantity);
+
+            await this.update(customerId, item.id, { quantity: updatedQuantity });
+            return { ...item, quantity: updatedQuantity };
+          }
+          return item;
+        }));
+
+        // Todo: fazer com que o update seja feito verificando tbm a qualtidade do produto disponivel para a compram, não podendo ultrapassar o limite
+
+        const updatedItem = updatedItems.find(item => Number(item.product_id) === productId);
+
+        if (updatedItem) {
+          return updatedItem;
+        }
+      }
+
+      const createdItems = await ShoppingCartModel.saveProduct(customerId, product);
+
+      if (!createdItems || createdItems.length === 0) {
+        throw ShoppingCartError.itemCreationFailed();
+      }
+
+      const newCartItem = createdItems[0];
+
+      if (!newCartItem) {
+        throw ShoppingCartError.itemCreationFailed();
+      }
+
+      const cacheKey = this.cacheKey.customer(customerId);
+      const existingItems = await this.cache.get<ShoppingCartItem[]>(cacheKey) || [];
+      existingItems.push(newCartItem);
+      this.cache.set(cacheKey, existingItems);
+
+      return newCartItem;
+    } catch (error: any) {
+      throw new ShoppingCartError('Error creating Shopping Cart Product', error);
+    }
+  }
+
+  /**
    * Updates the data of a Shopping Cart Product in the database.
-   * @param customerID - ID of the Customer to be updated.
-   * @param shoppingCarID - ID of the Shopping Cart Product to be updated.
+   * @param customerId - ID of the Customer to be updated.
+   * @param shoppingCartID - ID of the Shopping Cart Product to be updated.
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public async update(customerID: number, shoppingCarID: number, quantity: Partial<ShoppingCartItem>): Promise<void> {
+  public async update(customerId: number, shoppingCartID: number, data: Partial<ShoppingCartItem>): Promise<ShoppingCartItem> {
     try {
-      const updatedCart = await ShoppingCartModel.update(shoppingCarID, quantity);
+      const updatedCart = await ShoppingCartModel.updateCart(shoppingCartID, data);
 
+      console.log(updatedCart)
       if (updatedCart) {
-        let cacheKey = this.cacheKey.customer(customerID);
+        let cacheKey = this.cacheKey.customer(customerId);
         this.cache.remove(cacheKey);
       }
 

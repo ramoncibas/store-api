@@ -8,7 +8,7 @@ class UserRepository {
    * @param user - Object representing the user data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async findByUserID(user: number): Promise<User> {
+  static async findByUserID(user: number): Promise<User  | null> {
     try {
       return await UserModel.findByUserID(user);
     } catch (error: any) {

@@ -48,7 +48,7 @@ class ShoppingCartError extends GenericError {
   }
 
   static itemCreationFailed(): ShoppingCartError {
-    return new ShoppingCartError("Failed to create the product.", 500);
+    return new ShoppingCartError("Failed to add the item to the Shopping Cart.", 500);
   }
 
   static itemAlreadyExists(): ShoppingCartError {

@@ -12,7 +12,7 @@ export interface Product {
   brand_product_id: number;
   gender_product_id: number;
   category_product_id: number;
-  quantity_available?: number;
+  quantity_available: number;
 }
 
 export interface ShoppingCartItem {

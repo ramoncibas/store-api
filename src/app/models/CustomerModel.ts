@@ -19,7 +19,7 @@ class CustomerModel extends BaseModel<Customer> {
    * @param customerUUID - Numeric ID of the customer.
    * @returns A Promise that resolves with the customer data or null if not found.
    */
-  public static async findByUuid(customerUUID: string): Promise<Customer> {
+  public static async findByUuid(customerUUID: string): Promise<Customer | null> {
     return await this.search("uuid", customerUUID);
   }
 

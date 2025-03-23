@@ -4,6 +4,10 @@ import { Product } from "types/Product.type";
 
 class ProductRepository {
 
+  // TODO: Migrar para um repository só de stock, e adiconar uma tabela para o mesmo
+  static async updateStock(productId: number, quantity: number) {
+    return productId;
+  }
   
   /**
    * Get a product from the database based on its ID.

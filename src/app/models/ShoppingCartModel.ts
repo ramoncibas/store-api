@@ -7,11 +7,31 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
 
   /**
    * Get a ShoppingCartItem from the database based on the provided ID.
-   * @param shoppingCarID - Numeric ID of the Cart.
+   * @param customerId - Numeric ID of the Cart.
    * @returns A Promise that resolves with the cart data or null if not found.
    */
-  public static async findByCustomerId(customerID: number): Promise<Array<any> | null> {
-    return await this.search("customer_id", customerID);
+  public static async findByCustomerId(customerId: number): Promise<Array<ShoppingCartItem> | null> {
+    return await this.search("customer_id", customerId);
+  }
+
+  /**
+   * Retrieve a ShoppingCartItem from the database using the provided product ID.
+   * @param productId - Numeric ID of the product in the cart.
+   * @returns A Promise that resolves with the cart data or null if not found.
+   */
+  public static async findByProductId(customerId: number, productId: number): Promise<Array<ShoppingCartItem> | null> {
+    return await this.search(["customer_id", "product_id"], [customerId, productId]);
+  }
+
+  /**
+   * Get a ShoppingCartItem from the database based on the provided ID.
+   * @param cardId - Numeric ID of the Cart.
+   * @returns A Promise that resolves with the cart data or null if not found.
+   */
+  public static async findByCartId(cartId: number): Promise<ShoppingCartItem | null> {
+    const [ cartItem ]: ShoppingCartItem[] = await this.search("id", cartId) ?? [];
+    
+    return cartItem || null;
   }
 
   /**
@@ -19,27 +39,31 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
    * @param produt - Object representing the shopping cart Product product data to be saved.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async create(customer_id: number, product: ShoppingCartItem): Promise<ShoppingCartItem | null> {
-    const data = { customer_id, ...Object.values(product) };
+  public static async saveProduct(
+    customer_id: number,
+    product: Omit<ShoppingCartItem, "customer_id">
+  ): Promise<ShoppingCartItem[] | null> {
+    const data = { customer_id, ...product };
+
     return await this.save(data) ?? null;
   }
 
   /**
    * Update the data of a Shopping Cart Product in the database.
-   * @param shoppingCarID - ID of the Shopping Cart Product to be updated.
+   * @param shoppingCarId - ID of the Shopping Cart Product to be updated.
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async update(shoppingCarID: number, quantity: Partial<ShoppingCartItem>): Promise<any> {
-    return await this.update(shoppingCarID, quantity);
+  public static async updateCart(shoppingCarId: number, data: Partial<ShoppingCartItem>): Promise<ShoppingCartItem> {
+    return await this.update(shoppingCarId, data);
   }
 
   /**
    * Delete a Shopping Cart Product from the database based on the provided UUID.
-   * @param shoppingCarID - ID of the Shopping Cart Product to be deleted.
+   * @param shoppingCarId - ID of the Shopping Cart Product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async deleteItem(customerID: number, shoppingCarID: number): Promise<boolean> {
+  public static async deleteItem(customerId: number, shoppingCarId: number): Promise<boolean> {
     try {
       const query: string = `
         DELETE FROM shopping_cart 
@@ -49,7 +73,7 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
       `;
 
       const result = await this.dbManager.transaction(async (dbManager) => {
-        const rows = await dbManager.run(query, [customerID, shoppingCarID]);
+        const rows = await dbManager.run(query, [customerId, shoppingCarId]);
 
         return rows;
       });
@@ -67,11 +91,11 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
 
   /**
    * Deletes all product items in the shopping cart by clearing the database based on the customer ID.
-   * @param customerID - ID of the cart owner of the shopping cart to be deleted.
+   * @param customerId - ID of the cart owner of the shopping cart to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async clear(customerID: number): Promise<any> {
-    return await this.delete(customerID);
+  public static async clear(customerId: number): Promise<any> {
+    return await this.delete(customerId);
   }
 }
 

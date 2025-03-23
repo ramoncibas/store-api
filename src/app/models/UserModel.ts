@@ -9,7 +9,7 @@ class UserModel extends BaseModel<User> {
  * @param userId - The ID of the user.
  * @returns A Promise that resolves with an array of reviews.
  */
-  public static async findByUserID(userId: number): Promise<User> {
+  public static async findByUserID(userId: number): Promise<User | null> {
     return await this.search("id", userId);
   }
 

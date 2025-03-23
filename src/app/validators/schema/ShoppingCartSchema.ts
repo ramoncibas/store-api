@@ -67,6 +67,16 @@ export const updateCartSchema: Schema = {
       errorMessage: 'Customer Id must be a number',
     },
   },
+  product_id: {
+    in: ['body'],
+    notEmpty: {
+      errorMessage: 'Product Id is required',
+    },
+    isNumeric: {
+      options: { no_symbols: true },
+      errorMessage: 'Quantity must be a number',
+    },
+  },
   quantity: {
     in: ['body'],
     notEmpty: {

@@ -84,7 +84,7 @@ class BaseModel<T> {
 
     const query = `
       INSERT INTO ${this.table} (uuid, ${columns})
-      VALUES (${placeholders})
+      VALUES (?, ${placeholders})
       RETURNING *;
     `;
 
@@ -117,13 +117,19 @@ class BaseModel<T> {
   protected static async update<T>(record: string | number, updatedFields: Partial<T>): Promise<T> {
     try {
       const { recordString, condition } = this.getRecordCondition(record);
-      const query = `UPDATE ${this.table} SET ? WHERE ${condition} = ?`;
+      const keys = Object.keys(updatedFields);
+      const values = Object.values(updatedFields);
 
-      const result = await BaseModel.dbManager.transaction(async (dbManager) => {
-        return await dbManager.run(query, [updatedFields, recordString]);
+      const setClause = keys.map(key => `${key} = ?`).join(', ');
+      const query = `UPDATE ${this.table} SET ${setClause} WHERE ${condition} = ?`;
+            
+      await BaseModel.dbManager.transaction(async (dbManager) => {
+        return await dbManager.run(query, [...values, recordString]);
       });
 
-      return result as T;
+      const updatedRecord = await this.get(recordString);
+
+      return updatedRecord as T;
     } catch (error) {
       throw DatabaseError.transactionFailed(error);
     }
@@ -193,8 +199,8 @@ class BaseModel<T> {
    */
   protected static async search<T>(
     conditions: string | Array<string>,
-    values: number | string | Array<string | number>
-  ): Promise<T> {
+    values: number | string | Array<number | string>
+  ): Promise<T | null> {
     try {
       const isArrayPattern = Array.isArray(conditions);
       const isArrayValues = Array.isArray(values);
@@ -211,6 +217,10 @@ class BaseModel<T> {
       const result = await BaseModel.dbManager.transaction(async (dbManager) => {
         return await dbManager.all(query, queryValues);
       });
+      
+      if (!result || result.length === 0) {
+        return null;
+      }
 
       return result as T;
     } catch (error) {
