@@ -1,5 +1,5 @@
 import BaseModel from "./BaseModel";
-import Review from "types/Review.type";
+import { Review } from "@types";
 
 class ReviewModel extends BaseModel<Review> {
   protected static table: string = "review";
@@ -18,7 +18,7 @@ class ReviewModel extends BaseModel<Review> {
    * @param customerId - The id of the costumer.
    * @returns A Promise that resolves with an array of reviews.
    */
-  public static async findByCustomerId(customerId: string): Promise<Review[] | null> {
+  public static async findByCustomerId(customerId: number): Promise<Review[] | null> {
     return await this.search("customer_id", customerId);
   }
 

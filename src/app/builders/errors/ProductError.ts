@@ -1,26 +1,14 @@
-import GenericError from "./GenericError";
+import { AppError } from "builders/errors";
 
-class ProductError extends GenericError {
-  constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message, errorCode, error);
-    this.name = 'ProductError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
-  }
+export class ProductError extends AppError {
 
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`ProductError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      status: "error",
-      errorCode: this.getErrorCode(),
-      message: this.message || ProductError.default(),
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   static default(): ProductError {

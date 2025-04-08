@@ -1,6 +1,6 @@
 import BaseModel from "./BaseModel";
-import DatabaseError from "builders/errors/DatabaseError";
-import { ShoppingCartItem } from "types/Product.type";
+import { DatabaseError } from "builders/errors";
+import { ShoppingCartItem } from "@types";
 
 class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
   protected static table: string = "shopping_cart";
@@ -20,12 +20,15 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
    * @returns A Promise that resolves with the cart data or null if not found.
    */
   public static async findByProductId(customerId: number, productId: number): Promise<Array<ShoppingCartItem> | null> {
-    return await this.search(["customer_id", "product_id"], [customerId, productId]);
+    return await this.search(
+      ["customer_id", "product_id"],
+      [customerId, productId]
+    );
   }
 
   /**
    * Get a ShoppingCartItem from the database based on the provided ID.
-   * @param cardId - Numeric ID of the Cart.
+   * @param cartId - Numeric ID of the Cart.
    * @returns A Promise that resolves with the cart data or null if not found.
    */
   public static async findByCartId(cartId: number): Promise<ShoppingCartItem | null> {
@@ -42,7 +45,7 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
   public static async saveProduct(
     customer_id: number,
     product: Omit<ShoppingCartItem, "customer_id">
-  ): Promise<ShoppingCartItem[] | null> {
+  ): Promise<ShoppingCartItem | null> {
     const data = { customer_id, ...product };
 
     return await this.save(data) ?? null;
@@ -50,20 +53,20 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
 
   /**
    * Update the data of a Shopping Cart Product in the database.
-   * @param shoppingCarId - ID of the Shopping Cart Product to be updated.
+   * @param shoppingCartId - ID of the Shopping Cart Product to be updated.
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async updateCart(shoppingCarId: number, data: Partial<ShoppingCartItem>): Promise<ShoppingCartItem> {
-    return await this.update(shoppingCarId, data);
+  public static async updateCart(shoppingCartId: number, data: Partial<ShoppingCartItem>): Promise<ShoppingCartItem> {
+    return await this.update(shoppingCartId, data);
   }
 
   /**
    * Delete a Shopping Cart Product from the database based on the provided UUID.
-   * @param shoppingCarId - ID of the Shopping Cart Product to be deleted.
+   * @param shoppingCartId - ID of the Shopping Cart Product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async deleteItem(customerId: number, shoppingCarId: number): Promise<boolean> {
+  public static async deleteItem(customerId: number, shoppingCartId: number): Promise<boolean> {
     try {
       const query: string = `
         DELETE FROM shopping_cart 
@@ -73,13 +76,13 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
       `;
 
       const result = await this.dbManager.transaction(async (dbManager) => {
-        const rows = await dbManager.run(query, [customerId, shoppingCarId]);
+        const rows = await dbManager.run(query, [customerId, shoppingCartId]);
 
-        return rows;
+        return rows || { changes: 0 };
       });
 
-      if (!result) {
-        DatabaseError.queryFailed();
+      if (result.changes === 0) {
+        return false;
       }
 
       return true;
@@ -94,8 +97,18 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
    * @param customerId - ID of the cart owner of the shopping cart to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async clear(customerId: number): Promise<any> {
-    return await this.delete(customerId);
+  public static async clear(customerId: number): Promise<boolean> {
+    try {
+      const query = `DELETE FROM ${this.table} WHERE customer_id = ?`;
+
+      const result = await BaseModel.dbManager.transaction(async (dbManager) => {
+        return await dbManager.run(query, [customerId]);
+      });
+
+      return result && result.changes > 0;
+    } catch (error) {
+      throw DatabaseError.transactionFailed(error);
+    }
   }
 }
 

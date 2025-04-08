@@ -1,22 +1,14 @@
-import GenericError from "./GenericError";
+import { AppError } from "builders/errors";
 
-class StockError extends GenericError {
-  constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message, errorCode, error);
-    this.name = 'StockError';
-  }
+export class StockError extends AppError {
 
-  /**
-   * Converts the error to a response object.
-   * @returns An object representing the error response.
-   */
-  toResponseObject(): any {
-    return {
-      status: "error",
-      errorCode: this.getErrorCode(),
-      message: this.message || StockError.default().message,
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   /**
@@ -32,7 +24,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 404 error code.
    */
   static productNotFound(): StockError {
-    return new StockError("Product not found in stock!", null, 404);
+    return new StockError("Product not found in stock!", 404);
   }
 
   /**
@@ -40,7 +32,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 400 error code.
    */
   static insufficientStock(): StockError {
-    return new StockError("Insufficient stock available.", null, 400);
+    return new StockError("Insufficient stock available.", 400);
   }
 
   /**
@@ -48,7 +40,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 400 error code.
    */
   static invalidInput(): StockError {
-    return new StockError("Invalid input provided.", null, 400);
+    return new StockError("Invalid input provided.", 400);
   }
 
   /**
@@ -57,7 +49,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 400 error code.
    */
   static invalidValue(value: string | number = ""): StockError {
-    return new StockError(`Invalid input value for stock item: ${value}`, null, 400);
+    return new StockError(`Invalid input value for stock item: ${value}`, 400);
   }
 
   /**
@@ -65,7 +57,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 401 error code.
    */
   static unauthorized(): StockError {
-    return new StockError("Unauthorized access.", null, 401);
+    return new StockError("Unauthorized access.", 401);
   }
 
   /**
@@ -73,7 +65,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 500 error code.
    */
   static stockUpdateFailed(): StockError {
-    return new StockError("Failed to update the stock.", null, 500);
+    return new StockError("Failed to update the stock.", 500);
   }
 
   /**
@@ -81,7 +73,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 500 error code.
    */
   static stockReservationFailed(): StockError {
-    return new StockError("Failed to reserve the stock.", null, 500);
+    return new StockError("Failed to reserve the stock.", 500);
   }
 
   /**
@@ -89,7 +81,7 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 500 error code.
    */
   static stockReleaseFailed(): StockError {
-    return new StockError("Failed to release the stock.", null, 500);
+    return new StockError("Failed to release the stock.", 500);
   }
 
   /**
@@ -97,8 +89,6 @@ class StockError extends GenericError {
    * @returns A StockError instance with a 500 error code.
    */
   static stockDeductionFailed(): StockError {
-    return new StockError("Failed to deduct the stock.", null, 500);
+    return new StockError("Failed to deduct the stock.", 500);
   }
 }
-
-export default StockError;

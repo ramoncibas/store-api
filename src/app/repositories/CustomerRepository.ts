@@ -1,6 +1,5 @@
 import CustomerModel from "models/CustomerModel";
-import CustomerError from "builders/errors/CustomerError";
-import Customer from "types/Customer.type";
+import { Customer } from "@types";
 
 class CustomerRepository {
   /**
@@ -12,7 +11,7 @@ class CustomerRepository {
     try {
       return await CustomerModel.create(customer);
     } catch (error: any) {
-      throw new CustomerError('Error creating customer', error);
+      throw error;
     }
   }
 
@@ -25,7 +24,7 @@ class CustomerRepository {
     try {
       return await CustomerModel.get(customerUUID);
     } catch (error: any) {
-      throw new CustomerError('Error retrieving customer', error);
+      throw error;
     }
   }
 
@@ -39,7 +38,7 @@ class CustomerRepository {
     try {
       return await CustomerModel.updateRecord(customerUUID, updatedFields);
     } catch (error: any) {
-      throw new CustomerError('Error updating customer', error);
+      throw error;
     }
   }
 
@@ -52,7 +51,7 @@ class CustomerRepository {
     try {
       return await CustomerModel.delete(customerUUID);
     } catch (error: any) {
-      throw new CustomerError('Error deleting customer', error);
+      throw error;
     }
   }
 }

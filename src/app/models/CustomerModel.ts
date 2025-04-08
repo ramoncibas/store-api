@@ -1,6 +1,5 @@
-import { randomUUID } from "crypto";
-import Customer from "types/Customer.type";
 import BaseModel from "./BaseModel";
+import { Customer } from "@types";
 
 class CustomerModel extends BaseModel<Customer> {
   protected static table: string = "customer";

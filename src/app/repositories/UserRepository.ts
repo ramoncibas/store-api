@@ -1,6 +1,5 @@
 import UserModel from 'models/UserModel';
-import UserError from 'builders/errors/UserError';
-import { User } from 'types/User.type';
+import { User } from '@types';
 
 class UserRepository {
   /**
@@ -12,7 +11,7 @@ class UserRepository {
     try {
       return await UserModel.findByUserID(user);
     } catch (error: any) {
-      throw new UserError('Error creating user', error);
+      throw error;
     }
   }
 
@@ -25,7 +24,7 @@ class UserRepository {
     try {
       return await UserModel.create(user);
     } catch (error: any) {
-      throw new UserError('Error creating user', error);
+      throw error;
     }
   }
 
@@ -37,7 +36,7 @@ class UserRepository {
     try {
       return await UserModel.getAll();
     } catch (error: any) {
-      throw new UserError('Error retrieving all users', error);
+      throw error;
     }
   }
 
@@ -51,7 +50,7 @@ class UserRepository {
     try {
       await UserModel.updateRecord(userUUID, updatedFields);
     } catch (error: any) {
-      throw new UserError('Error updating user', error);
+      throw error;
     }
   }
 
@@ -64,7 +63,7 @@ class UserRepository {
     try {
       await UserModel.delete(userUUID);
     } catch (error: any) {
-      throw new UserError('Error deleting user', error);
+      throw error;
     }
   }
 }

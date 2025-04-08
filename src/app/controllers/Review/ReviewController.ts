@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
 import CustomerRepository from 'repositories/CustomerRepository';
 import ReviewRepository from 'repositories/ReviewRepository';
-import Customer from 'types/Customer.type';
-import Review from 'types/Review.type';
-import ReviewError from 'builders/errors/ReviewError';
-import CustomerError from 'builders/errors/CustomerError';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
+import { Customer, Review } from '@types';
+import { ReviewError, CustomerError } from 'builders/errors';
+import { ResponseBuilder } from 'builders/response';
 import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ReviewController {
@@ -54,7 +52,6 @@ class ReviewController {
       const reviewUUID: string = req.params.uuid;
       const updatedFields: Partial<Review> = req.body;
 
-      // utilizar o schema de validação aqui
       if (!updatedFields || !updatedFields) {
         throw ReviewError.invalidInput();
       }
@@ -79,7 +76,7 @@ class ReviewController {
     try {
       schemaResponseError(req, res);
 
-      const customerID = req.params.uuid;
+      const customerID: number = Number(req.params.id);
 
       const review: Review[] | null = await ReviewRepository.findByCustomerId(customerID);
 

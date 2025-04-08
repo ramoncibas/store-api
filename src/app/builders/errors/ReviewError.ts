@@ -1,27 +1,14 @@
-import GenericError from "./GenericError";
+import { AppError } from 'builders/errors';
 
-class ReviewError extends GenericError {
-  constructor(message: string, errorCode: number = 500, error?: any) {
-    super(message, errorCode, error);
-    this.name = 'ReviewError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, ReviewError);
-  }
+export class ReviewError extends AppError {
 
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`ReviewError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      type: "error",
-      title: "Error",
-      errorCode: this.getErrorCode(),
-      message: this.message || ReviewError.default(),
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   static default(): ReviewError {
@@ -57,5 +44,3 @@ class ReviewError extends GenericError {
   }
 
 }
-
-export default ReviewError;

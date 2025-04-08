@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import CustomerRepository from 'repositories/CustomerRepository';
 import UserRepository from 'repositories/UserRepository';
-import Customer from 'types/Customer.type';
-import CustomerError from 'builders/errors/CustomerError';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
+import { CustomerError } from 'builders/errors';
+import { ResponseBuilder } from 'builders/response';
 import schemaResponseError from 'validators/response/schemaResponseError';
+import { Customer } from '@types';
 
 class CustomerController {
   static async createCustomer(req: Request, res: Response): Promise<void> {

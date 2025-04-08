@@ -1,67 +1,67 @@
-import GenericError from "./GenericError";
+import { AppError } from "builders/errors";
+import { ShoppingCartItem } from "@types";
 
-class ShoppingCartError extends GenericError {
-  constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message, errorCode, error);
-    this.name = 'ShoppingCartError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
+export class ShoppingCartError extends AppError {
+
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`ShoppingCartError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      status: "error",
-      errorCode: this.getErrorCode(),
-      message: this.message || ShoppingCartError.default(),
-      data: null,
-    };
+  static creationFailed(customerId: number, product: ShoppingCartItem): ShoppingCartError {
+    return new ShoppingCartError(
+      `Failed to create shopping cart item for customer ID ${customerId}. Product: ${product}.`,
+      500
+    );
   }
 
-  static default(): ShoppingCartError {
-    return new ShoppingCartError("Something went wrong!");
+  static itemOutOfStock(itemId: number, availableQuantity: number): ShoppingCartError {
+    return new ShoppingCartError(
+      `Item with ID ${itemId} is out of stock or has insufficient quantity. Available quantity: ${availableQuantity}`,
+      400,
+    );
   }
 
-  static itemNotFound(): ShoppingCartError {
-    return new ShoppingCartError("Shopping Cart Item not found!", 404);
+  static cartEmpty(): ShoppingCartError {
+    return new ShoppingCartError("Shopping cart is empty", 400);
   }
 
-  static invalidInput(): ShoppingCartError {
-    return new ShoppingCartError("Invalid input provided.", 400);
+  static addItemFailed(itemId: number, error?: any): ShoppingCartError {
+    return new ShoppingCartError(
+      `Failed to add item ${itemId} to cart`,
+      500,
+      error,
+    );
   }
 
-  static invalidValue(value: string | number = ""): ShoppingCartError {
-    return new ShoppingCartError(`Invalid input value for shopping cart item: ${value}`, 400);
+  static removeItemFailed(itemId: any, error?: any): ShoppingCartError {
+    return new ShoppingCartError(
+      `Failed to remove item(s) ${itemId} from cart`,
+      500,
+      error,
+    );
   }
 
-  static isEmpty(): ShoppingCartError {
-    return new ShoppingCartError("Shopping Cart is empty", 400);
+  static cleanCartFailed(customerId: number, error?: any): ShoppingCartError {
+    return new ShoppingCartError(
+      `Failed to clean cart for customer ID ${customerId}`,
+      500,
+      error,
+    );
   }
 
-  static unauthorized(): ShoppingCartError {
-    return new ShoppingCartError("Unauthorized access.", 401);
+  static updateQuantityFailed(itemId: number, quantity: number, error?: any): ShoppingCartError {
+    return new ShoppingCartError(
+      `Unable to update the quantity for item with ID ${itemId}. Requested quantity: ${quantity}. Please try again later.`,
+      500,
+      error,
+    );
   }
 
-  static itemCreationFailed(): ShoppingCartError {
-    return new ShoppingCartError("Failed to add the item to the Shopping Cart.", 500);
-  }
-
-  static itemAlreadyExists(): ShoppingCartError {
-    return new ShoppingCartError("Shopping Cart Item already exists!", 409);
-  }
-
-  static itemUpdateFailed(): ShoppingCartError {
-    return new ShoppingCartError("Failed to update the product.", 500);
-  }
-
-  static itemDeletionFailed(): ShoppingCartError {
-    return new ShoppingCartError("Failed to delete the product.", 500);
-  }
 }
 
 export default ShoppingCartError;

@@ -1,5 +1,5 @@
 import BaseModel from "./BaseModel";
-import { Product, AspectResult } from "types/Product.type";
+import { Product, AspectResult } from "@types";
 
 class ProductModel extends BaseModel<Product> {
   protected static table: string = "product";
@@ -47,7 +47,7 @@ class ProductModel extends BaseModel<Product> {
    * Get all products from the database.
    * @returns A Promise that resolves with an array of products.
    */
-  static async findAll(): Promise<Product[]> {
+  static async getAll(): Promise<Product[]> {
     return await this.all();
   }
 

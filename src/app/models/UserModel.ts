@@ -1,5 +1,5 @@
-import { User } from "types/User.type";
 import BaseModel from "./BaseModel";
+import { User } from "@types";
 
 class UserModel extends BaseModel<User> {
   protected static table = "user";

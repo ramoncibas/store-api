@@ -18,7 +18,7 @@ class PurchaseRepository {
 
       return purchaseId;
     } catch (error: any) {
-      throw new PurchaseError('Error creating purchase', error);
+      throw error;
     }
   }
 
@@ -31,7 +31,7 @@ class PurchaseRepository {
     try {
       return await PurchaseModel.get(purchaseId);
     } catch (error: any) {
-      throw new PurchaseError('Error retrieving purchase', error);
+      throw error;
     }
   }
 
@@ -40,11 +40,11 @@ class PurchaseRepository {
    * @param purchaseId - ID of the purchase.
    * @returns A Promise that resolves with the purchase data or null if not found.
    */
-    static async getAll(customerID: number | string): Promise<Purchase[] | null> {
+    static async getAll(customerID: number): Promise<Purchase[] | null> {
       try {
-        return await PurchaseModel.getAll(customerID);
+        return await PurchaseModel.findByCustomerId(customerID);
       } catch (error: any) {
-        throw new PurchaseError('Error retrieving purchase', error);
+        throw error;
       }
     }
 }

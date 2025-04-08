@@ -1,27 +1,14 @@
-import GenericError from "./GenericError";
+import { AppError } from 'builders/errors';
 
-class PurchaseError extends GenericError {
+export class PurchaseError extends AppError {
 
-  constructor(message: string, error?: any, errorCode: number = 500) {
-    super(message, errorCode, error);
-    this.name = 'PurchaseError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
-  }
-
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`PurchaseError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      status: "error",
-      errorCode: this.getErrorCode(),
-      message: this.message || PurchaseError.default(),
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   static default(): PurchaseError {
@@ -56,5 +43,3 @@ class PurchaseError extends GenericError {
     return new PurchaseError("Failed to delete the product.", 500);
   }
 }
-
-export default PurchaseError;

@@ -1,6 +1,6 @@
 import ProductModel from "models/ProductModel";
 import ProductError from "builders/errors/ProductError";
-import { Product } from "types/Product.type";
+import { Product } from "@types";
 
 class ProductRepository {
 
@@ -18,7 +18,7 @@ class ProductRepository {
     try {
       return await ProductModel.findById(productId);
     } catch (error: any) {
-      throw new ProductError(`Error getting product by ID ${productId}: ${error.message}`);
+      throw error;
     }
   }
 
@@ -33,7 +33,7 @@ class ProductRepository {
 
       return products || [];
     } catch (error: any) {
-      throw new ProductError(`Error getting all products: ${error.message}`);
+      throw error;
     }
   }
 
@@ -41,11 +41,11 @@ class ProductRepository {
    * Get all products from the database.
    * @returns A Promise that resolves with an array of products.
    */
-  static async findAll(): Promise<Product[]> {
+  static async getAll(): Promise<Product[]> {
     try {
-      return await ProductModel.findAll();
+      return await ProductModel.getAll();
     } catch (error: any) {
-      throw new ProductError(`Error getting all products: ${error.message}`);
+      throw error;
     }
   }
 
@@ -60,7 +60,7 @@ class ProductRepository {
     try {
       return await ProductModel.findByAspects();
     } catch (error: any) {
-      throw new ProductError(`Error getting all aspects: ${error.message}`);
+      throw error;
     }
   }
 
@@ -75,7 +75,7 @@ class ProductRepository {
 
       return products || [];
     } catch (error: any) {
-      throw new ProductError(`Error getting all products: ${error.message}`);
+      throw error;
     }
   }
 
@@ -88,7 +88,7 @@ class ProductRepository {
     try {
       return await ProductModel.getFiltered(filters);
     } catch (error: any) {
-      throw new ProductError(`Error getting filtered products: ${error.message}`);
+      throw error;
     }
   }
 
@@ -106,7 +106,7 @@ class ProductRepository {
     try {
       return await ProductModel.create(fields);
     } catch (error: any) {
-      throw new ProductError(`Error creating product: ${error.message}`);
+      throw error;
     }
   }
 
@@ -122,13 +122,13 @@ class ProductRepository {
     }
 
     if (productId === undefined || !productId) {
-      throw new ProductError('The Product UUID could not be null', undefined, 404);
+      throw new ProductError('The Product UUID could not be null', 404);
     }
 
     try {
       return await ProductModel.updateRecord(productId, fields);
     } catch (error: any) {
-      throw new ProductError(`Error updating product: ${error.message}`);
+      throw error;
     }
   }
 
@@ -142,7 +142,7 @@ class ProductRepository {
       const result = await ProductModel.delete(productId);
       return result;
     } catch (error: any) {
-      throw new ProductError(`Error deleting product with Product Id ${productId}: ${error.message}`);
+      throw error;
     }
   }
 }

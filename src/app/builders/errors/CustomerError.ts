@@ -1,27 +1,14 @@
-import GenericError from "./GenericError";
+import { AppError } from "builders/errors";
 
-class CustomerError extends GenericError {
-  constructor(message: string, errorCode: number = 500, error?: any) {
-    super(message, errorCode, error);
-    this.name = 'CustomerError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
-  }
+export class CustomerError extends AppError {
 
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`CustomerError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      type: "error",
-      title: "Error",
-      errorCode: this.getErrorCode(),
-      message: this.message || CustomerError.default(),
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   static default(): CustomerError {
@@ -56,5 +43,3 @@ class CustomerError extends GenericError {
     return new CustomerError("Failed to delete the customer.", 500);
   }
 }
-
-export default CustomerError;
