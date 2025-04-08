@@ -1,28 +1,26 @@
 import { Request, Response } from 'express';
 import ShoppingCartRepository from 'repositories/ShoppingCartRepository';
 import ProductRepository from 'repositories/ProductRepository';
-import ShoppingCartError from 'builders/errors/ShoppingCartError';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
-import { Product, ShoppingCartItem } from 'types/Product.type';
+import StockService from 'services/Stock/StockService';
+import Parser from 'utils/parser';
+import { ShoppingCartError } from 'builders/errors';
+import { ResponseBuilder } from 'builders/response';
 import schemaResponseError from 'validators/response/schemaResponseError';
-import StockService from '../../service/Stock/StockService';
-
-// TODO: Criar um modulo especifico para validar:
-// 1 - Se o produto existe
-// 2 - Se está disponivel para compra (quantidade, tempo de disponibilidade do produto, etc...)
+import { ShoppingCartItem } from '@types';
 
 class ShoppingCartController {
-
-  static async getCartItems(req: Request, res: Response): Promise<void> {
-    schemaResponseError(req, res);
-
+  
+  static async getCart(req: Request, res: Response): Promise<void> {
     try {
-      const { customer_id } = req.params as unknown as { customer_id: number };
+      schemaResponseError(req, res);
 
-      const shoppingCartItems: Array<ShoppingCartItem> = await ShoppingCartRepository.findByCustomerId(customer_id);
+      const { customer_id } = req.params as unknown as { customer_id: number };
+      const cartRepository = new ShoppingCartRepository(customer_id);
+
+      const shoppingCartItems: Array<ShoppingCartItem> = await cartRepository.findByCustomerId();
 
       if (!shoppingCartItems || shoppingCartItems.length === 0) {
-        throw ShoppingCartError.itemNotFound();
+        throw ShoppingCartError.cartEmpty();
       }
     
       const productIds = shoppingCartItems.map(item => item.product_id);
@@ -34,7 +32,7 @@ class ShoppingCartController {
       }));
 
       if (!products) {
-        throw ShoppingCartError.itemNotFound();
+        throw ShoppingCartError.notFound();
       }
 
       ResponseBuilder.send({
@@ -48,66 +46,71 @@ class ShoppingCartController {
     }
   }
 
-  static async addToCart(req: Request, res: Response): Promise<void> {
-    schemaResponseError(req, res);
-
+  static async addProduct(req: Request, res: Response): Promise<void> {
     try {
-      const { customer_id } = req.params as unknown as { customer_id: number };
-      const fields: ShoppingCartItem = req.body;
+      schemaResponseError(req, res);
 
-      const productExistInCart = await ShoppingCartRepository.findByProductId(customer_id, fields.product_id);
+      const customerId = Parser.toNumber(req.params.customer_id);
+      const productId = Parser.toNumber(req.body.product_id);
+      const quantity = Parser.toNumber(req.body.quantity);
 
-      const currentQuantity = productExistInCart?.[0]?.quantity ?? 0;
-      const totalQuantity = currentQuantity + Number(fields.quantity);
+      if (!customerId) {
+        throw ShoppingCartError.badRequest("Customer ID is required");
+      }
 
-      const stockAvailable = await StockService.validateAvailability(fields.product_id, totalQuantity);
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartProduct: Array<ShoppingCartItem> = await cartRepository.findByCustomerId();
+
+      const cartItem = cartProduct.find(cart => Number(cart.product_id) === productId);
+      const cartQuantity = cartItem ? cartItem.quantity : 0;
+
+      const totalQuantity = Number(cartQuantity) + quantity;
+
+      const stockAvailable = await StockService.validateAvailability(productId, totalQuantity);
       
-      if (!stockAvailable || stockAvailable?.error) {
-        throw stockAvailable.error;
+      if (!stockAvailable) {
+        throw ShoppingCartError.itemOutOfStock(productId, stockAvailable);
       };
 
-      const response = await ShoppingCartRepository.save(customer_id, fields);
+      const savedItem = await cartRepository.save(req.body);
 
-      if (!response) {
-        throw ShoppingCartError.itemCreationFailed();
+      if (!savedItem) {
+        throw ShoppingCartError.creationFailed(customerId, req.body);
       }
 
       ResponseBuilder.send({
         response: res,
         message: "Product saved to ShoppingCart successfully!",
-        statusCode: 201
+        statusCode: 201,
+        data: savedItem
       });
     } catch (error: any) {
       ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async updateCartItemQuantity(req: Request, res: Response): Promise<void> {
-    schemaResponseError(req, res);
-    
+  static async updateQuantity(req: Request, res: Response): Promise<void> {    
     try {
-      const cart_id = Number(req.params.cart_id);
-      const { customer_id, product_id, quantity } = req.body as ShoppingCartItem;
-      
-      const areAllNumbers = [
-        cart_id,
-        customer_id,
-        product_id,
-        quantity
-      ].every(value => !isNaN(Number(value)));
+      schemaResponseError(req, res);
 
-      if (!areAllNumbers) {
-        throw ShoppingCartError.invalidInput();
+      const cartId = Parser.toNumber(req.params.cart_id);
+      const quantity = Parser.toNumber(req.body.quantity);
+      const productId = Parser.toNumber(req.body.product_id);
+      const customerId = Parser.toNumber(req.body.customer_id);
+
+      if (!customerId) {
+        throw ShoppingCartError.badRequest("Customer ID is required");
       }
 
-      const cartItem = await ShoppingCartRepository.findByCartId(cart_id);
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartItem: ShoppingCartItem | null = await cartRepository.findByCartId(cartId);
       
       if (!cartItem) {
-        throw ShoppingCartError.itemNotFound();
+        throw ShoppingCartError.notFound();
       }
 
       // If the provided quantity is the same as in the database, avoid unnecessary update
-      if (Number(cartItem.quantity) === quantity) {
+      if (Number(cartItem.quantity) === Number(quantity)) {
         return ResponseBuilder.send({
           response: res,
           message: "No changes made, quantity remains the same.",
@@ -115,16 +118,16 @@ class ShoppingCartController {
         });
       }
 
-      const stockAvailable = await StockService.validateAvailability(product_id, quantity);
+      const stockAvailable = await StockService.validateAvailability(productId, quantity);
 
-      if (!stockAvailable || stockAvailable?.error) {
-        throw stockAvailable.error;
+      if (!stockAvailable) {
+        throw ShoppingCartError.itemOutOfStock(productId, stockAvailable);
       };
 
-      const productUpdated = await ShoppingCartRepository.update(customer_id, cart_id, { quantity });
+      const productUpdated = await cartRepository.update(cartId, { quantity });
 
       if (!productUpdated) {
-        throw ShoppingCartError.itemUpdateFailed();
+        throw ShoppingCartError.updateQuantityFailed(productId, quantity);
       }
 
       ResponseBuilder.send({
@@ -140,13 +143,29 @@ class ShoppingCartController {
 
   // TODO: Arrumar a rota desse metodo, está confusa ex:
   // cart/:customer_id/remove/item/:cart_id
-  static async removeCartItem(req: Request, res: Response): Promise<void> {
-    schemaResponseError(req, res);
-    
+  static async remove(req: Request, res: Response): Promise<void> {
     try {
-      const { customer_id, id } = req.params as unknown as { customer_id: number, id: number };
+      schemaResponseError(req, res);
 
-      await ShoppingCartRepository.delete(customer_id, id);
+      const cartId = Parser.toNumber(req.params.cart_id);
+      const customerId = Parser.toNumber(String(req?.user?.id ?? ''));
+
+      if (!customerId || !cartId) {
+        throw ShoppingCartError.badRequest("Customer ID is required");
+      }
+
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartItem: ShoppingCartItem | null = await cartRepository.findByCartId(cartId);
+
+      if (!cartItem) {
+        throw ShoppingCartError.notFound();
+      }
+
+      const removedItem = await cartRepository.delete(cartId);
+
+      if (!removedItem) {
+        throw ShoppingCartError.removeItemFailed(cartId);
+      }
 
       ResponseBuilder.send({
         response: res,
@@ -158,16 +177,20 @@ class ShoppingCartController {
     }
   }
 
-  // TODO: Arrumar esse metodo, ele não está limpando todos o produtos adicionados no cart do cliente
-  static async cleanCart(req: Request, res: Response): Promise<void> {
-    schemaResponseError(req, res);
-    
+  static async clear(req: Request, res: Response): Promise<void> {    
     try {
-      const { customer_id } = req.params as unknown as { customer_id: number };
-      const result = await ShoppingCartRepository.clear(customer_id);
+      schemaResponseError(req, res);
+      const customerId = Parser.toNumber(req.params.customer_id);
 
-      if (!result) {
-        throw ShoppingCartError.itemDeletionFailed();
+      if(!customerId) {
+        throw ShoppingCartError.badRequest("Customer ID is required");
+      }
+      const { options } = req.body;
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartCleared: boolean = await cartRepository.clear(options);
+
+      if (!cartCleared) {
+        throw ShoppingCartError.removeItemFailed(customerId);
       }
 
       ResponseBuilder.send({

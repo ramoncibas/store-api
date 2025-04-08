@@ -9,34 +9,34 @@ const router = Router();
 // TODO: 
 // Apenas o customer pode acessar o carrinho dele, se não estiver logado usar o localstorage para armazenar os produtos
 
-router.get("/:customer_id",
-  // authMiddleware,
+router.get("/",
+  authMiddleware,
   ShoppingCartSchema.get,
-  ShoppingCartController.getCartItems
+  ShoppingCartController.getCart
 );
 
-router.post("/add/:customer_id",
-  // authMiddleware,
+router.post("/add",
+  authMiddleware,
   ShoppingCartSchema.create,
-  ShoppingCartController.addToCart
+  ShoppingCartController.addProduct
 );
 
 router.patch("/update/:cart_id",
-  // authMiddleware,
+  authMiddleware,
   ShoppingCartSchema.update,
-  ShoppingCartController.updateCartItemQuantity
+  ShoppingCartController.updateQuantity
 );
 
-router.delete("/:customer_id/remove/item/:id",
-  // authMiddleware,
+router.delete("/remove/:cart_id",
+  authMiddleware,
   ShoppingCartSchema.remove,
-  ShoppingCartController.removeCartItem
+  ShoppingCartController.remove
 );
 
-router.delete("/clean/:customer_id",
-  // authMiddleware,
-  ShoppingCartSchema.clean,
-  ShoppingCartController.cleanCart
+router.delete("/clear",
+  authMiddleware,
+  ShoppingCartSchema.clear,
+  ShoppingCartController.clear
 );
 
 export default router;
