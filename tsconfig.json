@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["jest", "express"],
+    "types": ["jest", "node", "express"],
     "target": "es2018",
     "module": "commonjs",
     "esModuleInterop": true,
@@ -12,6 +12,10 @@
     "rootDir": "./src",
     "strict": true,
     "baseUrl": "./src",
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ],
     "paths": {
       "controllers/*": ["app/controllers/*"],
       "middlewares": ["app/middlewares/index.ts"],
@@ -25,14 +29,17 @@
       "config/*": ["config/*"],
       "lib/*": ["lib/*"],
       "builders/*": ["app/builders/*"],
-      "types/*": ["app/types/*"],
+      "@types/*": ["app/types/*"],
+      "@types": ["app/types"],
+      "services/*": ["app/services/*"],
       "utils": ["utils/index.ts"]
     },
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.d.ts",
     "src/swagger.json"
-],
+, "src/DatabaseManager.ts"],
   "exclude": [
     "node_modules",
     "dist"
