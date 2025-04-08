@@ -29,7 +29,7 @@ export const swaggerSchemas = {
   ShoppingCartCreate: convertToSwaggerSchema(Schema.createCartSchema),
   ShoppingCartUpdate: convertToSwaggerSchema(Schema.updateCartSchema),
   ShoppingCartRemove: convertToSwaggerSchema(Schema.removeCartSchema),
-  ShoppingCartClean: convertToSwaggerSchema(Schema.cleanCartSchema),
+  ShoppingCartClean: convertToSwaggerSchema(Schema.clearCartSchema),
 
   UserGet: convertToSwaggerSchema(Schema.getUserSchema),
   UserGetAll: convertToSwaggerSchema(Schema.getAllUserSchema),

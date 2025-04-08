@@ -14,7 +14,7 @@ export const getReviewByIdSchema: Schema = {
 }
 
 export const getReviewByCustomerIdSchema: Schema = {
-  uuid: {
+  id: {
     in: ['params'],
     notEmpty: {
       errorMessage: 'Customer Id is required',

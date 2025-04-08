@@ -1,4 +1,4 @@
-export default interface Customer {
+export interface Customer {
   id?: number;
   uuid: string;
   user_id: number;

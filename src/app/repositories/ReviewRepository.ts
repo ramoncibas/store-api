@@ -1,10 +1,19 @@
 import ReviewModel from "models/ReviewModel";
-import ReviewError from "builders/errors/ReviewError";
 import CacheService from "lib/cache";
-import Review from "types/Review.type";
+import { ReviewError } from "builders/errors";
+import { Review } from "@types";
 
 class ReviewRepository {
   private cache;
+
+  private cacheKey = {
+    customer: (customerId: number) => {
+      return `reviews_product_customer_${customerId}`;
+    },
+    review: (productId: number) => {      
+      return `reviews_product_${productId}`;
+    },
+  };
 
   constructor() {
     this.cache = new CacheService('product_review');
@@ -23,36 +32,36 @@ class ReviewRepository {
         throw ReviewError.reviewCreationFailed();
       }
 
-      const cacheKey = `reviews_product_${review.product_id}`;
-      this.cache.set(cacheKey, newReview);
+      const cacheKey = this.cacheKey.review(review.product_id);
+      await this.cache.set(cacheKey, newReview);
 
       return newReview;
     } catch (error: any) {
-      throw new ReviewError('Error creating review', error);
+      throw error;
     }
   }
 
   /**
    * Gets a review from the database based on the provided ID.
-   * @param customerID - Id of the review.
+   * @param customerId - Id of the customer.
    * @returns A Promise that resolves with the review data or null if not found.
    */
-  public async findByCustomerId(customerID: string): Promise<Review[] | null> {
+  public async findByCustomerId(customerId: number): Promise<Review[] | null> {
     try {
-      const cacheKey = `reviews_product_customer_${customerID}`;
-      const cachedReviews = await this.cache.get<Review[]>(cacheKey);
+      const cacheKey = this.cacheKey.customer(customerId);
+      const cachedReviews = await this.cache.get<Review>(cacheKey);
 
-      if (cachedReviews) return cachedReviews;
+      if (cachedReviews) return cachedReviews.items;
 
-      const reviews = await ReviewModel.findByCustomerId(customerID);
+      const reviews = await ReviewModel.findByCustomerId(customerId);
 
       if (reviews) {
-        this.cache.set(cacheKey, reviews);
+        await this.cache.set(cacheKey, reviews);
       }
 
       return reviews;
     } catch (error: any) {
-      throw new ReviewError('Error retrieving review', error);
+      throw error;
     }
   }
 
@@ -63,21 +72,21 @@ class ReviewRepository {
    */
   public async findByProductId(productId: number): Promise<Review[] | null> {
     try {
-      const cacheKey = `reviews_product_${productId}`;
-      const cachedReviews = await this.cache.get<Review[]>(cacheKey);
+      const cacheKey = this.cacheKey.review(productId);
+      const cachedReviews = await this.cache.get<Review>(cacheKey);
 
-      if (cachedReviews) return cachedReviews;
+      if (cachedReviews) return cachedReviews.items;
 
       const reviews = await ReviewModel.findByProductId(productId);
 
       if (reviews) {
-        const saved = this.cache.set(cacheKey, reviews);
-        console.log(`Product reviews cached = ${saved}`);
+        const cached = await this.cache.set(cacheKey, reviews);
+        console.log(`Product reviews cached = ${cached}`);
       }
 
       return reviews;
     } catch (error: any) {
-      throw new ReviewError('Error retrieving review', error);
+      throw error;
     }
   }
 
@@ -96,12 +105,13 @@ class ReviewRepository {
       const updatedReview = await ReviewModel.updateRecord(reviewUUID, updatedFields);
 
       if (updatedReview) {
-        this.cache.remove(`reviews_product_${updatedReview.product_id}`);
+        const cacheKey = this.cacheKey.review(updatedReview.product_id);
+        await this.cache.remove(cacheKey);
       }
 
       return updatedReview;
     } catch (error: any) {
-      throw new ReviewError('Error updating review', error);
+      throw error;
     }
   }
 
@@ -113,18 +123,19 @@ class ReviewRepository {
   public async delete(reviewUUID: string): Promise<boolean> {
     try {
       const review = await ReviewModel.findByUuid(reviewUUID);
-      
+
       if (!review) throw ReviewError.reviewNotFound();
 
       const reviewDeleted = await ReviewModel.delete(reviewUUID);
 
       if (reviewDeleted) {
-        this.cache.remove(`reviews_product_${review.product_id}`);
+        const cacheKey = this.cacheKey.review(review.product_id);
+        await this.cache.remove(cacheKey);
       }
 
       return reviewDeleted;
     } catch (error: any) {
-      throw new ReviewError('Error deleting review', error);
+      throw error;
     }
   }
 }
