@@ -1,7 +1,7 @@
 import DatabaseManager from "database/db";
-import DatabaseError from "builders/errors/DatabaseError";
 import { randomUUID } from "crypto";
 import { isValidUUID } from "utils";
+import { DatabaseError } from "builders/errors";
 
 class BaseModel<T> {
   protected static dbManager: DatabaseManager = new DatabaseManager();
@@ -15,7 +15,7 @@ class BaseModel<T> {
    */
   protected static getRecordCondition(record: string | number): { recordString: string; condition: "id" | "uuid"; } {
     if (!record) {
-      throw DatabaseError.constraintViolation();
+      throw DatabaseError.constraintViolation('getRecordCondition');
     }
 
     const recordString = String(record);
@@ -33,10 +33,10 @@ class BaseModel<T> {
     try {
       const { recordString, condition } = this.getRecordCondition(record);
       const query = `SELECT * FROM ${this.table} WHERE ${condition} = ?`;
-      const result = await BaseModel.dbManager.all(query, [recordString]) || null;
+      const result = await BaseModel.dbManager.get(query, [recordString]) || null;
 
       if (!result) {
-        DatabaseError.recordNotFound(
+        throw DatabaseError.recordNotFound(
           `No record found with ${condition}: ${recordString}`
         );
 
@@ -45,7 +45,7 @@ class BaseModel<T> {
 
       return result as T;
     } catch (error: any) {
-      throw DatabaseError.queryFailed(error);
+      throw DatabaseError.recordNotFound(error);
     }
   }
 
@@ -59,16 +59,14 @@ class BaseModel<T> {
       const result = await BaseModel.dbManager.all(query, []) || null;
 
       if (!result) {
-        DatabaseError.recordNotFound(
+        throw DatabaseError.recordNotFound(
           `No record found from table: ${this.table}`
         );
-
-        return {} as T;
       }
 
       return result as T;
     } catch (error: any) {
-      throw DatabaseError.queryFailed(error);
+      throw DatabaseError.recordNotFound(error);
     }
   }
 
@@ -80,7 +78,7 @@ class BaseModel<T> {
   protected static async save<T>(data: Omit<T, "id" | "uuid">): Promise<T> {
     const columns = Object.keys(data).join(', ');
     const placeholders = Object.keys(data).map(() => '?').join(', ');
-    const values = [randomUUID(), ...Object.values(data)];
+    const values = [randomUUID(), ...Object.values(data)] as (string | number)[];
 
     const query = `
       INSERT INTO ${this.table} (uuid, ${columns})
@@ -118,7 +116,7 @@ class BaseModel<T> {
     try {
       const { recordString, condition } = this.getRecordCondition(record);
       const keys = Object.keys(updatedFields);
-      const values = Object.values(updatedFields);
+      const values = Object.values(updatedFields) as (string | number)[];
 
       const setClause = keys.map(key => `${key} = ?`).join(', ');
       const query = `UPDATE ${this.table} SET ${setClause} WHERE ${condition} = ?`;
@@ -140,16 +138,19 @@ class BaseModel<T> {
    * @param record - The ID or UUID of the record to delete.
    * @returns A Promise that resolves with a boolean indicating success.
    */
-  protected static async delete(record: string | number): Promise<boolean> {
+  protected static async delete(record: string | number | Array<string | number>): Promise<boolean> {
     try {
-      const { recordString, condition } = this.getRecordCondition(record);
-      const query = `DELETE FROM ${this.table} WHERE ${condition} = ?`;
-
+      const records = Array.isArray(record) ? record : [record];
+      console.log(records)
+      const conditions = records.map(this.getRecordCondition);
+      const placeholders = conditions.map(() => '?').join(', ');
+      const query = `DELETE FROM ${this.table} WHERE ${conditions[0].condition} IN (${placeholders})`;
+      console.log(query)
       const result = await BaseModel.dbManager.transaction(async (dbManager) => {
-        return await dbManager.run(query, [recordString]);
+        return await dbManager.run(query, conditions.map(cond => cond.recordString));
       });
 
-      return result && true;
+      return result && result.changes > 0;
     } catch (error) {
       throw DatabaseError.transactionFailed(error);
     }
