@@ -6,13 +6,13 @@ interface ReponseSend {
   statusCode: number;
   data?: any;
   type?: string;
-  title?: string;
+  paginator?: string;
 }
 
 /**
  * ResponseBuilder class for creating consistent and structured JSON responses.
  */
-class ResponseBuilder {
+export class ResponseBuilder<T> {
   /**
    * Static method to send a JSON response with a standardized structure.
    * @param response - Express Response object.
@@ -20,16 +20,16 @@ class ResponseBuilder {
    * @param statusCode - HTTP status code for the response.
    * @param data - Additional data to be included in the response (default: null).
    * @param type - Type of the response (default: 'success').
-   * @param title - Title of the response (default: 'Success').
+   * @param paginator - Page to rediretor user (default: '/home').
    * @example
    * // Return a data
    * ResponseBuilder.send({
-        type = "info",
-        title = "Customer allready created",
-        message: "The customer already exists in the database!",
-        data: customer,
         response: res,
+        message: "The customer already exists in the database!",
         statusCode: 201
+        data: customer,
+        type = "info",
+        paginator: "/home"
     });
    *
    * // Default value
@@ -45,10 +45,8 @@ class ResponseBuilder {
     statusCode,
     data = null,
     type = 'success',
-    title = 'Success'
+    paginator = '/'
   }: ReponseSend): void {
-    response.status(statusCode).json({ type, title, message, statusCode, data });
+    response.status(statusCode).json({ type, message, paginator, data });
   }
 }
-
-export default ResponseBuilder;

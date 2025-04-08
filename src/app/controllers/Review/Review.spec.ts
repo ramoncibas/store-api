@@ -188,7 +188,6 @@ describe('Mock - ReviewController', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
         type: 'error',
-        title: 'Error',
         message: 'Review not found!',
         errorCode: 404,
         data: null,
@@ -219,7 +218,6 @@ describe('Mock - ReviewController', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
         type: 'error',
-        title: 'Error',
         message: 'No reviews found for the product!',
         errorCode: 404,
         data: null,
@@ -245,7 +243,6 @@ describe('Supertest - ReviewController', () => {
         expect(response.body).toEqual({
           data: null,
           type: 'success',
-          title: 'Success',
           message: 'Review created successfully!',
           statusCode: 201
         });
@@ -268,7 +265,6 @@ describe('Supertest - ReviewController', () => {
         expect(response.status).toBe(404);
         expect(response.body).toEqual({
           type: 'error',
-          title: 'Error',
           message: 'Customer not found!',
           errorCode: 404,
           data: null

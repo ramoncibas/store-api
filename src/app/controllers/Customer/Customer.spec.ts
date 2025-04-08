@@ -60,7 +60,6 @@ describe('Mock - CustomerController', () => {
         expect(res.json).toHaveBeenCalledWith({
           message: "Customer retrieved successfully!",
           statusCode: 200,
-          title: "Success",
           type: "success",
           data: { ...customer },
         });
@@ -212,7 +211,6 @@ describe('Mock - CustomerController', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         type: 'success',
-        title: 'Success',
         message: 'Customer updated successfully!',
         statusCode: 200,
         data: customerMockToUpdate
@@ -232,7 +230,6 @@ describe('Mock - CustomerController', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         type: 'error',
-        title: 'Error',
         message: 'Invalid input provided.',
         data: null,
         errorCode: 400
@@ -336,7 +333,6 @@ describe('Supertest - CustomerController', () => {
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
           type: 'success',
-          title: 'Success',
           message: 'Customer retrieved successfully!',
           statusCode: 200,
           data: customer
@@ -356,7 +352,6 @@ describe('Supertest - CustomerController', () => {
         expect(response.status).toBe(404);
         expect(response.body).toEqual({
           type: 'error',
-          title: 'Error',
           message: 'Customer not found!',
           errorCode: 404,
           data: null
@@ -396,7 +391,6 @@ describe('Supertest - CustomerController', () => {
         expect(response.status).toBe(409);
         expect(response.body).toEqual({
           type: 'error',
-          title: 'Error',
           message: 'Customer already exists!',
           errorCode: 409,
           data: null
@@ -437,7 +431,6 @@ describe('Supertest - CustomerController', () => {
         expect(responseRollback.status).toBe(200);
         expect(responseRollback.body).toEqual({
           type: 'success',
-          title: 'Success',
           message: 'Customer updated successfully!',
           statusCode: 200,
           data: customer
@@ -460,7 +453,6 @@ describe('Supertest - CustomerController', () => {
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
           type: 'success',
-          title: 'Success',
           message: 'Customer deleted successfully!'
         });
 
