@@ -10,7 +10,6 @@
 .test.js
 
 # database
-/src/database/
 /src/storage/
 temp
 
