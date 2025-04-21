@@ -6,7 +6,7 @@
   "scripts": {
     "start": "NODE_ENV=production && node -r tsconfig-paths/register ./dist/server.js",
     "build": "npm run clean && npx tsc && node -r tsconfig-paths/register -r ts-node/register ./dist/server.js",
-    "dev": "NODE_ENV=development && ts-node src/app/docs/swagger/swagger.ts && nodemon src/server.ts",
+    "dev": "NODE_ENV=development && ts-node -r tsconfig-paths/register src/app/docs/swagger/swagger.ts && nodemon src/server.ts",
     "test": "NODE_ENV=development jest --detectOpenHandles --forceExit",
     "clean": "rm -rf dist"
   },
