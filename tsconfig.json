@@ -18,6 +18,7 @@
     ],
     "paths": {
       "controllers/*": ["app/controllers/*"],
+      "domain/*": ["app/domain/*"],
       "middlewares": ["app/middlewares/index.ts"],
       "__mocks__": ["app/__mocks__/index.ts"],
       "repositories/*": ["app/repositories/*"],
