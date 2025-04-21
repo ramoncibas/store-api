@@ -96,6 +96,7 @@ const config: Config = {
     '^helpers/(.*)$': '<rootDir>/src/app/helpers/$1',
     '^common/(.*)$': '<rootDir>/src/app/common/$1',
     '^controllers/(.*)$': '<rootDir>/src/app/controllers/$1',
+    '^domain/(.*)$': '<rootDir>/src/app/domain/$1',
     '^middlewares$': '<rootDir>/src/app/middlewares',
     '^models/(.*)$': '<rootDir>/src/app/models/$1',
     '^repositories/(.*)$': '<rootDir>/src/app/repositories/$1',
