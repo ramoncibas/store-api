@@ -5,52 +5,34 @@ import StockService from 'services/Stock/StockService';
 import Parser from 'utils/parser';
 import { ShoppingCartError } from 'builders/errors';
 import { ResponseBuilder } from 'builders/response';
-import schemaResponseError from 'validators/response/schemaResponseError';
-import { ShoppingCartItem } from '@types';
+import { Quantity, ShoppingCartItem } from '@types';
 
 class ShoppingCartController {
-  
-  static async getCart(req: Request, res: Response): Promise<void> {
+  static async get(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
+      const customerId = req.user!.id;
+      const cartRepository = new ShoppingCartRepository(customerId);
 
-      const { customer_id } = req.params as unknown as { customer_id: number };
-      const cartRepository = new ShoppingCartRepository(customer_id);
+      const shoppingCartItems = await cartRepository.findByCustomerId();
 
-      const shoppingCartItems: Array<ShoppingCartItem> = await cartRepository.findByCustomerId();
-
-      if (!shoppingCartItems || shoppingCartItems.length === 0) {
+      if (!shoppingCartItems) {
         throw ShoppingCartError.cartEmpty();
-      }
-    
-      const productIds = shoppingCartItems.map(item => item.product_id);
-      const products = await ProductRepository.findByIds(productIds);
-
-      const cartWithProducts = shoppingCartItems.map(item => ({
-        ...products.find(p => p.id === item.product_id),
-        quantity: item.quantity
-      }));
-
-      if (!products) {
-        throw ShoppingCartError.notFound();
       }
 
       ResponseBuilder.send({
         response: res,
         message: "Shopping Cart Products retrieved successfully!",
         statusCode: 200,
-        data: cartWithProducts
+        data: shoppingCartItems
       });
     } catch (error: any) {
       ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async addProduct(req: Request, res: Response): Promise<void> {
+  static async add(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const customerId = Parser.toNumber(req.params.customer_id);
+      const customerId = req.user!.id;
       const productId = Parser.toNumber(req.body.product_id);
       const quantity = Parser.toNumber(req.body.quantity);
 
@@ -66,11 +48,7 @@ class ShoppingCartController {
 
       const totalQuantity = Number(cartQuantity) + quantity;
 
-      const stockAvailable = await StockService.validateAvailability(productId, totalQuantity);
-      
-      if (!stockAvailable) {
-        throw ShoppingCartError.itemOutOfStock(productId, stockAvailable);
-      };
+      await StockService.validateAvailability(productId, totalQuantity);
 
       const savedItem = await cartRepository.save(req.body);
 
@@ -91,12 +69,10 @@ class ShoppingCartController {
 
   static async updateQuantity(req: Request, res: Response): Promise<void> {    
     try {
-      schemaResponseError(req, res);
-
-      const cartId = Parser.toNumber(req.params.cart_id);
+      const customerId = req.user!.id;
+      const cartId = Parser.toNumber(req.params.id);
       const quantity = Parser.toNumber(req.body.quantity);
       const productId = Parser.toNumber(req.body.product_id);
-      const customerId = Parser.toNumber(req.body.customer_id);
 
       if (!customerId) {
         throw ShoppingCartError.badRequest("Customer ID is required");
@@ -118,11 +94,7 @@ class ShoppingCartController {
         });
       }
 
-      const stockAvailable = await StockService.validateAvailability(productId, quantity);
-
-      if (!stockAvailable) {
-        throw ShoppingCartError.itemOutOfStock(productId, stockAvailable);
-      };
+      await StockService.validateAvailability(productId, quantity);
 
       const productUpdated = await cartRepository.update(cartId, { quantity });
 
@@ -141,17 +113,13 @@ class ShoppingCartController {
     }
   }
 
-  // TODO: Arrumar a rota desse metodo, está confusa ex:
-  // cart/:customer_id/remove/item/:cart_id
   static async remove(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
+      const customerId = req.user!.id;
+      const cartId = Parser.toNumber(req.params.id);
 
-      const cartId = Parser.toNumber(req.params.cart_id);
-      const customerId = Parser.toNumber(String(req?.user?.id ?? ''));
-
-      if (!customerId || !cartId) {
-        throw ShoppingCartError.badRequest("Customer ID is required");
+      if (!cartId) {
+        throw ShoppingCartError.badRequest("Cart Id is required");
       }
 
       const cartRepository = new ShoppingCartRepository(customerId);
@@ -179,12 +147,7 @@ class ShoppingCartController {
 
   static async clear(req: Request, res: Response): Promise<void> {    
     try {
-      schemaResponseError(req, res);
-      const customerId = Parser.toNumber(req.params.customer_id);
-
-      if(!customerId) {
-        throw ShoppingCartError.badRequest("Customer ID is required");
-      }
+      const customerId = req.user!.id;
       const { options } = req.body;
       const cartRepository = new ShoppingCartRepository(customerId);
       const cartCleared: boolean = await cartRepository.clear(options);

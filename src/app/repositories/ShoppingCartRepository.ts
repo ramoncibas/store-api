@@ -1,19 +1,15 @@
-import ShoppingCartModel from "models/ShoppingCartModel";
-import ShoppingCartError from "builders/errors/ShoppingCartError";
 import ProductModel from "models/ProductModel";
+import ShoppingCartModel from "models/ShoppingCartModel";
 import CacheService from "lib/cache";
+import { ShoppingCartError } from "builders/errors";
 import { ShoppingCartItem } from "@types";
 
 class ShoppingCartRepository {
   private cache;
-  private logger = console; // Replace 'console' with my preferred logging library (maybe sentry)
-  private eventEmitter = new (require('events').EventEmitter)();
+  private logger = console;
   private readonly customerId: number;
 
   private cacheKey = {
-    product: (productId: number) => {
-      return `cart_customer_${this.customerId}_product_${productId}`;
-    },
     cart: (cartId: number) => {
       return `cart_${cartId}_customer_${this.customerId}`;
     },
@@ -36,21 +32,18 @@ class ShoppingCartRepository {
    */
   public async findByCustomerId(): Promise<Array<ShoppingCartItem>> {
     try {
-      // const cacheKey = this.cacheKey.customer(this.customerId);
-      // const cachedReviews = await this.cache.get<ShoppingCartItem[]>(cacheKey);
+      const cacheKey = this.cacheKey.customer();
+      const cachedReviews = await this.cache.get<ShoppingCartItem>(cacheKey);
 
-      // if (cachedReviews) return cachedReviews;
+      if (cachedReviews) return cachedReviews.items;
 
       const cartItems = await ShoppingCartModel.findByCustomerId(this.customerId);
-      console.log(cartItems)
-
-      // if (cartItems) {
-      //   this.cache.set(cacheKey, cartItems);
-      // }
 
       if (!cartItems) {
         throw ShoppingCartError.notFound();
       }
+
+      this.cache.set(cacheKey, cartItems);
 
       return cartItems;
     } catch (error: any) {
@@ -72,9 +65,11 @@ class ShoppingCartRepository {
 
       const cartItems = await ShoppingCartModel.findByProductId(this.customerId, productId);
 
-      if (cartItems) {
-        this.cache.set(cacheKey, cartItems);
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
       }
+
+      this.cache.set(cacheKey, cartItems);
 
       return cartItems;
     } catch (error: any) {
@@ -90,17 +85,19 @@ class ShoppingCartRepository {
   public async findByCartId(cartId: number): Promise<ShoppingCartItem | null> {
     try {
       const cacheKey = this.cacheKey.cart(cartId);
-      const cachedData = await this.cache.get<ShoppingCartItem>(cacheKey);
+      const cached = await this.cache.get<ShoppingCartItem>(cacheKey);
 
-      if (cachedData && cachedData?.items?.length > 0) {
-        return cachedData.items[0];
+      if (cached?.items.length) {
+        return cached?.items[0];
       }
 
       const cartItems = await ShoppingCartModel.findByCartId(cartId);
 
-      if (cartItems) {
-        this.cache.set(cacheKey, cartItems);
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
       }
+
+      this.cache.set(cacheKey, cartItems);
 
       return cartItems;
     } catch (error: any) {
@@ -121,13 +118,13 @@ class ShoppingCartRepository {
       shopping_cart (atual: unico produto)  = product_id: 1, quantity 10
     */
     try {
-      // Validar se o valor passado já está no banco...
-      
-      const productId = Number(product.product_id);
+      await this.validateProductExists(product.product_id);
 
-      await this.validateProductExists(productId);
+      const cartItems = await ShoppingCartModel.findByProductId(this.customerId, product.product_id);
 
-      const cartItems = await ShoppingCartModel.findByProductId(this.customerId, productId);
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
+      }
 
       if (cartItems?.length) {
         return this.updateCartItem(cartItems, product);
@@ -139,9 +136,6 @@ class ShoppingCartRepository {
     }
   }
 
-  /**
-   * Atualiza um item existente no carrinho
-   */
   private async updateCartItem(cartItems: ShoppingCartItem[], product: ShoppingCartItem): Promise<ShoppingCartItem> {
     const productId = Number(product.product_id);
     const productQuantity = Number(product.quantity);
@@ -161,9 +155,6 @@ class ShoppingCartRepository {
     return updatedItems.find(item => Number(item.product_id) === productId)!;
   }
 
-  /**
-   * Cria um novo item no carrinho
-   */
   private async createNewCartItem(product: ShoppingCartItem): Promise<ShoppingCartItem> {
     const createdItems = await ShoppingCartModel.saveProduct(this.customerId, product);
     
@@ -180,9 +171,9 @@ class ShoppingCartRepository {
   }
 
   private async validateProductExists(productId: number): Promise<void> {
-    const productExist = await ProductModel.findById(productId);
+    const product = await ProductModel.findById(productId);
 
-    if (!productExist) {
+    if (!product) {
       throw ShoppingCartError.notFound();
     }
   }
@@ -197,17 +188,19 @@ class ShoppingCartRepository {
     try {
       const updatedCart = await ShoppingCartModel.updateCart(shoppingCartID, data);
 
-      if (updatedCart) {
-        let cacheKey = this.cacheKey.customer();
-        this.cache.remove(cacheKey);
+      if (!updatedCart) {
+        throw ShoppingCartError.updateQuantityFailed(shoppingCartID, data.quantity!);
       }
+
+      const cacheKey = this.cacheKey.customer();
+      
+      this.cache.remove(cacheKey);
 
       return updatedCart;
     } catch (error: any) {
       throw error;
     }
   }
-
 
   /**
    * Deletes a Shopping Cart Product from the database based on the provided ID.
@@ -245,12 +238,6 @@ class ShoppingCartRepository {
       const cacheKey = this.cacheKey.customer();
       await this.cache.remove(cacheKey);
 
-      this.eventEmitter.emit('cart.item.removed', {
-        customerId: this.customerId,
-        itemID: shoppingCarID,
-        timestamp: new Date()
-      });
-
       this.logger.info(`Deleting cart item: ${shoppingCarID} for customer: ${this.customerId}`);
 
       return cartItemDeleted;
@@ -280,14 +267,14 @@ class ShoppingCartRepository {
       reason?: 'user_requested' | 'system_cleanup'
     } = {}
   ): Promise<boolean> {
-    const cartItems = await ShoppingCartModel.findByCustomerId(this.customerId) ?? [];
-    const cartExists = cartItems.length > 0 ? cartItems[0] : null;
-
-    if (!cartExists) {
-      throw ShoppingCartError.notFound(`No shopping cart found for customer.`);
-    }
-
     try {
+      const cartItems = await ShoppingCartModel.findByCustomerId(this.customerId) ?? [];
+      const cartExists = cartItems.length > 0 ? cartItems[0] : null;
+  
+      if (!cartExists) {
+        throw ShoppingCartError.notFound(`No shopping cart found for customer.`);
+      }
+      
       this.logger.info(`Clearing cart for customer: ${this.customerId}`, {
         specificItems: cartItems,
         reason: options.reason || 'system_cleanup'
@@ -301,14 +288,6 @@ class ShoppingCartRepository {
 
       let cacheKey = this.cacheKey.customer();
       this.cache.remove(cacheKey);
-
-      this.eventEmitter.emit('cart.cleared', {
-        customerID: this.customerId,
-        itemsRemoved: cartItems,
-        specificItems: cartItems,
-        timestamp: new Date(),
-        reason: options.reason
-      });
 
       return true;
     } catch (error: any) {

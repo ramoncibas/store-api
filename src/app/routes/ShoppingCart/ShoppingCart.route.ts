@@ -1,40 +1,36 @@
 import { Router } from 'express';
-
-import { authMiddleware } from 'middlewares';
-import ShoppingCartController from 'controllers/ShoppingCart/ShoppingCartController';
+import { AuthGuard } from 'middlewares';
 import ShoppingCartSchema from 'validators/schema/ShoppingCartSchema';
+import ShoppingCartController from 'controllers/ShoppingCart/ShoppingCartController';
 
 const router = Router();
 
-// TODO: 
-// Apenas o customer pode acessar o carrinho dele, se não estiver logado usar o localstorage para armazenar os produtos
-
 router.get("/",
-  authMiddleware,
+  AuthGuard,
   ShoppingCartSchema.get,
-  ShoppingCartController.getCart
+  ShoppingCartController.get
 );
 
-router.post("/add",
-  authMiddleware,
-  ShoppingCartSchema.create,
-  ShoppingCartController.addProduct
+router.post("/",
+  AuthGuard,
+  ShoppingCartSchema.add,
+  ShoppingCartController.add
 );
 
-router.patch("/update/:cart_id",
-  authMiddleware,
+router.patch("/:id",
+  AuthGuard,
   ShoppingCartSchema.update,
   ShoppingCartController.updateQuantity
 );
 
-router.delete("/remove/:cart_id",
-  authMiddleware,
+router.delete("/:id",
+  AuthGuard,
   ShoppingCartSchema.remove,
   ShoppingCartController.remove
 );
 
 router.delete("/clear",
-  authMiddleware,
+  AuthGuard,
   ShoppingCartSchema.clear,
   ShoppingCartController.clear
 );

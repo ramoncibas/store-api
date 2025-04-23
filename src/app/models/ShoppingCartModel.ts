@@ -11,7 +11,18 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
    * @returns A Promise that resolves with the cart data or null if not found.
    */
   public static async findByCustomerId(customerId: number): Promise<Array<ShoppingCartItem> | null> {
-    return await this.search("customer_id", customerId);
+    const query: string = `
+      SELECT 
+        p.*,
+        sc.quantity as cart_quantity
+      FROM shopping_cart sc
+        INNER JOIN product p on p.id = sc.product_id
+      WHERE sc.customer_id = ?;
+    `;
+
+    const row = await this.dbManager.all(query, [customerId]);
+
+    return row;
   }
 
   /**
