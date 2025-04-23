@@ -1,4 +1,4 @@
-import Purchase from "types/Purchase.type";
+import { Purchase } from "@types";
 import BaseModel from "./BaseModel";
 
 class PurchaseModel extends BaseModel<Purchase> {
@@ -19,7 +19,8 @@ class PurchaseModel extends BaseModel<Purchase> {
    * @returns A Promise that resolves with the purchase data or null if not found.
    */
   static async findById(purchaseId: number): Promise<Purchase | null> {
-    return await this.search("id", purchaseId);
+    const purchase: any = await this.search("id", purchaseId);
+    return purchase?.[0] ?? null;
   }
 
   /**
@@ -28,7 +29,9 @@ class PurchaseModel extends BaseModel<Purchase> {
    * @returns A Promise that resolves with the purchase data or null if not found.
    */
   static async findByCustomerId(customerId: number): Promise<Purchase[] | null> {
-    return await this.search("customer_id", customerId);
+    const purchase: any = await this.search("customer_id", customerId);
+    return purchase?.[0] ?? null;
+
   }
 }
 

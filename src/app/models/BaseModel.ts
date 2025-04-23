@@ -120,7 +120,7 @@ class BaseModel<T> {
 
       const setClause = keys.map(key => `${key} = ?`).join(', ');
       const query = `UPDATE ${this.table} SET ${setClause} WHERE ${condition} = ?`;
-            
+
       await BaseModel.dbManager.transaction(async (dbManager) => {
         return await dbManager.run(query, [...values, recordString]);
       });
@@ -141,11 +141,10 @@ class BaseModel<T> {
   protected static async delete(record: string | number | Array<string | number>): Promise<boolean> {
     try {
       const records = Array.isArray(record) ? record : [record];
-      console.log(records)
       const conditions = records.map(this.getRecordCondition);
       const placeholders = conditions.map(() => '?').join(', ');
       const query = `DELETE FROM ${this.table} WHERE ${conditions[0].condition} IN (${placeholders})`;
-      console.log(query)
+
       const result = await BaseModel.dbManager.transaction(async (dbManager) => {
         return await dbManager.run(query, conditions.map(cond => cond.recordString));
       });
@@ -201,7 +200,7 @@ class BaseModel<T> {
   protected static async search<T>(
     conditions: string | Array<string>,
     values: number | string | Array<number | string>
-  ): Promise<T | null> {
+  ): Promise<T | T[] | null> {
     try {
       const isArrayPattern = Array.isArray(conditions);
       const isArrayValues = Array.isArray(values);
@@ -221,6 +220,10 @@ class BaseModel<T> {
       
       if (!result || result.length === 0) {
         return null;
+      }
+
+      if (result.length === 1) {
+        return result[0] as T;
       }
 
       return result as T;
