@@ -1,5 +1,4 @@
-import Customer from "types/Customer.type";
-import Review from "types/Review.type";
+import { Customer, DecodedToken, Review } from "@types";
 
 export const randomID = () => Math.floor(Math.random() * 100000);
 
@@ -9,6 +8,13 @@ export function createCustomer(overrides?: Omit<Customer, "id" | "uuid">): Parti
     ...customerBase,
     ...overrides,
   };
+}
+
+export const DeveloperUser: DecodedToken = {
+  id: 1,
+  email: 'store_development@gmail.com',
+  username: 'store_development',
+  role: 'admin',
 }
 
 export const customerBase: Omit<Customer, "id" | "uuid"> = {
