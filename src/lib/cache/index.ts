@@ -2,7 +2,7 @@ import Keyv from 'keyv';
 import CacheConnection from './cache.connection';
 import CacheHelper from './cache.helper';
 import { AppError } from 'builders/errors';
-import { CachedData, CacheItem } from './cache.types';
+import { CachedData } from './cache.types';
 
 class CacheService extends CacheHelper {
   private readonly connection: CacheConnection;
@@ -23,7 +23,7 @@ class CacheService extends CacheHelper {
    * @param value - The value to be stored (array or single item)
    * @param ttl - Time-to-live (TTL) in seconds (default: 15 minutes)
    */
-  public async set<T extends CacheItem>(key: string, value: T | T[], ttl: number = 15): Promise<boolean> {
+  public async set<T>(key: string, value: T | T[], ttl: number = 15): Promise<boolean> {
     try {
       const sanitizedKey = this.sanitizeKey(key);
       const namespacedKey = this.namespaceKey(this.namespace, sanitizedKey);
@@ -68,7 +68,7 @@ class CacheService extends CacheHelper {
    * @param key - The key of the item to retrieve
    * @returns The stored value or undefined if not found
    */
-  public async get<T extends CacheItem>(key: string): Promise<CachedData<T> | undefined> {
+  public async get<T>(key: string): Promise<CachedData<T> | undefined> {
     try {
       const sanitizedKey = this.sanitizeKey(key);
       const namespacedKey = this.namespaceKey(this.namespace, sanitizedKey);
@@ -100,6 +100,10 @@ class CacheService extends CacheHelper {
       const sanitizedKey = this.sanitizeKey(key);
       const namespacedKey = this.namespaceKey(this.namespace, sanitizedKey);
 
+      const exist = await this.get(namespacedKey);
+
+      if (!exist) return;
+      
       await this.cache.delete(namespacedKey);
     } catch (error) {
       AppError.internalError('Failed to remove cache item', error);

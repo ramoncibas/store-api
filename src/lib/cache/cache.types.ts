@@ -1,8 +1,3 @@
-export interface CacheItem {
-  id: number | string;
-  [key: string]: any;
-}
-
 export interface CacheMetadata {
   ttl: number;
   count?: number;

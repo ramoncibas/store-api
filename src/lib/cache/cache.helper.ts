@@ -1,5 +1,4 @@
 import { AppError } from 'builders/errors';
-import { CacheItem } from './cache.types';
 
 class CacheHelper {
   constructor() { }
@@ -104,7 +103,7 @@ class CacheHelper {
    * @param ttl - Time-to-live in minutes to validate
    * @throws AppError if any validation fails
    */
-  protected validateParams(key: string, value: CacheItem, ttl: number): boolean {
+  protected validateParams(key: string, value: any, ttl: number): boolean {
     try {
       this.validateKey(key);
       this.validateValue(value);
@@ -145,7 +144,7 @@ class CacheHelper {
    * Validates the cache value
    * @param value - Value to validate
    */
-  private validateValue(value: CacheItem): void {
+  private validateValue(value: any): void {
     if (!value) {
       throw AppError.badRequest('Cache value is required');
     }

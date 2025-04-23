@@ -96,6 +96,7 @@
 // export default seeds;
 
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 
 const encryptedPassword = async () => await bcrypt.hash("store#123", 10);
 
@@ -121,7 +122,7 @@ const seeds = async () => {
 
     user: [
       {
-        uuid: "31313sda",
+        uuid: "be44272e-7a77-4da8-a38e-1dee390a03e4",
         first_name: "Store",
         last_name: "Admin",
         email: "store@admin.com",
@@ -129,17 +130,26 @@ const seeds = async () => {
         phone: "12345",
         user_picture_name: "store.png",
         type: "admin"
+      },
+      {
+        uuid: "374b1323-baf2-405c-940d-42a50fcc73bf",
+        first_name: "Store",
+        last_name: "Superadmin",
+        email: "store@superadmin.com",
+        password: await encryptedPassword(),
+        phone: "12345",
+        user_picture_name: "store.png",
+        type: "superadmin"
       }
     ],
 
     customer: [
       {
         user_id: 1,
-        uuid: "1djshagb2",
+        uuid: "66063ac3-631f-4e0b-9d43-f05e4b616785",
         card_expiry_date: "20281211",
         card_number: "3400010300",
         card_security_code: "123",
-        customer_reviews: "2",
         favorite_brands: "Nike",
         favorite_categories: "Masculino",
         last_purchase_date: "20240107",
@@ -150,7 +160,7 @@ const seeds = async () => {
 
     product:[
       {
-        uuid: "b1a2c3d4",
+        uuid: "fd5a8165-8f51-49c6-9454-7b819dd3d5e7",
         name: "Nike Blusa Tech - Azul",
         price: 79.99,
         color: "blue",
@@ -166,7 +176,7 @@ const seeds = async () => {
         quantity_available: 50
       },
       {
-        uuid: "c2d3e4f5",
+        uuid: "fd5a8165-8f51-49c6-9454-7b819dd4d5e7",
         name: "Adidas Tênis Ultraboost - Preto",
         price: 129.99,
         color: "black",
@@ -182,7 +192,7 @@ const seeds = async () => {
         quantity_available: 30
       },
       {
-        uuid: "d3e4f5g6",
+        uuid: "fd5a8165-8f51-49c6-9454-7b819dd5d5e7",
         name: "Puma Calças Esportivas - Cinza",
         price: 59.99,
         color: "gray",
@@ -198,7 +208,7 @@ const seeds = async () => {
         quantity_available: 70
       },
       {
-        uuid: "e4f5g6h7",
+        uuid: "fd5a8165-8f51-49c6-9454-7b819dd6d5e7",
         name: "Nike Blusa Casual - Verde",
         price: 69.99,
         color: "green",
@@ -214,7 +224,7 @@ const seeds = async () => {
         quantity_available: 60
       },
       {
-        uuid: "f5g6h7i8",
+        uuid: "fd5a8165-8f51-49c6-9454-7b819dd7d5e7",
         name: "Adidas Tênis Supernova - Branco",
         price: 119.99,
         color: "white",
@@ -230,7 +240,7 @@ const seeds = async () => {
         quantity_available: 40
       },
       {
-        uuid: "g6h7i8j9",
+        uuid: "fd5a8165-8f51-49c6-9454-7b819dd8d5e7",
         name: "Puma Calças Casual - Preto",
         price: 64.99,
         color: "black",
@@ -280,14 +290,14 @@ const seeds = async () => {
       },
     ],
 
-    purchase: [
-      {
-        customer_id: 1,
-        total_amount: 99.98,
-        total_value: 89.98,
-        purchase_date: "2024-01-15 10:30:00",
-      },
-    ],
+    // purchase: [
+    //   {
+    //     customer_id: 1,
+    //     total_amount: 99.98,
+    //     total_value: 89.98,
+    //     purchase_date: "2024-01-15 10:30:00",
+    //   },
+    // ],
 
     revoked_tokens: [
       { token: "abc123" },
