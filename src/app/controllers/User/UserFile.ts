@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { doesFileExist } from "utils";
+import { AppError } from "builders/errors";
 
 const { BUCKET_USER_PICTURE = '' } = process.env;
 
@@ -16,23 +17,27 @@ class UserFile {
   }
 
   static async saveUserPicture(userUUID: string, userPicture: any): Promise<void> {
-    const pictureName = `${userUUID}_${userPicture.name}`;
-    const picturePath = path.join(BUCKET_USER_PICTURE, pictureName);
-
-    const userPictureExist = await doesFileExist(userUUID, BUCKET_USER_PICTURE);
-
-    if (userPictureExist) {
-      const picturePathToDelete = path.join(BUCKET_USER_PICTURE, userPictureExist);
-      await UserFile.deleteUserPicture(picturePathToDelete);
+    try {
+      const pictureName = `${userUUID}_${userPicture.name}`;
+      const picturePath = path.join(BUCKET_USER_PICTURE, pictureName);
+  
+      const userPictureExist = await doesFileExist(userUUID, BUCKET_USER_PICTURE);
+  
+      if (userPictureExist) {
+        const picturePathToDelete = path.join(BUCKET_USER_PICTURE, userPictureExist);
+        await UserFile.deleteUserPicture(picturePathToDelete);
+      }
+  
+      // userPicture.mv(picturePath, (error: any) => {
+      //   if (error) {
+      //     return `Erro ao salvar a imagem: ${error}`;
+      //   }
+      // });
+  
+      await fs.promises.writeFile(picturePath, userPicture.data);
+    } catch (error) {
+      throw AppError.internalError('Failed to save user image!', error);
     }
-
-    // userPicture.mv(picturePath, (error: any) => {
-    //   if (error) {
-    //     return `Erro ao salvar a imagem: ${error}`;
-    //   }
-    // });
-
-    await fs.promises.writeFile(picturePath, userPicture.data);
   }
 }
 

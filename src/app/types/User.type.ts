@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { FileArray, UploadedFile } from 'express-fileupload';
+import { Email, Phone } from 'domain/entities';
 
 export type UserType = 'user' | 'admin';
 
@@ -9,7 +10,7 @@ export interface UserLogin {
 }
 
 export interface User extends UserLogin {
-  id?: number;
+  id: number;
   uuid: string;
   first_name: string;
   last_name: string;

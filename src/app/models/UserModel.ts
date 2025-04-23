@@ -5,12 +5,36 @@ class UserModel extends BaseModel<User> {
   protected static table = "user";
 
   /**
- * Finds reviews by user ID.
- * @param userId - The ID of the user.
- * @returns A Promise that resolves with an array of reviews.
- */
-  public static async findByUserID(userId: number): Promise<User | null> {
-    return await this.search("id", userId);
+   * Finds reviews by user ID.
+   * @param userId - The ID of the user.
+   * @returns A Promise that resolves with an array of reviews.
+   */
+  public static async findById(userId: number): Promise<User | null> {
+    const user: any = await this.search("id", userId);
+
+    return user?.[0] ?? null;
+  }
+
+  /**
+  * Finds reviews by user Uuid.
+  * @param userUuid - The Uuid of the user.
+  * @returns A Promise that resolves with an array of reviews.
+  */
+  public static async findByUUID(userUuid: string): Promise<User | null> {
+    const user: any = await this.search("uuid", userUuid);
+
+    return user?.[0] ?? null;
+  }
+
+  /**
+   * Finds reviews by user ID.
+   * @param email - The ID of the user.
+   * @returns A Promise that resolves with an array of reviews.
+   */
+  public static async findByEmail(email: string): Promise<User | null> {
+    const user: any = await this.search("email", email);
+
+    return user?.[0] ?? null;
   }
 
   /**
@@ -18,7 +42,7 @@ class UserModel extends BaseModel<User> {
    * @param user - Object representing the user data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async create(user: User): Promise<User> {
+  public static async create(user: Omit<User, 'id' | 'uuid'>): Promise<User> {
     return await this.save(user);
   }
 
@@ -45,7 +69,7 @@ class UserModel extends BaseModel<User> {
    * @param userUUID - UUID of the user to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public static async delete(userUUID: string): Promise<boolean> {
+  public static async deleteRecord(userUUID: string): Promise<boolean> {
     return await this.delete(userUUID);
   }
 }

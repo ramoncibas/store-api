@@ -1,31 +1,38 @@
 import { Router, static as static_ } from 'express';
-import { authMiddleware, isAdmin, fileUpload } from 'middlewares';
+import { AuthGuard, AuthAdmin, FileUploadMiddleware } from 'middlewares';
 import UserController from 'controllers/User/UserController';
 import UserSchema from 'validators/schema/UserSchema';
 
 const router = Router();
 
-router.use(authMiddleware);
+router.use(AuthGuard);
+
+const bucketPath = process.env.BUCKET_USER_PICTURE ?? '.temp';
 
 router.use("/profile/user_picture",
-  static_(process.env.BUCKET_USER_PICTURE!)
+  static_(bucketPath)
+);
+
+router.get("/all",
+  AuthAdmin,
+  UserSchema.getAll,
+  UserController.getAll
 );
 
 router.get("/profile/:uuid",
   UserSchema.get,
-  UserController.getUser
-);
-
-router.get("/users/all",
-  isAdmin,
-  UserSchema.getAll,
-  UserController.getAllUsers
+  UserController.get
 );
 
 router.patch("/profile/:uuid",
-  fileUpload,
+  FileUploadMiddleware,
   UserSchema.update,
-  UserController.updateUser
+  UserController.update
+);
+
+router.delete("/:uuid",
+  UserSchema.delete,
+  UserController.delete
 );
 
 export default router;
