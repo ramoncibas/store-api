@@ -2,7 +2,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import { errorHandler } from 'middlewares';
+import { ErrorHandler } from 'middlewares';
 import express, { Application } from 'express';
 
 /**
@@ -36,5 +36,5 @@ export default function setupMiddlewares(app: Application) {
   }));
 
   // Global error handler to catch and process application errors
-  app.use(errorHandler);
+  app.use(ErrorHandler);
 }

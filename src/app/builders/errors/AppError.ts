@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 
 interface AppErrorResponse {
   status: string;
@@ -33,25 +33,49 @@ export class AppError extends Error {
   /**
    * Logs the error details (can be integrated with external logging tools like Sentry).
    */
-  protected logError(): void {
-    if (this.originalError) {
-      console.error(`${this.name}: ${this.message}`, this.originalError);
-    }
+  protected logError(error?: Error | AppError, req?: Request): void {
+    // if (this.originalError) {
+      console.error('🔴 [ERROR]',{
+        timestamp: new Date().toISOString(),
+        request: {
+          path: req?.path,
+          method: req?.method,
+          headers: req?.headers,
+          body: req?.body
+        },
+        error: {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack
+        },
+        class: this.name,
+        message: this.message,
+        originalError: this.originalError,
+      });
+    // }
   }
 
   /**
    * Gets the HTTP error code associated with this error.
    * @returns The error code.
    */
-  protected getErrorCode(): number {
+  public getErrorCode(): number {
     return this.errorCode;
+  }
+
+  /**
+   * Gets error messagem.
+   * @returns The error message or null.
+   */
+  public getErrorMessage(): string | null {
+    return this.message || null;
   }
 
   /**
    * Gets any additional error data.
    * @returns The error data or null.
    */
-  protected getErrorData(): Record<string, any> | null {
+  public getErrorData(): Record<string, any> | null {
     return this.data || null;
   }
 
@@ -59,7 +83,7 @@ export class AppError extends Error {
    * Converts the error to a standardized response object.
    * @returns An object representing the error response.
    */
-  protected toResponseObject(): AppErrorResponse {
+  public toResponseObject(): AppErrorResponse {
     return {
       status: 'error',
       errorCode: this.getErrorCode(),

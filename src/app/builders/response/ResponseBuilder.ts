@@ -1,18 +1,52 @@
 import { Response } from 'express';
 
-interface ReponseSend {
+type ResponseType = 'success' | 'error' | 'info';
+
+type ReponseSend = {
   response: Response;
   message: string;
   statusCode: number;
   data?: any;
-  type?: string;
+  type?: ResponseType;
   paginator?: string;
-}
+};
 
 /**
  * ResponseBuilder class for creating consistent and structured JSON responses.
  */
 export class ResponseBuilder<T> {
+  /**
+   * Logs details (can be integrated with external logging tools like Sentry).
+   */
+  protected static logInfo({
+    response,
+    message,
+    statusCode,
+    data,
+    type,
+    paginator
+  }: ReponseSend): void {
+    const { method, originalUrl, ip, headers } = response.req || {};
+    const userAgent = headers?.['user-agent'];
+  
+    console.info('🟢 [INFO]', {
+      timestamp: new Date().toISOString(),
+      request: {
+        method,
+        path: originalUrl,
+        ip,
+        userAgent,
+      },
+      response: {
+        statusCode,
+        type,
+        message,
+        paginator,
+        data,
+      }
+    });
+  }
+
   /**
    * Static method to send a JSON response with a standardized structure.
    * @param response - Express Response object.
@@ -47,6 +81,15 @@ export class ResponseBuilder<T> {
     type = 'success',
     paginator = '/'
   }: ReponseSend): void {
+    this.logInfo({
+      response,
+      message,
+      statusCode,
+      data,
+      type,
+      paginator
+    });
+
     response.status(statusCode).json({ type, message, paginator, data });
   }
 }
