@@ -10,7 +10,6 @@ import CustomerRepository from 'repositories/CustomerRepository';
 import ReviewRepository from 'repositories/ReviewRepository';
 import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
-import schemaResponseError from 'validators/response/schemaResponseError';
 import Review from 'types/Review.type';
 
 import {
@@ -42,10 +41,6 @@ jest.mock('repositories/CustomerRepository', () => ({
 jest.mock('builders/response/ResponseBuilder', () => ({
   send: jest.fn(),
 }));
-
-jest.mock('validators/response/schemaResponseError', () => {
-  return jest.fn();
-});
 
 describe('Mock - ReviewController', () => {
   let req: Request;

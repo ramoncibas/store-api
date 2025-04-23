@@ -1,4 +1,20 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
+import { AppError } from 'builders/errors';
+
+export const defaultValidateCustomer: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value: any, { req }: any) => {
+        if (!req.user?.id) {
+          throw new AppError('User is not authenticated');
+        }
+        return true;
+      },
+    },
+  },
+};
 
 export const getReviewByIdSchema: Schema = {
   id: {
@@ -14,27 +30,11 @@ export const getReviewByIdSchema: Schema = {
 }
 
 export const getReviewByCustomerIdSchema: Schema = {
-  id: {
-    in: ['params'],
-    notEmpty: {
-      errorMessage: 'Customer Id is required',
-    },
-    isString: {
-      errorMessage: 'Customer Id must be a string',
-    },
-  },
+  ...defaultValidateCustomer,
 }
 
 export const createReviewSchema: Schema = {
-  uuid: {
-    in: ['params'],
-    isString: {
-      errorMessage: 'CustomerUUID must be a string',
-    },
-    notEmpty: {
-      errorMessage: 'CustomerUUID is required',
-    },
-  },
+  ...defaultValidateCustomer,
   product_id: {
     in: ['body'],
     isNumeric: {
@@ -44,7 +44,7 @@ export const createReviewSchema: Schema = {
     notEmpty: {
       errorMessage: 'ProductID cannot be empty',
     },
-  },  
+  },
   rating: {
     in: ['body'],
     isNumeric: {
@@ -113,9 +113,9 @@ export const removeReviewSchema: Schema = {
 }
 
 export default {
-  getById: checkSchema(getReviewByIdSchema),
-  getByCustomerId: checkSchema(getReviewByCustomerIdSchema),
-  create: checkSchema(createReviewSchema),
-  update: checkSchema(updateReviewSchema),
-  remove: checkSchema(removeReviewSchema),
+  getById: SchemaValidator.validate(checkSchema(getReviewByIdSchema)),
+  getByCustomerId: SchemaValidator.validate(checkSchema(getReviewByCustomerIdSchema)),
+  create: SchemaValidator.validate(checkSchema(createReviewSchema)),
+  update: SchemaValidator.validate(checkSchema(updateReviewSchema)),
+  remove: SchemaValidator.validate(checkSchema(removeReviewSchema)),
 };

@@ -15,7 +15,7 @@ export class ReviewError extends AppError {
     return new ReviewError("Something went wrong!", 500);
   }
 
-  static reviewNotFound(): ReviewError {
+  static notFound(): ReviewError {
     return new ReviewError("Review not found!", 404);
   }
 
@@ -27,19 +27,19 @@ export class ReviewError extends AppError {
     return new ReviewError("Unauthorized access.", 401);
   }
 
-  static reviewAlreadyExists(): ReviewError {
+  static alreadyExists(): ReviewError {
     return new ReviewError("Review already exists!", 409);
   }
   
-  static reviewCreationFailed(): ReviewError {
+  static creationFailed(): ReviewError {
     return new ReviewError("Failed to create the review!", 409);
   }
 
-  static reviewUpdateFailed(): ReviewError {
+  static updateFailed(): ReviewError {
     return new ReviewError("Failed to update the Review.", 500);
   }
 
-  static reviewDeletionFailed(): ReviewError {
+  static deletionFailed(): ReviewError {
     return new ReviewError("Failed to delete the Review.", 500);
   }
 

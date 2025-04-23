@@ -29,7 +29,7 @@ class ReviewRepository {
       const newReview = await ReviewModel.create(review);
 
       if (!newReview) {
-        throw ReviewError.reviewCreationFailed();
+        throw ReviewError.creationFailed();
       }
 
       const cacheKey = this.cacheKey.review(review.product_id);
@@ -55,9 +55,11 @@ class ReviewRepository {
 
       const reviews = await ReviewModel.findByCustomerId(customerId);
 
-      if (reviews) {
-        await this.cache.set(cacheKey, reviews);
+      if (!reviews) {
+        throw ReviewError.notFound();
       }
+
+      await this.cache.set(cacheKey, reviews);
 
       return reviews;
     } catch (error: any) {
@@ -79,10 +81,11 @@ class ReviewRepository {
 
       const reviews = await ReviewModel.findByProductId(productId);
 
-      if (reviews) {
-        const cached = await this.cache.set(cacheKey, reviews);
-        console.log(`Product reviews cached = ${cached}`);
+      if (!reviews) {
+        throw ReviewError.notFound();
       }
+
+      await this.cache.set(cacheKey, reviews);
 
       return reviews;
     } catch (error: any) {
@@ -92,22 +95,32 @@ class ReviewRepository {
 
   /**
    * Updates the data of a review in the database.
+   * @param customerId - ID of the customer.
    * @param reviewUUID - UUID of the review to be updated.
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public async update(reviewUUID: string, updatedFields: Partial<Review>): Promise<Review> {
+  public async update(customerId: number, reviewUUID: string, updatedFields: Partial<Review>): Promise<Review> {
     try {
       if (Object.keys(updatedFields).length === 0) {
-        throw new ReviewError('No fields provided for update');
+        throw ReviewError.updateFailed();
+      }
+
+      const review = await ReviewModel.findByUUID(reviewUUID);
+
+      if (!review || review.customer_id != customerId) {
+        console.log('Customer diferente!')
+        throw ReviewError.notFound();
       }
 
       const updatedReview = await ReviewModel.updateRecord(reviewUUID, updatedFields);
-
-      if (updatedReview) {
-        const cacheKey = this.cacheKey.review(updatedReview.product_id);
-        await this.cache.remove(cacheKey);
+      
+      if (!updatedReview) {
+        throw ReviewError.updateFailed();
       }
+
+      const cacheKey = this.cacheKey.review(updatedReview.product_id);
+      await this.cache.remove(cacheKey);
 
       return updatedReview;
     } catch (error: any) {
@@ -117,21 +130,28 @@ class ReviewRepository {
 
   /**
    * Deletes a review from the database based on the provided ID.
+   * @param customerId - ID of the customer to delete review.
    * @param reviewUUID - UUID of the review to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  public async delete(reviewUUID: string): Promise<boolean> {
+  public async delete(customerId: number, reviewUUID: string): Promise<boolean> {
     try {
-      const review = await ReviewModel.findByUuid(reviewUUID);
+      const review: Review | null = await ReviewModel.findByUUID(reviewUUID);
 
-      if (!review) throw ReviewError.reviewNotFound();
-
-      const reviewDeleted = await ReviewModel.delete(reviewUUID);
-
-      if (reviewDeleted) {
-        const cacheKey = this.cacheKey.review(review.product_id);
-        await this.cache.remove(cacheKey);
+      if (!review || review && review.customer_id != customerId) {
+        throw ReviewError.notFound();
       }
+
+      if (!review) throw ReviewError.notFound();
+
+      const reviewDeleted = await ReviewModel.deleteRecord(reviewUUID);
+
+      if (!reviewDeleted) {
+        throw ReviewError.deletionFailed();
+      }
+
+      const cacheKey = this.cacheKey.review(review.product_id);
+      await this.cache.remove(cacheKey);
 
       return reviewDeleted;
     } catch (error: any) {

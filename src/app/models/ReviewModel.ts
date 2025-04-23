@@ -6,11 +6,13 @@ class ReviewModel extends BaseModel<Review> {
 
   /**
    * Finds reviews by uuid.
-   * @param reviewUuid - The id of the costumer.
+   * @param reviewUUID- The id of the costumer.
    * @returns A Promise that resolves with an array of reviews.
    */
-  public static async findByUuid(reviewUuid: string): Promise<Review | null> {
-    return await this.search("uuid", reviewUuid);
+  public static async findByUUID(reviewUUID: string): Promise<Review | null> {
+    const review: Review[] = await this.search("uuid", reviewUUID) ?? [];
+
+    return review[0];
   }
 
   /**
@@ -55,7 +57,7 @@ class ReviewModel extends BaseModel<Review> {
    * @param reviewUUID - The UUID of the review.
    * @returns A Promise that resolves with a boolean indicating success.
    */
-  public static async delete(reviewUUID: string): Promise<boolean> {
+  public static async deleteRecord(reviewUUID: string): Promise<boolean> {
     return await this.delete(reviewUUID);
   }
 }

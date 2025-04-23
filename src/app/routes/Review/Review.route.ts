@@ -1,13 +1,13 @@
 import { Router } from 'express';
 
-import { authMiddleware } from 'middlewares';
+import { AuthGuard } from 'middlewares';
 import ReviewController from 'controllers/Review/ReviewController';
 import ReviewSchema from 'validators/schema/ReviewSchema';
 
 const router = Router();
 
-router.get("/customer/:id",
-  authMiddleware,
+router.get("/customer",
+  AuthGuard,
   ReviewSchema.getByCustomerId,
   ReviewController.getByCustomer
 );
@@ -17,20 +17,20 @@ router.get("/product/:id",
   ReviewController.getByProduct
 );
 
-router.post("/customer/:uuid/create",
-  authMiddleware,
+router.post("/create",
+  AuthGuard,
   ReviewSchema.create,
   ReviewController.create
 );
 
 router.patch("/:uuid",
-  authMiddleware,
+  AuthGuard,
   ReviewSchema.update,
   ReviewController.update
 );
 
-router.delete("/:uuid/delete",
-  authMiddleware,
+router.delete("/:uuid",
+  AuthGuard,
   ReviewSchema.remove,
   ReviewController.delete
 );

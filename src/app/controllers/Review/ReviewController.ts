@@ -4,21 +4,18 @@ import ReviewRepository from 'repositories/ReviewRepository';
 import { Customer, Review } from '@types';
 import { ReviewError, CustomerError } from 'builders/errors';
 import { ResponseBuilder } from 'builders/response';
-import schemaResponseError from 'validators/response/schemaResponseError';
 
 class ReviewController {
   public async create(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const customerUUID: string = req.params.uuid;
+      const customerId: number = Number(req.user?.id);
       const reviewData: Review = req.body;
 
-      if (!reviewData) {
+      if (!customerId ||!reviewData) {
         throw CustomerError.invalidInput();
       }
 
-      const customer: Customer | null = await CustomerRepository.get(customerUUID);
+      const customer: Customer | null = await CustomerRepository.get(customerId);
       const customerNotFound: boolean = [customer, customer?.id, customer?.uuid].some(
         value => value === null || value === undefined
       );
@@ -32,7 +29,7 @@ class ReviewController {
       const reviewCreated = await ReviewRepository.create(reviewData);
 
       if (!reviewCreated) {
-        throw ReviewError.reviewCreationFailed();
+        throw ReviewError.creationFailed();
       }
 
       ResponseBuilder.send({
@@ -44,22 +41,21 @@ class ReviewController {
       ReviewError.handleError(res, error);
     }
   }
-
+  
   public async update(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const reviewUUID: string = req.params.uuid;
+      const customerId: number = Number(req.user?.id);
+      const reviewUUID: string = req.params?.uuid;
       const updatedFields: Partial<Review> = req.body;
 
-      if (!updatedFields || !updatedFields) {
+      if (!reviewUUID || !updatedFields) {
         throw ReviewError.invalidInput();
       }
 
-      const reviewCreated = await ReviewRepository.update(reviewUUID, updatedFields);
+      const reviewCreated = await ReviewRepository.update(customerId, reviewUUID, updatedFields);
 
       if (!reviewCreated) {
-        throw ReviewError.reviewCreationFailed()
+        throw ReviewError.creationFailed();
       }
 
       ResponseBuilder.send({
@@ -74,14 +70,12 @@ class ReviewController {
 
   public async getByCustomer(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const customerID: number = Number(req.params.id);
+      const customerID: number = Number(req.user?.id);
 
       const review: Review[] | null = await ReviewRepository.findByCustomerId(customerID);
 
       if (!review) {
-        throw ReviewError.reviewNotFound();
+        throw ReviewError.notFound();
       }
 
       ResponseBuilder.send({
@@ -97,13 +91,11 @@ class ReviewController {
 
   public async getByProduct(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-      
       const productID: number = Number(req.params.id);
       const review: Review[] | null = await ReviewRepository.findByProductId(productID);
       
       if (!review) {
-        throw ReviewError.reviewNotFound();
+        throw ReviewError.notFound();
       }
 
       ResponseBuilder.send({
@@ -119,14 +111,17 @@ class ReviewController {
 
   public async delete(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
+      const customerId: number = Number(req.user?.id);
       const reviewUUID: string = req.params.uuid;
 
-      const reviewDeleted = await ReviewRepository.delete(reviewUUID);
+      if (!customerId || !reviewUUID) {
+        throw ReviewError.invalidInput();
+      }
+
+      const reviewDeleted = await ReviewRepository.delete(customerId, reviewUUID);
 
       if (!reviewDeleted) {
-        throw ReviewError.reviewDeletionFailed();
+        throw ReviewError.deletionFailed();
       }
 
       ResponseBuilder.send({

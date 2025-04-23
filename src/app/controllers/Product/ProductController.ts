@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import ProductRepository from "repositories/ProductRepository";
 import ProductError from "builders/errors/ProductError";
 import { ResponseBuilder } from "builders/response";
+import Parser from "utils/parser";
 import { Product } from "@types";
 
 class ProductController {
@@ -24,7 +25,7 @@ class ProductController {
     }
   }
 
-  static async getProductById(req: Request, res: Response) {
+  static async getById(req: Request, res: Response) {
     try {
       const id: any = req.params.id;
       const productId = typeof id === "string" ? parseInt(id, 10) : id;
@@ -45,7 +46,7 @@ class ProductController {
     }
   }
 
-  static async getAttributes(req: Request, res: Response) {
+  static async attributes(req: Request, res: Response) {
     try {
       const attributes = await ProductRepository.findByAttributes();
 
@@ -60,7 +61,7 @@ class ProductController {
     }
   }
 
-  static async getFiltered(req: Request, res: Response) {
+  static async filter(req: Request, res: Response) {
     try {
       const body = req.body;
       const hasFilteredValue = Object.values(body).some((arr) => Array.isArray(arr) && arr.length != 0);
@@ -69,7 +70,7 @@ class ProductController {
         throw ProductError.invalidInput();
       }
 
-      const product = await ProductRepository.getFiltered(body);
+      const product = await ProductRepository.filter(body);
 
       if (!product) {
         throw ProductError.productNotFound();
@@ -107,13 +108,14 @@ class ProductController {
 
   static async update(req: Request, res: Response) {
     try {
+      const productId = Parser.toNumber(req.params?.id);
       const fields: Partial<Product> = req.body;
 
-      if (!fields.uuid || !fields.id) {
+      if (!productId) {
         throw ProductError.invalidInput();
       }
 
-      const productResponse = await ProductRepository.update(fields.id, fields);
+      const productResponse = await ProductRepository.update(productId, fields);
 
       if (!productResponse) {
         throw ProductError.updateFailed();
@@ -130,13 +132,13 @@ class ProductController {
 
   static async delete(req: Request, res: Response) {
     try {
-      const id = Number(req.params.id);
+      const productId = Parser.toNumber(req.params.id);
 
-      if (!id) {
+      if (!productId) {
         throw ProductError.invalidInput();
       }
 
-      const productResponse = await ProductRepository.delete(id);
+      const productResponse = await ProductRepository.delete(productId);
 
       if (!productResponse) {
         throw ProductError.deletionFailed();
