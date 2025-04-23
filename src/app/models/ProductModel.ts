@@ -1,5 +1,5 @@
 import BaseModel from "./BaseModel";
-import { Product, AspectResult } from "@types";
+import { Product, AttributesResult, ProductFilter } from "@types";
 
 class ProductModel extends BaseModel<Product> {
   protected static table: string = "product";
@@ -35,15 +35,6 @@ class ProductModel extends BaseModel<Product> {
   }
 
   /**
-   * Get a Product from the database based on the provided ID.
-   * @param productId - Numeric ID of the Product.
-   * @returns A Promise that resolves with the product data or null if not found.
-   */
-  public static async findByIds(productId: Array<number | string>) {
-    return await this.search("id", productId);
-  }
-
-  /**
    * Get all products from the database.
    * @returns A Promise that resolves with an array of products.
    */
@@ -55,32 +46,38 @@ class ProductModel extends BaseModel<Product> {
    * Get all aspects of products from the database.
    * @returns A Promise that resolves with an array of product aspects.
    */
-  static async findByAspects(): Promise<AspectResult> {
+  static async findByAttributes(): Promise<AttributesResult> {
     try {
-      const queries = {
-        brand: 'SELECT id, name FROM brand_product',
-        gender: 'SELECT id, name FROM gender_product',
-        category: 'SELECT id, name FROM category_product',
-        size: 'SELECT min(size) as min, max(size) as max FROM product'
-      };
-
-      const [brand_id, gender_id, category_id, size] = await Promise.all([
-        this.dbManager.all(queries.brand, []),
-        this.dbManager.all(queries.gender, []),
-        this.dbManager.all(queries.category, []),
-        this.dbManager.get(queries.size, [])
+      const [brands, genders, categories, sizeRange] = await Promise.all([
+        this.dbManager.all('SELECT id, name, "brand" as type FROM brand_product', []),
+        this.dbManager.all('SELECT id, name, "gender" as type FROM gender_product', []),
+        this.dbManager.all('SELECT id, name, "category" as type FROM category_product', []),
+        this.dbManager.get('SELECT MIN(size) as min, MAX(size) as max FROM product', []),
       ]);
+  
+      const allAspects = [...brands, ...genders, ...categories];
+  
+      const aspects = allAspects.reduce((acc, aspect) => {
+        if (!acc[aspect.type]) acc[aspect.type] = [];
+        
+        acc[aspect.type].push(aspect);
 
-      const aspects: any = {
-        brand_id,
-        gender_id,
-        category_id,
-        size
+        return acc;
+      }, {});
+  
+      return {
+        ...aspects,
+        sizeRange: {
+          min: sizeRange?.min ?? 0,
+          max: sizeRange?.max ?? 0,
+        },
+        _meta: {
+          retrievedAt: new Date().toISOString(),
+          categoryCount: Object.keys(aspects).length,
+        }
       };
-
-      return aspects;
     } catch (error) {
-      console.error(error);
+      console.error('Failed to retrieve attributes:', error);
       throw error;
     }
   }
@@ -90,7 +87,7 @@ class ProductModel extends BaseModel<Product> {
    * @param productsIds - Numeric IDs of the Products.
    * @returns A Promise that resolves with the product data or null if not found.
    */
-  public static async findByAmount(productsIds: Array<number | string>) {
+  public static async findByAmount(productsIds: Array<number | string>): Promise<Product[]> {
     try {
       const query = `
         SELECT *
@@ -114,13 +111,19 @@ class ProductModel extends BaseModel<Product> {
    * @param filters - Object containing filters for the products.
    * @returns A Promise that resolves with an array of filtered products.
    */
-  static async getFiltered(filters: Partial<any>): Promise<Product[]> {
+  static async filter(filters: ProductFilter): Promise<Product[]> {
     try {
       let conditions: string[] = [];
       let values: any[] = [];
 
       Object.entries(filters).forEach(([key, value]) => {
-        if (value.length > 0) {
+        // Verifica se é o objeto de tamanho
+        if (key === 'sizeRange' && typeof value === 'object' && 'min' in value && 'max' in value) {
+          conditions.push(`size >= ? AND size <= ?`);
+          values.push(value.min, value.max);
+        } 
+        // Para os filtros de array normais
+        else if (Array.isArray(value) && value.length > 0) {
           conditions.push(`${key} IN (${value.map(() => '?').join(',')})`);
           values.push(...value);
         }
@@ -165,7 +168,7 @@ class ProductModel extends BaseModel<Product> {
    * @param id - ID of the product to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(productId: number): Promise<boolean> {
+  static async deleteRecord(productId: number): Promise<boolean> {
     return await this.delete(productId);
   }
 }

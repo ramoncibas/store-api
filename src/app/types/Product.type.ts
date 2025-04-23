@@ -1,36 +1,69 @@
+import { UUID } from "crypto";
+
+export type URL = `https://${string}` | `http://${string}`;
+export type Price = number & { readonly brand: unique symbol };
+export type Percentage = number & { readonly brand: unique symbol };
+export type Installments = number & { readonly brand: unique symbol };
+export type HexColor = `#${string}`;
+export type Size = 'PP' | 'P' | 'M' | 'G' | 'GG' | 'XG' | string;
+export type ProductId = number & { readonly brand: unique symbol };
+export type CustomerId = number & { readonly brand: unique symbol };
+export type EntityId = number & { readonly brand: unique symbol };
+export type Quantity = number & { readonly brand: unique symbol };
+
 export interface Product {
-  id?: number;
-  uuid: string;
+  id: ProductId;
+  uuid: UUID;
   name: string;
-  price: number;
-  discount_percentage: number;
-  number_of_installments: number;
-  product_picture: string;
-  color: string;
-  size: string;
+  price: Price;
+  discount_percentage: Percentage;
+  number_of_installments: Installments;
+  product_picture: URL;
+  color: HexColor;
+  size: Size;
   free_shipping: boolean;
-  brand_product_id: number;
-  gender_product_id: number;
-  category_product_id: number;
-  quantity_available: number;
+  brand_product_id: EntityId;
+  gender_product_id: EntityId;
+  category_product_id: EntityId;
+  quantity_available: Quantity;
 }
 
+export interface SizeRange {
+  min: number;
+  max: number;
+}
+
+export interface ProductFilter {
+  brand_id: EntityId[];
+  gender_id: EntityId[];
+  category_id: EntityId[];
+  sizeRange: SizeRange;
+}
+
+// export interface ShoppingCartItem {
+//   id: EntityId;
+//   uuid: UUID;
+//   product_id: ProductId;
+//   customer_id: CustomerId;
+//   quantity: Quantity;
+// }
+
 export interface ShoppingCartItem {
-  id: number;
-  uuid: string;
-  product_id: number;
-  customer_id: number;
+  id: EntityId;
+  uuid: UUID;
+  product_id: ProductId;
+  customer_id: CustomerId;
   quantity: number;
 }
 
-export interface AspectColumn {
-  id: number;
+export interface AttributesColumn {
+  id: EntityId;
   name: string;
 }
 
-export interface AspectResult {
-  brands: AspectColumn[];
-  genders: AspectColumn[];
-  categories: AspectColumn[];
-  sizes: Partial<AspectColumn[]>;
+export interface AttributesResult {
+  brands: AttributesColumn[];
+  genders: AttributesColumn[];
+  categories: AttributesColumn[];
+  sizeRange: SizeRange;
 }

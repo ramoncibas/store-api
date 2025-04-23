@@ -1,4 +1,5 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
 
 export const getProductSchema: Schema = {}
 
@@ -28,7 +29,7 @@ export const filterProductSchema: Schema = {
     in: ['body'],
     optional: true,
     isObject: {
-      errorMessage: 'Size Product must be a Array value',
+      errorMessage: 'Size Product must be a Object value',
     },
   }
 }
@@ -230,9 +231,9 @@ export const updateProductSchema: Schema = {
   },
 };
 
-export const removeProductSchema: Schema = {
+export const deleteProductSchema: Schema = {
   id: {
-    in: ['body'],
+    in: ['params'],
     notEmpty: {
       errorMessage: 'Cart Id is required',
     },
@@ -243,10 +244,10 @@ export const removeProductSchema: Schema = {
 }
 
 export default {
-  get: checkSchema(getProductSchema),
-  getId: checkSchema(getProductIdSchema),
-  filter: checkSchema(filterProductSchema),
-  create: checkSchema(createProductSchema),
-  update: checkSchema(updateProductSchema),
-  remove: checkSchema(removeProductSchema),
+  get: SchemaValidator.validate(checkSchema(getProductSchema)),
+  getId: SchemaValidator.validate(checkSchema(getProductIdSchema)),
+  filter: SchemaValidator.validate(checkSchema(filterProductSchema)),
+  create: SchemaValidator.validate(checkSchema(createProductSchema)),
+  update: SchemaValidator.validate(checkSchema(updateProductSchema)),
+  delete: SchemaValidator.validate(checkSchema(deleteProductSchema)),
 };

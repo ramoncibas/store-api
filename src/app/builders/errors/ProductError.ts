@@ -27,19 +27,19 @@ export class ProductError extends AppError {
     return new ProductError("Unauthorized access.", 401);
   }
 
-  static productCreationFailed(): ProductError {
+  static creationFailed(): ProductError {
     return new ProductError("Failed to create the product.", 500);
   }
 
-  static productAlreadyExists(): ProductError {
+  static alreadyExists(): ProductError {
     return new ProductError("Product already exists!", 409);
   }
 
-  static productUpdateFailed(): ProductError {
+  static updateFailed(): ProductError {
     return new ProductError("Failed to update the product.", 500);
   }
 
-  static productDeletionFailed(): ProductError {
+  static deletionFailed(): ProductError {
     return new ProductError("Failed to delete the product.", 500);
   }
 }
