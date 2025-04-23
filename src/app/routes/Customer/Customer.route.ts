@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import { authMiddleware, isAdmin } from 'middlewares';
+import { AuthGuard, AuthAdmin } from 'middlewares';
 import CustomerController from 'controllers/Customer/CustomerController';
 import CustomerSchema from 'validators/schema/CustomerSchema';
 
 const router = Router();
 
-router.use(authMiddleware);
+router.use(AuthGuard);
 
 router.get("/:uuid",
   CustomerSchema.get,
@@ -24,7 +24,7 @@ router.patch("/update/:uuid",
 );
 
 router.delete("/delete/:uuid",
-  isAdmin,
+  AuthAdmin,
   CustomerSchema.remove,
   CustomerController.deleteCustomer
 );

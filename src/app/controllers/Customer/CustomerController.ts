@@ -3,30 +3,27 @@ import CustomerRepository from 'repositories/CustomerRepository';
 import UserRepository from 'repositories/UserRepository';
 import { CustomerError } from 'builders/errors';
 import { ResponseBuilder } from 'builders/response';
-import schemaResponseError from 'validators/response/schemaResponseError';
 import { Customer } from '@types';
 
 class CustomerController {
   static async createCustomer(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
       const customer: Omit<Customer, "id" | "uuid"> = req.body;
 
       if (!customer?.user_id) {
         throw CustomerError.invalidInput();
       }
 
-      const existingCustomer = await UserRepository.findByUserID(customer.user_id);
+      const existingCustomer = await UserRepository.findById(customer.user_id);
 
       if (existingCustomer) {
-        throw CustomerError.customerAlreadyExists();
+        throw CustomerError.alreadyExists();
       }
 
       const customerCreated = await CustomerRepository.create(customer);
 
       if (!customerCreated) {   
-        throw CustomerError.customerCreationFailed();
+        throw CustomerError.creationFailed();
       }
 
       ResponseBuilder.send({
@@ -42,13 +39,11 @@ class CustomerController {
 
   static async getCustomer(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const customerUUID: string = req.params.uuid;
-      const customer = await CustomerRepository.get(customerUUID);
+      const customerId: number = Number(req.user?.id);
+      const customer = await CustomerRepository.get(customerId);
 
       if (!customer) {
-        throw CustomerError.customerNotFound();
+        throw CustomerError.notFound();
       }
 
       ResponseBuilder.send({
@@ -64,9 +59,7 @@ class CustomerController {
 
   static async updateCustomer(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const customerUUID: string = req.params.uuid;
+      const customerId: number = Number(req.user?.id);
       const updatedFields: Partial<Customer> = req.body;
 
       if (!updatedFields) {
@@ -83,16 +76,16 @@ class CustomerController {
         }
       */
 
-      const existingCustomer = await CustomerRepository.get(customerUUID);
+      const existingCustomer = await CustomerRepository.get(customerId);
 
       if (!existingCustomer) {
-        throw CustomerError.customerNotFound();
+        throw CustomerError.notFound();
       }
 
-      const customerUpdated = await CustomerRepository.update(customerUUID, updatedFields);
+      const customerUpdated = await CustomerRepository.update(customerId, updatedFields);
       
       if (!customerUpdated) {
-        throw CustomerError.customerUpdateFailed();
+        throw CustomerError.updateFailed();
       }
 
       ResponseBuilder.send({
@@ -108,19 +101,17 @@ class CustomerController {
 
   static async deleteCustomer(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
-      const customerUUID: string = req.params.uuid;
-      const customer = await CustomerRepository.get(customerUUID);
+      const customerId: number = Number(req.user?.id);
+      const customer = await CustomerRepository.get(customerId);
 
       if (!customer) {
-        throw CustomerError.customerNotFound();
+        throw CustomerError.notFound();
       }
 
-      const customerDeleted = await CustomerRepository.delete(customerUUID);
+      const customerDeleted = await CustomerRepository.delete(customerId);
 
       if (!customerDeleted) {
-        throw CustomerError.customerDeletionFailed();
+        throw CustomerError.deletionFailed();
       }
 
       ResponseBuilder.send({

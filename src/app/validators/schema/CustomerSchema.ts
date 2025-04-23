@@ -1,4 +1,5 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
 
 export const getCustomerSchema: Schema = {
   uuid: {
@@ -242,8 +243,8 @@ export const removeCustomerSchema: Schema = {
 }
 
 export default {
-  get: checkSchema(getCustomerSchema),
-  create: checkSchema(createCustomerSchema),
-  update: checkSchema(updateCustomerSchema),
-  remove: checkSchema(removeCustomerSchema),
+  get: SchemaValidator.validate(checkSchema(getCustomerSchema)),
+  create: SchemaValidator.validate(checkSchema(createCustomerSchema)),
+  update: SchemaValidator.validate(checkSchema(updateCustomerSchema)),
+  remove: SchemaValidator.validate(checkSchema(removeCustomerSchema)),
 };

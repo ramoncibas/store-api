@@ -1,5 +1,5 @@
 export interface Customer {
-  id?: number;
+  id: number;
   uuid: string;
   user_id: number;
   shipping_address: string;
