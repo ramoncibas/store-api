@@ -17,7 +17,7 @@ export const swaggerSchemas = {
   ProductFilter: convertToSwaggerSchema(Schema.filterProductSchema),
   ProductCreate: convertToSwaggerSchema(Schema.createProductSchema),
   ProductUpdate: convertToSwaggerSchema(Schema.updateProductSchema),
-  ProductRemove: convertToSwaggerSchema(Schema.removeProductSchema),
+  ProductRemove: convertToSwaggerSchema(Schema.deleteProductSchema),
 
   ReviewGetById: convertToSwaggerSchema(Schema.getReviewByIdSchema),
   ReviewGetByCustomerId: convertToSwaggerSchema(Schema.getReviewByCustomerIdSchema),
@@ -26,7 +26,7 @@ export const swaggerSchemas = {
   ReviewRemove: convertToSwaggerSchema(Schema.removeReviewSchema),
 
   ShoppingCartGet: convertToSwaggerSchema(Schema.getCartSchema),
-  ShoppingCartCreate: convertToSwaggerSchema(Schema.createCartSchema),
+  ShoppingCartCreate: convertToSwaggerSchema(Schema.getCartSchema),
   ShoppingCartUpdate: convertToSwaggerSchema(Schema.updateCartSchema),
   ShoppingCartRemove: convertToSwaggerSchema(Schema.removeCartSchema),
   ShoppingCartClean: convertToSwaggerSchema(Schema.clearCartSchema),
