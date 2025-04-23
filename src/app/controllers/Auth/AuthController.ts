@@ -1,14 +1,13 @@
 import { Request, Response } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 import UserRepository from 'repositories/UserRepository';
 import UserFile from '../User/UserFile';
-import UserError from 'builders/errors/UserError';
-import { CustomRequest, User, UserLogin, UserPicture } from 'types/User.type';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
-import schemaResponseError from 'validators/response/schemaResponseError';
+import { UserError } from 'builders/errors';
+import { ResponseBuilder } from 'builders/response';
+import { CustomRequest, User, UserLogin, UserPicture } from '@types';
 
 class AuthController {
   private static JWT_TOKEN_KEY: string;
@@ -44,15 +43,13 @@ class AuthController {
 
   static async loginUser(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
       const { email, password }: UserLogin = req.body;
 
       if (!email || !password) {
         throw UserError.invalidInput();
       }
 
-      const user: User | null = await UserRepository.search('email', email);
+      const user: User | null = await UserRepository.findByEmail(email);
 
       if (!(user && user.id && (await bcrypt.compare(password, user.password)))) {
         throw UserError.invalidInput();
@@ -63,11 +60,14 @@ class AuthController {
       user.token = token;
       user.expiresIn = AuthController.JWT_EXPIRE_IN;
 
+      const paginator = user.type === 'admin' ? '/admin' : '/';
+
       ResponseBuilder.send({
         response: res,
         message: "User logged in successfully!",
         statusCode: 200,
-        data: user
+        data: user,
+        paginator
       });
     } catch (error: any) {
       UserError.handleError(res, error);
@@ -75,9 +75,7 @@ class AuthController {
   }
 
   static async registerUser(req: CustomRequest, res: Response): Promise<void> {
-    try {
-      schemaResponseError(req, res);
-      
+    try {      
       const {
         first_name,
         last_name,
@@ -96,10 +94,10 @@ class AuthController {
         throw UserError.invalidInput();
       }
 
-      const existingUser = await UserRepository.search('email', email);
+      const existingUser = await UserRepository.findByEmail(email);
 
       if (existingUser) {
-        throw UserError.userAlreadyExists();
+        throw UserError.alreadyExists();
       }
 
       const userUUID = randomUUID();
@@ -115,10 +113,9 @@ class AuthController {
         : null;
 
       const user = await UserRepository.create({
-        uuid: userUUID,
         first_name,
         last_name,
-        email: email.toLowerCase(),
+        email,
         password: encryptedPassword,
         phone,
         user_picture_name: user_picture_name,
@@ -126,7 +123,7 @@ class AuthController {
       });
 
       if (!(user && user.id)) {
-        throw UserError.userCreationFailed();
+        throw UserError.creationFailed();
       }
 
       const token = AuthController.generateToken(user.id, email);
@@ -147,8 +144,6 @@ class AuthController {
 
   static async logoutUser(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-
       const userToken = req.headers["x-access-token"] as string;
 
       if (!userToken) {
@@ -156,7 +151,7 @@ class AuthController {
       }
 
       if (AuthController.invalidTokens.has(userToken)) {
-        throw UserError.userAlreadyLogged();
+        throw UserError.alreadyLogged();
       }
 
       try {
@@ -177,7 +172,8 @@ class AuthController {
         ResponseBuilder.send({
           response: res,
           message: "User successfully logged out!",
-          statusCode: 200
+          statusCode: 200,
+          paginator: '/'
         });
       } catch (error) {
         throw UserError.default();

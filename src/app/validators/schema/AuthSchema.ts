@@ -1,4 +1,5 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
 
 export const loginSchema: Schema = {
   email: {
@@ -140,7 +141,7 @@ export const registerSchema: Schema = {
 }
 
 export default {
-  login: checkSchema(loginSchema),
-  logout: checkSchema(logoutSchema),
-  register: checkSchema(registerSchema),
+  login: SchemaValidator.validate(checkSchema(loginSchema)),
+  logout: SchemaValidator.validate(checkSchema(logoutSchema)),
+  register: SchemaValidator.validate(checkSchema(registerSchema)),
 };
