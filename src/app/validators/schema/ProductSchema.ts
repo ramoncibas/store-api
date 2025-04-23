@@ -1,8 +1,9 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
 
-const get: Schema = {}
+export const getProductSchema: Schema = {}
 
-const filter: Schema = {
+export const filterProductSchema: Schema = {
   brand_product: {
     in: ['body'],
     optional: true,
@@ -28,12 +29,12 @@ const filter: Schema = {
     in: ['body'],
     optional: true,
     isObject: {
-      errorMessage: 'Size Product must be a Array value',
+      errorMessage: 'Size Product must be a Object value',
     },
   }
 }
 
-const getId: Schema = {
+export const getProductIdSchema: Schema = {
   id: {
     in: ['body'],
     notEmpty: {
@@ -45,7 +46,7 @@ const getId: Schema = {
   },
 }
 
-const create: Schema = {
+export const createProductSchema: Schema = {
   name: {
     in: ['body'],
     isString: {
@@ -88,7 +89,7 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
+export const updateProductSchema: Schema = {
   uuid: {
     in: ['body'],
     isUUID: {
@@ -230,9 +231,9 @@ const update: Schema = {
   },
 };
 
-const remove: Schema = {
+export const deleteProductSchema: Schema = {
   id: {
-    in: ['body'],
+    in: ['params'],
     notEmpty: {
       errorMessage: 'Cart Id is required',
     },
@@ -243,10 +244,10 @@ const remove: Schema = {
 }
 
 export default {
-  get: checkSchema(get),
-  getId: checkSchema(getId),
-  filter: checkSchema(filter),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
+  get: SchemaValidator.validate(checkSchema(getProductSchema)),
+  getId: SchemaValidator.validate(checkSchema(getProductIdSchema)),
+  filter: SchemaValidator.validate(checkSchema(filterProductSchema)),
+  create: SchemaValidator.validate(checkSchema(createProductSchema)),
+  update: SchemaValidator.validate(checkSchema(updateProductSchema)),
+  delete: SchemaValidator.validate(checkSchema(deleteProductSchema)),
 };

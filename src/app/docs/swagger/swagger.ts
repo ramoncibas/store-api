@@ -1,4 +1,5 @@
 import swaggerAutogen from 'swagger-autogen';
+import { swaggerSchemas } from './config/schema';
 
 const doc = {
   info: {
@@ -9,7 +10,13 @@ const doc = {
   servers: [
     {
       url: 'http://localhost:5000',
-      description: ''
+      description: 'Local development server'
+    },
+  ],
+  tags: [
+    {
+      name: 'Environment',
+      description: 'development'
     },
   ],
   components: {
@@ -18,11 +25,12 @@ const doc = {
         type: 'http',
         scheme: 'bearer',
       }
-    }
-  }
+    },
+  },
+  '@schemas': swaggerSchemas
 };
 
 const outputFile = './swagger.json';
-const endpointsFiles = ['./app/routes/index.ts'];
+const endpointsFiles = ['../../app/routes/index.ts'];
 
 swaggerAutogen({ openapi: '3.0.0' })(outputFile, endpointsFiles, doc);

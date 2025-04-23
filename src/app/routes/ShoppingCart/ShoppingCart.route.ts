@@ -1,35 +1,38 @@
 import { Router } from 'express';
-
-import ShoppingCartController from 'controllers/ShoppingCart/ShoppingCartController';
-import { authMiddleware } from 'middlewares';
+import { AuthGuard } from 'middlewares';
 import ShoppingCartSchema from 'validators/schema/ShoppingCartSchema';
+import ShoppingCartController from 'controllers/ShoppingCart/ShoppingCartController';
 
 const router = Router();
 
-router.get("/:customer_id",
-  authMiddleware,
+router.get("/",
+  AuthGuard,
   ShoppingCartSchema.get,
-  ShoppingCartController.getCartItems
-); // Lembrar de armazenar os produtos local, caso o customer não esteja logado, para economizar nessa request
-
-router.post("/add/:customer_id",
-  ShoppingCartSchema.create,
-  ShoppingCartController.addToCart
+  ShoppingCartController.get
 );
 
-router.patch("/update/:cart_id",
+router.post("/",
+  AuthGuard,
+  ShoppingCartSchema.add,
+  ShoppingCartController.add
+);
+
+router.patch("/:id",
+  AuthGuard,
   ShoppingCartSchema.update,
-  ShoppingCartController.updateCartItemQuantity
+  ShoppingCartController.updateQuantity
 );
 
-router.delete("/:customer_id/remove/item/:id",
+router.delete("/:id",
+  AuthGuard,
   ShoppingCartSchema.remove,
-  ShoppingCartController.removeCartItem
+  ShoppingCartController.remove
 );
 
-router.delete("/clean/:customer_id",
-  ShoppingCartSchema.clean,
-  ShoppingCartController.cleanCart
+router.delete("/clear",
+  AuthGuard,
+  ShoppingCartSchema.clear,
+  ShoppingCartController.clear
 );
 
 export default router;

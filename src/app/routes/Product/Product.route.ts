@@ -1,47 +1,47 @@
 import { Router } from 'express';
+import { AuthGuard, AuthAdmin } from 'middlewares';
 import ProductController from 'controllers/Product/ProductController';
-import { authMiddleware, isAdmin } from 'middlewares';
 import ProductSchema from 'validators/schema/ProductSchema';
 
 const router = Router();
-const authRoutesMiddleware = [authMiddleware, isAdmin];
+const authRoutesMiddleware = [AuthGuard, AuthAdmin];
 
 router.get("/all",
   ProductSchema.get,
-  ProductController.getProducts
+  ProductController.getAll
 );
 
-router.get("/aspects",
+router.get("/attributes",
   ProductSchema.get,
-  ProductController.getAllAspects
+  ProductController.attributes
 );
 
 router.post("/filter",
   ProductSchema.filter,
-  ProductController.getFilteredProduct
+  ProductController.filter
 );
 
 router.get("/:id",
   ProductSchema.getId,
-  ProductController.getProductById
+  ProductController.getById
 );
 
 router.post("/create",
   ...authRoutesMiddleware,
   ProductSchema.create,
-  ProductController.createProduct
+  ProductController.create
 );
 
-router.patch("/update",
+router.patch("/:id",
   ...authRoutesMiddleware,
   ProductSchema.update,
-  ProductController.updateProduct
+  ProductController.update
 );
 
-router.delete("/delete",
+router.delete("/:id",
   ...authRoutesMiddleware,
-  ProductSchema.remove,
-  ProductController.deleteProduct
+  ProductSchema.delete,
+  ProductController.delete
 );
 
 export default router;

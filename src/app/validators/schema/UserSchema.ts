@@ -1,6 +1,7 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
 
-const get: Schema = {
+export const getUserSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -9,9 +10,9 @@ const get: Schema = {
   },
 };
 
-const getAll: Schema = {};
+export const getAllUserSchema: Schema = {};
 
-const update: Schema = {
+export const updateUserSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -41,8 +42,19 @@ const update: Schema = {
   },
 };
 
+export const deleteUserSchema: Schema = {
+  uuid: {
+    in: ['params'],
+    notEmpty: {
+      errorMessage: 'UUID is required',
+    },
+  },
+};
+
+
 export default {
-  get: checkSchema(get),
-  getAll: checkSchema(getAll),
-  update: checkSchema(update),
+  get: SchemaValidator.validate(checkSchema(getUserSchema)),
+  getAll: SchemaValidator.validate(checkSchema(getAllUserSchema)),
+  update: SchemaValidator.validate(checkSchema(updateUserSchema)),
+  delete: SchemaValidator.validate(checkSchema(deleteUserSchema)),
 };

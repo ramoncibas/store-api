@@ -1,5 +1,6 @@
 import DatabaseManager from "../database/db";
 import { cleanupTempFiles } from "utils";
+import CacheConnection from "lib/cache/cache.connection";
 
 /**
  * Cleans up resources and gracefully exits the application.
@@ -8,6 +9,7 @@ import { cleanupTempFiles } from "utils";
  */
 async function cleanupAndExit() {
   const dbManager = new DatabaseManager();
+  const cacheConnection = new CacheConnection();
   console.log(`Received signal. Cleaning up and exiting...`);
 
   try {
@@ -15,6 +17,7 @@ async function cleanupAndExit() {
     cleanupTempFiles();
 
     // Close the database connection
+    await cacheConnection.disconnect();
     await dbManager.close();
   } catch (error) {
     console.error('Error during cleanup:', error);

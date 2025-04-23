@@ -1,32 +1,120 @@
 import UserModel from 'models/UserModel';
-import UserError from 'builders/errors/UserError';
-import { User } from 'types/User.type';
+import CacheService from 'lib/cache';
+import { Email, Phone } from 'domain/entities';
+import { UserError } from 'builders/errors';
+import { User } from '@types';
 
 class UserRepository {
+  private cache;
+
+  private cacheKey = {
+    user: (userKey: string | number) => {
+      return `user_identifier_${userKey}`;
+    },
+  };
+
+  constructor() {
+    this.cache = new CacheService('user');
+  }
+
   /**
-   * Creates a new user in the database.
-   * @param user - Object representing the user data to be created.
+   * Find exist user by id in the database.
+   * @param userId - Object representing the user data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(user: User): Promise<User> {
+  public async findById(userId: number): Promise<User | null> {
     try {
-      return await UserModel.create(user);
+      const cacheKey = this.cacheKey.user(userId);
+      const userCached = await this.cache.get<User>(cacheKey);
+
+      if (userCached) return userCached.items?.[0];
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        throw UserError.notFound();
+      }
+
+      this.cache.set(cacheKey, user);
+
+      return user;
     } catch (error: any) {
-      throw new UserError('Error creating user', error);
+      throw error;
     }
   }
 
   /**
-   * Get a user from the database based on the provided pattern and value.
-   * @param pattern - A string or array of strings representing the fields to filter on.
-   * @param value - The corresponding value for the filter pattern.
-   * @returns A Promise that resolves with the user data or null if not found.
+   * Find exist user by uuid in the database.
+   * @param userUUID - Object representing the user data to be created.
+   * @returns A Promise that resolves when the operation is completed.
    */
-  static async search(pattern: string | Array<string>, value: number | string | Array<string>): Promise<User | null> {
+  public async findByUUID(userUUID: string): Promise<User | null> {
     try {
-      return await UserModel.search(pattern, value);
+      const cacheKey = this.cacheKey.user(userUUID);
+      const userCached = await this.cache.get<User>(cacheKey);
+
+      if (userCached) return userCached.items?.[0];
+      
+      const user = await UserModel.findByUUID(userUUID);
+
+      this.cache.set(cacheKey, user);
+      
+      return user;
     } catch (error: any) {
-      throw new UserError('Error retrieving user', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find exist user by email in the database.
+   * @param email - Email object.
+   * @returns A Promise that resolves when the operation is completed.
+   */
+  public async findByEmail(email: string): Promise<User | null> {
+    try {
+      const emailStr = new Email(email).toString();
+      const cacheKey = this.cacheKey.user(emailStr);
+      const userCached = await this.cache.get<User>(cacheKey);
+
+      if (userCached) return userCached.items?.[0];
+      
+      const user = await UserModel.findByEmail(emailStr);
+
+      this.cache.set(cacheKey, user);
+      
+      return user;
+    } catch (error: any) {
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new user in the database.
+   * @param values - Object representing the user data to be created.
+   * @returns A Promise that resolves when the operation is completed.
+   */
+  public async create(values: Omit<User, 'id' | 'uuid'>): Promise<User> {
+    try {
+      if (values.phone) {
+        values.phone = new Phone(values.phone).getValue();
+      }
+
+      if (values.email) {
+        values.email = new Email(values.email).toString();
+      }
+      
+      const user = await UserModel.create(values);
+
+      if (!user) {
+        throw UserError.creationFailed();
+      }
+      
+      const cacheKey = this.cacheKey.user(user.id);
+      this.cache.set(cacheKey, user);
+
+      return user;
+    } catch (error: any) {
+      throw error;
     }
   }
 
@@ -34,11 +122,12 @@ class UserRepository {
    * Gets all users from the database.
    * @returns A Promise that resolves with an array of all users.
    */
-  static async getAll(): Promise<User[]> {
+  public async getAll(): Promise<User[]> {
     try {
+      // TODO: Refatorara esse metodo, e colocar cursor a nivel de banco
       return await UserModel.getAll();
     } catch (error: any) {
-      throw new UserError('Error retrieving all users', error);
+      throw error;
     }
   }
 
@@ -48,11 +137,26 @@ class UserRepository {
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(userUUID: string, updatedFields: Partial<User>): Promise<void> {
+  public async update(userUUID: string, updatedFields: Partial<User>): Promise<User> {
     try {
-      await UserModel.update(userUUID, updatedFields);
+      const userExist = await UserModel.findByUUID(userUUID);
+      
+      if (!userExist) {
+        throw UserError.notFound();
+      }
+
+      const user = await UserModel.updateRecord(userUUID, updatedFields);
+      
+      if (!user) {
+        throw UserError.updateFailed();
+      }
+
+      const cacheKey = this.cacheKey.user(userUUID);
+      await this.cache.remove(cacheKey);
+      
+      return user;
     } catch (error: any) {
-      throw new UserError('Error updating user', error);
+      throw error;
     }
   }
 
@@ -61,13 +165,22 @@ class UserRepository {
    * @param userUUID - UUID of the user to be deleted.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async delete(userUUID: string): Promise<void> {
+  public async delete(userUUID: string): Promise<boolean> {
     try {
-      await UserModel.delete(userUUID);
+      const deleted = await UserModel.deleteRecord(userUUID);
+
+      if (!deleted) {
+        throw UserError.deletionFailed();
+      }
+
+      const cacheKey = this.cacheKey.user(userUUID);
+      await this.cache.remove(cacheKey);
+
+      return deleted;
     } catch (error: any) {
-      throw new UserError('Error deleting user', error);
+      throw error;
     }
   }
 }
 
-export default UserRepository;
+export default new UserRepository;

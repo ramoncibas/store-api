@@ -1,6 +1,7 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
 
-const get: Schema = {
+export const getCustomerSchema: Schema = {
   uuid: {
     in: ['params'],
     isString: {
@@ -12,7 +13,7 @@ const get: Schema = {
   },
 }
 
-const create: Schema = {
+export const createCustomerSchema: Schema = {
   user_id: {
     in: ['body'],
     isNumeric: {
@@ -115,7 +116,7 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
+export const updateCustomerSchema: Schema = {
   uuid: {
     in: ['params'],
     isString: {
@@ -228,7 +229,7 @@ const update: Schema = {
   },
 }
 
-const remove: Schema = {
+export const removeCustomerSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -242,8 +243,8 @@ const remove: Schema = {
 }
 
 export default {
-  get: checkSchema(get),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
+  get: SchemaValidator.validate(checkSchema(getCustomerSchema)),
+  create: SchemaValidator.validate(checkSchema(createCustomerSchema)),
+  update: SchemaValidator.validate(checkSchema(updateCustomerSchema)),
+  remove: SchemaValidator.validate(checkSchema(removeCustomerSchema)),
 };

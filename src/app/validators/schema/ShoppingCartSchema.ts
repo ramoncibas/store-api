@@ -1,19 +1,33 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
+import { AppError } from '../../builders/errors';
 
-const get: Schema = {
-  customer_id: {
-    in: ['params'],
-    notEmpty: {
-      errorMessage: 'Customer Id is required',
-    },
-    isLength: {
-      options: { min: 1 },
-      errorMessage: 'Customer Id should be at least 1 chars',
-    },
-  },
+export const getCartSchema: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value, { req }) => {
+        if (!req.user?.id) {
+            throw new AppError('User is not authenticated');
+        }
+        return true;
+      }
+    }
+  }
 }
 
-const create: Schema = {
+export const addToCartSchema: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value, { req }) => {
+        if (!req.user?.id) {
+            throw new AppError('User is not authenticated');
+        }
+        return true;
+      }
+    }
+  },
   product_id: {
     in: ['body'],
     notEmpty: {
@@ -36,8 +50,19 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
-  cart_id: {
+export const updateCartSchema: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value, { req }) => {
+        if (!req.user?.id) {
+            throw new AppError('User is not authenticated');
+        }
+        return true;
+      }
+    }
+  },
+  id: {
     in: ['params'],
     notEmpty: {
       errorMessage: 'Cart Id is required',
@@ -45,6 +70,16 @@ const update: Schema = {
     isNumeric: {
       options: { no_symbols: true },
       errorMessage: 'Cart Id must be a number',
+    },
+  },
+  product_id: {
+    in: ['body'],
+    notEmpty: {
+      errorMessage: 'Product Id is required',
+    },
+    isNumeric: {
+      options: { no_symbols: true },
+      errorMessage: 'Quantity must be a number',
     },
   },
   quantity: {
@@ -59,34 +94,76 @@ const update: Schema = {
   },
 }
 
-const remove: Schema = {
+export const removeCartSchema: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value, { req }) => {
+        if (!req.user?.id) {
+            throw new AppError('User is not authenticated');
+        }
+        return true;
+      }
+    }
+  },
   id: {
     in: ['params'],
     notEmpty: {
       errorMessage: 'Cart Id is required',
     },
     isNumeric: {
-      options: { no_symbols: true }
+      options: { no_symbols: true },
+      errorMessage: 'Cart Id must be a number',
+    },
+  },
+  product_id: {
+    in: ['body'],
+    notEmpty: {
+      errorMessage: 'Product Id is required',
+    },
+    isNumeric: {
+      options: { no_symbols: true },
+      errorMessage: 'Product Id must be a number',
     },
   },
 }
 
-const clean: Schema = {
-  customer_id: {
-    in: ['params'],
+export const clearCartSchema: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value, { req }) => {
+        if (!req.user?.id) {
+            throw new AppError('User is not authenticated');
+        }
+        return true;
+      }
+    }
+  },
+  options: {
+    in: ['body'],
     notEmpty: {
-      errorMessage: 'Customer Id is required',
+      errorMessage: 'Options is required',
     },
-    isNumeric: {
-      options: { no_symbols: true }
+    custom: {
+      options: (value) => {
+        if (!value || typeof value !== 'object') {
+          throw new Error('Options must be a valid object');
+        }
+
+        if (!value.reason || !['user_requested', 'system_cleanup'].includes(value.reason)) {
+          return false;
+        }
+        return true;
+      },
     },
   },
 }
 
 export default {
-  get: checkSchema(get),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
-  clean: checkSchema(clean),
+  get: SchemaValidator.validate(checkSchema(getCartSchema)),
+  add: SchemaValidator.validate(checkSchema(addToCartSchema)),
+  update: SchemaValidator.validate(checkSchema(updateCartSchema)),
+  remove: SchemaValidator.validate(checkSchema(removeCartSchema)),
+  clear: SchemaValidator.validate(checkSchema(clearCartSchema)),
 };

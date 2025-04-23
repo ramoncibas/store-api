@@ -1,99 +1,139 @@
 import { Request, Response } from 'express';
 import ShoppingCartRepository from 'repositories/ShoppingCartRepository';
 import ProductRepository from 'repositories/ProductRepository';
-import ShoppingCartError from 'builders/errors/ShoppingCartError';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
-import Product, { ShoppingCartItem } from 'types/Product.type';
-import schemaResponseError from 'validators/response/schemaResponseError';
+import StockService from 'services/Stock/StockService';
+import Parser from 'utils/parser';
+import { ShoppingCartError } from 'builders/errors';
+import { ResponseBuilder } from 'builders/response';
+import { Quantity, ShoppingCartItem } from '@types';
 
 class ShoppingCartController {
-  static async getCartItems(req: Request, res: Response): Promise<void> {
+  static async get(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
+      const customerId = req.user!.id;
+      const cartRepository = new ShoppingCartRepository(customerId);
 
-      const { customer_id } = req.params as unknown as { customer_id: number };
+      const shoppingCartItems = await cartRepository.findByCustomerId();
 
-      const shoppingCartIds: Array<{ product_id: number }> | null = await ShoppingCartRepository.get(customer_id);
-
-      if (!shoppingCartIds) {
-        throw ShoppingCartError.itemNotFound();
-      }
-
-      const arrayOfProducts: Array<number> = shoppingCartIds.map(item => item.product_id);
-      
-      const products: Product[] = await ProductRepository.getByIds(arrayOfProducts);
-
-      if (!products) {
-        throw ShoppingCartError.itemNotFound();
+      if (!shoppingCartItems) {
+        throw ShoppingCartError.cartEmpty();
       }
 
       ResponseBuilder.send({
         response: res,
         message: "Shopping Cart Products retrieved successfully!",
         statusCode: 200,
-        data: products
+        data: shoppingCartItems
       });
     } catch (error: any) {
       ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async addToCart(req: Request, res: Response): Promise<void> {
+  static async add(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
+      const customerId = req.user!.id;
+      const productId = Parser.toNumber(req.body.product_id);
+      const quantity = Parser.toNumber(req.body.quantity);
 
-      const { customer_id } = req.params as unknown as { customer_id: number };
-
-      const fields: ShoppingCartItem = req.body;
-
-      const productExist = await ShoppingCartRepository.search(
-        ['customer_id ', 'product_id'],
-        [customer_id, fields.product_id]
-      );
-
-      if (productExist) {
-        throw ShoppingCartError.itemAlreadyExists();
+      if (!customerId) {
+        throw ShoppingCartError.badRequest("Customer ID is required");
       }
-      
-      await ShoppingCartRepository.create(customer_id, fields);
+
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartProduct: Array<ShoppingCartItem> = await cartRepository.findByCustomerId();
+
+      const cartItem = cartProduct.find(cart => Number(cart.product_id) === productId);
+      const cartQuantity = cartItem ? cartItem.quantity : 0;
+
+      const totalQuantity = Number(cartQuantity) + quantity;
+
+      await StockService.validateAvailability(productId, totalQuantity);
+
+      const savedItem = await cartRepository.save(req.body);
+
+      if (!savedItem) {
+        throw ShoppingCartError.creationFailed(customerId, req.body);
+      }
 
       ResponseBuilder.send({
         response: res,
         message: "Product saved to ShoppingCart successfully!",
-        statusCode: 201
+        statusCode: 201,
+        data: savedItem
       });
     } catch (error: any) {
       ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async updateCartItemQuantity(req: Request, res: Response): Promise<void> {
+  static async updateQuantity(req: Request, res: Response): Promise<void> {    
     try {
-      schemaResponseError(req, res);
+      const customerId = req.user!.id;
+      const cartId = Parser.toNumber(req.params.id);
+      const quantity = Parser.toNumber(req.body.quantity);
+      const productId = Parser.toNumber(req.body.product_id);
 
-      const { cart_id } = req.params as unknown as { cart_id: number };
+      if (!customerId) {
+        throw ShoppingCartError.badRequest("Customer ID is required");
+      }
 
-      const { quantity } = req.body;
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartItem: ShoppingCartItem | null = await cartRepository.findByCartId(cartId);
+      
+      if (!cartItem) {
+        throw ShoppingCartError.notFound();
+      }
 
-      await ShoppingCartRepository.update(cart_id, quantity);
+      // If the provided quantity is the same as in the database, avoid unnecessary update
+      if (Number(cartItem.quantity) === Number(quantity)) {
+        return ResponseBuilder.send({
+          response: res,
+          message: "No changes made, quantity remains the same.",
+          statusCode: 200,
+        });
+      }
+
+      await StockService.validateAvailability(productId, quantity);
+
+      const productUpdated = await cartRepository.update(cartId, { quantity });
+
+      if (!productUpdated) {
+        throw ShoppingCartError.updateQuantityFailed(productId, quantity);
+      }
 
       ResponseBuilder.send({
         response: res,
-        message: "Product updated to ShoppingCart successfully!",
-        statusCode: 201
+        message: "Product quantity updated in ShoppingCart successfully!",
+        statusCode: 200,
+        data: productUpdated
       });
     } catch (error: any) {
       ShoppingCartError.handleError(res, error);
     }
   }
 
-  static async removeCartItem(req: Request, res: Response): Promise<void> {
+  static async remove(req: Request, res: Response): Promise<void> {
     try {
-      schemaResponseError(req, res);
-      
-      const { customer_id, id } = req.params as unknown as { customer_id: number, id: number };
+      const customerId = req.user!.id;
+      const cartId = Parser.toNumber(req.params.id);
 
-      await ShoppingCartRepository.delete(customer_id, id);
+      if (!cartId) {
+        throw ShoppingCartError.badRequest("Cart Id is required");
+      }
+
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartItem: ShoppingCartItem | null = await cartRepository.findByCartId(cartId);
+
+      if (!cartItem) {
+        throw ShoppingCartError.notFound();
+      }
+
+      const removedItem = await cartRepository.delete(cartId);
+
+      if (!removedItem) {
+        throw ShoppingCartError.removeItemFailed(cartId);
+      }
 
       ResponseBuilder.send({
         response: res,
@@ -105,18 +145,17 @@ class ShoppingCartController {
     }
   }
 
-  static async cleanCart(req: Request, res: Response): Promise<void> {
+  static async clear(req: Request, res: Response): Promise<void> {    
     try {
-      schemaResponseError(req, res);
-            
-      const { customer_id } = req.params as unknown as { customer_id: number };
+      const customerId = req.user!.id;
+      const { options } = req.body;
+      const cartRepository = new ShoppingCartRepository(customerId);
+      const cartCleared: boolean = await cartRepository.clear(options);
 
-      const result = await ShoppingCartRepository.clear(customer_id);
-
-      if (!result) {
-        throw ShoppingCartError.itemDeletionFailed();
+      if (!cartCleared) {
+        throw ShoppingCartError.removeItemFailed(customerId);
       }
-      
+
       ResponseBuilder.send({
         response: res,
         message: "Shopping Cart Product deleted successfully",

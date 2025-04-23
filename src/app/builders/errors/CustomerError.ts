@@ -1,34 +1,21 @@
-import GenericError from "./GenericError";
+import { AppError } from "builders/errors";
 
-class CustomerError extends GenericError {
-  constructor(message: string, errorCode: number = 500, error?: any) {
-    super(message, errorCode, error);
-    this.name = 'CustomerError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
-  }
+export class CustomerError extends AppError {
 
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`CustomerError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      type: "error",
-      title: "Error",
-      errorCode: this.getErrorCode(),
-      message: this.message || CustomerError.default(),
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   static default(): CustomerError {
     return new CustomerError("Something went wrong!", 500);
   }
 
-  static customerNotFound(): CustomerError {
+  static notFound(): CustomerError {
     return new CustomerError("Customer not found!", 404);
   }
 
@@ -40,21 +27,19 @@ class CustomerError extends GenericError {
     return new CustomerError("Unauthorized access.", 401);
   }
 
-  static customerAlreadyExists(): CustomerError {
+  static alreadyExists(): CustomerError {
     return new CustomerError("Customer already exists!", 409);
   }
   
-  static customerCreationFailed(): CustomerError {
+  static creationFailed(): CustomerError {
     return new CustomerError("Failed to create the customer.", 500);
   }
 
-  static customerUpdateFailed(): CustomerError {
+  static updateFailed(): CustomerError {
     return new CustomerError("Failed to update the customer.", 500);
   }
 
-  static customerDeletionFailed(): CustomerError {
+  static deletionFailed(): CustomerError {
     return new CustomerError("Failed to delete the customer.", 500);
   }
 }
-
-export default CustomerError;

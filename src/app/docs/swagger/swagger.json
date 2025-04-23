@@ -1,0 +1,832 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "v1.0.0",
+    "title": "Store API",
+    "description": "APIs available in the store application"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/cart/{customer_id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/cart/add/{customer_id}": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#@schemas/ShoppingCartCreate"
+              },
+              "example": {
+                "customer_id": "12345",
+                "product_id": "67890",
+                "quantity": 1
+              }
+            } 
+          }
+        }
+      }
+    },
+    "/cart/update/{cart_id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "cart_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": {
+                    "example": "any"
+                  },
+                  "quantity": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/{customer_id}/remove/item/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/cart/clean/{customer_id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/review/customer/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/review/product/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/review/customer/{uuid}/create": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customer_id": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/review/{uuid}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/review/{uuid}/delete": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/customer/{uuid}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/customer/create": {
+      "post": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/customer/update/{uuid}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/customer/delete/{uuid}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "@schemas": {
+    "AuthLogin": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "password"
+      ]
+    },
+    "AuthLogout": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "email",
+        "password"
+      ]
+    },
+    "AuthRegister": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "first_name",
+        "last_name",
+        "email",
+        "password",
+        "phone",
+        "type"
+      ]
+    },
+    "CustomerGet": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    },
+    "CustomerCreate": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "integer"
+        },
+        "shipping_address": {
+          "type": "string"
+        },
+        "card_number": {
+          "type": "string"
+        },
+        "card_expiry_date": {
+          "type": "string"
+        },
+        "card_security_code": {
+          "type": "string"
+        },
+        "last_purchase_date": {
+          "type": "string"
+        },
+        "total_purchases": {
+          "type": "integer"
+        },
+        "favorite_categories": {
+          "type": "string"
+        },
+        "favorite_brands": {
+          "type": "string"
+        },
+        "customer_reviews": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "user_id",
+        "shipping_address",
+        "card_number",
+        "card_expiry_date",
+        "card_security_code",
+        "last_purchase_date",
+        "total_purchases",
+        "favorite_categories",
+        "favorite_brands",
+        "customer_reviews"
+      ]
+    },
+    "CustomerUpdate": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "integer"
+        },
+        "shipping_address": {
+          "type": "string"
+        },
+        "card_number": {
+          "type": "string"
+        },
+        "card_expiry_date": {
+          "type": "string"
+        },
+        "card_security_code": {
+          "type": "string"
+        },
+        "last_purchase_date": {
+          "type": "string"
+        },
+        "total_purchases": {
+          "type": "integer"
+        },
+        "favorite_categories": {
+          "type": "string"
+        },
+        "favorite_brands": {
+          "type": "string"
+        },
+        "customer_reviews": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid",
+        "user_id",
+        "shipping_address",
+        "card_number",
+        "card_expiry_date",
+        "card_security_code",
+        "last_purchase_date",
+        "total_purchases",
+        "favorite_categories",
+        "favorite_brands",
+        "customer_reviews"
+      ]
+    },
+    "CustomerRemove": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    },
+    "ProductGet": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "ProductGetId": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ProductFilter": {
+      "type": "object",
+      "properties": {
+        "brand_product": {
+          "type": "string"
+        },
+        "gender_product": {
+          "type": "string"
+        },
+        "category_product": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        }
+      },
+      "required": []
+    },
+    "ProductCreate": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "discount_percentage": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "price"
+      ]
+    },
+    "ProductUpdate": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "discount_percentage": {
+          "type": "integer"
+        },
+        "number_of_installments": {
+          "type": "integer"
+        },
+        "product_picture": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        },
+        "free_shipping": {
+          "type": "string"
+        },
+        "brand_product_id": {
+          "type": "integer"
+        },
+        "gender_product_id": {
+          "type": "integer"
+        },
+        "category_product_id": {
+          "type": "integer"
+        },
+        "quantity_available": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "price",
+        "number_of_installments",
+        "product_picture",
+        "color",
+        "size",
+        "free_shipping",
+        "brand_product_id",
+        "gender_product_id",
+        "category_product_id"
+      ]
+    },
+    "ProductRemove": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ReviewGetById": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ReviewGetByCustomerId": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    },
+    "ReviewCreate": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "product_id": {
+          "type": "integer"
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "comment": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid",
+        "product_id",
+        "rating",
+        "comment"
+      ]
+    },
+    "ReviewUpdate": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "comment": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid",
+        "rating",
+        "comment"
+      ]
+    },
+    "ReviewRemove": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    },
+    "ShoppingCartGet": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "customer_id"
+      ]
+    },
+    "ShoppingCartCreate": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string"
+        },
+        "product_id": {
+          "type": "integer"
+        },
+        "quantity": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "customer_id",
+        "product_id",
+        "quantity"
+      ]
+    },
+    "ShoppingCartUpdate": {
+      "type": "object",
+      "properties": {
+        "cart_id": {
+          "type": "integer"
+        },
+        "customer_id": {
+          "type": "integer"
+        },
+        "quantity": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cart_id",
+        "customer_id",
+        "quantity"
+      ]
+    },
+    "ShoppingCartRemove": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "ShoppingCartClean": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "customer_id"
+      ]
+    },
+    "UserGet": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    },
+    "UserGetAll": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    },
+    "UserUpdate": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "user_picture_name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uuid"
+      ]
+    }
+  }
+}

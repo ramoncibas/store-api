@@ -1,18 +1,52 @@
 import { Response } from 'express';
 
-interface ReponseSend {
+type ResponseType = 'success' | 'error' | 'info';
+
+type ReponseSend = {
   response: Response;
   message: string;
   statusCode: number;
   data?: any;
-  type?: string;
-  title?: string;
-}
+  type?: ResponseType;
+  paginator?: string;
+};
 
 /**
  * ResponseBuilder class for creating consistent and structured JSON responses.
  */
-class ResponseBuilder {
+export class ResponseBuilder<T> {
+  /**
+   * Logs details (can be integrated with external logging tools like Sentry).
+   */
+  protected static logInfo({
+    response,
+    message,
+    statusCode,
+    data,
+    type,
+    paginator
+  }: ReponseSend): void {
+    const { method, originalUrl, ip, headers } = response.req || {};
+    const userAgent = headers?.['user-agent'];
+  
+    console.info('🟢 [INFO]', {
+      timestamp: new Date().toISOString(),
+      request: {
+        method,
+        path: originalUrl,
+        ip,
+        userAgent,
+      },
+      response: {
+        statusCode,
+        type,
+        message,
+        paginator,
+        data,
+      }
+    });
+  }
+
   /**
    * Static method to send a JSON response with a standardized structure.
    * @param response - Express Response object.
@@ -20,16 +54,16 @@ class ResponseBuilder {
    * @param statusCode - HTTP status code for the response.
    * @param data - Additional data to be included in the response (default: null).
    * @param type - Type of the response (default: 'success').
-   * @param title - Title of the response (default: 'Success').
+   * @param paginator - Page to rediretor user (default: '/home').
    * @example
    * // Return a data
    * ResponseBuilder.send({
-        type = "info",
-        title = "Customer allready created",
-        message: "The customer already exists in the database!",
-        data: customer,
         response: res,
+        message: "The customer already exists in the database!",
         statusCode: 201
+        data: customer,
+        type = "info",
+        paginator: "/home"
     });
    *
    * // Default value
@@ -45,10 +79,17 @@ class ResponseBuilder {
     statusCode,
     data = null,
     type = 'success',
-    title = 'Success'
+    paginator = '/'
   }: ReponseSend): void {
-    response.status(statusCode).json({ type, title, message, statusCode, data });
+    this.logInfo({
+      response,
+      message,
+      statusCode,
+      data,
+      type,
+      paginator
+    });
+
+    response.status(statusCode).json({ type, message, paginator, data });
   }
 }
-
-export default ResponseBuilder;

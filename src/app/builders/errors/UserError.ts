@@ -1,33 +1,21 @@
-import GenericError from "./GenericError";
+import { AppError } from "builders/errors";
 
-class UserError extends GenericError {
-  constructor(message: string, errorCode: number = 500, error?: any) {
-    super(message, errorCode, error);
-    this.name = 'UserError';
-    // this.logError(); // future implementation: Error.captureStackTrace(this, CustomerError);
-  }
+export class UserError extends AppError {
 
-  // private logError(): void {
-  //   if (this.originalError) {
-  //     // using a logging library (sentry, or something)
-  //     console.error(`UserError: ${this.message}`, this.originalError);
-  //   }
-  // }
-
-  toResponseObject(): any {
-    return {
-      status: "error",
-      errorCode: this.getErrorCode(),
-      message: this.message || UserError.default(),
-      data: null,
-    };
+  constructor(
+    message: string,
+    errorCode: number = 500,
+    error?: any,
+    data?: Record<string, any>
+  ) {
+    super(message, errorCode, error, data);
   }
 
   static default(): UserError {
     return new UserError("Something went wrong!");
   }
 
-  static userNotFound(): UserError {
+  static notFound(): UserError {
     return new UserError("User not found!", 404);
   }
 
@@ -43,25 +31,23 @@ class UserError extends GenericError {
     return new UserError("Unauthorized access.", 401);
   }
   
-  static userCreationFailed(): UserError {
+  static creationFailed(): UserError {
     return new UserError("Failed to create the user.", 500);
   }
 
-  static userAlreadyExists(): UserError {
+  static alreadyExists(): UserError {
     return new UserError("User already exists!", 409);
   }
 
-  static userAlreadyLogged(): UserError {
+  static alreadyLogged(): UserError {
     return new UserError("User already logged out", 200)
   }
 
-  static userUpdateFailed(): UserError {
+  static updateFailed(): UserError {
     return new UserError("Failed to update the user.", 500);
   }
 
-  static userDeletionFailed(): UserError {
+  static deletionFailed(): UserError {
     return new UserError("Failed to delete the user.", 500);
   }
 }
-
-export default UserError;

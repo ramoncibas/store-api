@@ -1,6 +1,6 @@
-import isAdmin from "./isAdmin";
-import authMiddleware from "./authMiddleware";
-import fileUpload from "./fileUpload";
-import errorHandler from "./errorHandler";
+import AuthAdmin from "./AuthAdmin";
+import AuthGuard from "./AuthGuard";
+import FileUploadMiddleware from "./FileUploadMiddleware";
+import ErrorHandler from "./ErrorHandler";
 
-export { isAdmin, authMiddleware, fileUpload, errorHandler };
+export { AuthAdmin, AuthGuard, FileUploadMiddleware, ErrorHandler };

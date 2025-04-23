@@ -1,4 +1,4 @@
-import schema from "../database/schema";
+import schema from "database/schema";
 
 interface EnvironmentConfig {
   schema: string;

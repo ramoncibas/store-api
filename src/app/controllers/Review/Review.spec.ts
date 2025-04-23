@@ -10,7 +10,6 @@ import CustomerRepository from 'repositories/CustomerRepository';
 import ReviewRepository from 'repositories/ReviewRepository';
 import CustomerError from 'builders/errors/CustomerError';
 import ResponseBuilder from 'builders/response/ResponseBuilder';
-import schemaResponseError from 'validators/response/schemaResponseError';
 import Review from 'types/Review.type';
 
 import {
@@ -42,10 +41,6 @@ jest.mock('repositories/CustomerRepository', () => ({
 jest.mock('builders/response/ResponseBuilder', () => ({
   send: jest.fn(),
 }));
-
-jest.mock('validators/response/schemaResponseError', () => {
-  return jest.fn();
-});
 
 describe('Mock - ReviewController', () => {
   let req: Request;
@@ -188,7 +183,6 @@ describe('Mock - ReviewController', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
         type: 'error',
-        title: 'Error',
         message: 'Review not found!',
         errorCode: 404,
         data: null,
@@ -219,7 +213,6 @@ describe('Mock - ReviewController', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
         type: 'error',
-        title: 'Error',
         message: 'No reviews found for the product!',
         errorCode: 404,
         data: null,
@@ -245,7 +238,6 @@ describe('Supertest - ReviewController', () => {
         expect(response.body).toEqual({
           data: null,
           type: 'success',
-          title: 'Success',
           message: 'Review created successfully!',
           statusCode: 201
         });
@@ -268,7 +260,6 @@ describe('Supertest - ReviewController', () => {
         expect(response.status).toBe(404);
         expect(response.body).toEqual({
           type: 'error',
-          title: 'Error',
           message: 'Customer not found!',
           errorCode: 404,
           data: null

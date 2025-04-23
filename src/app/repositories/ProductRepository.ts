@@ -1,34 +1,52 @@
-import ProductModel from 'models/ProductModel';
-import ProductError from 'builders/errors/ProductError';
-import Product from 'types/Product.type';
-import { RunResult } from 'sqlite3';
+import ProductModel from "models/ProductModel";
+import CacheService from "lib/cache";
+import { ProductError } from "builders/errors";
+import { AttributesResult, Product, ProductFilter } from "@types";
 
 class ProductRepository {
-  /**
-   * Delete a product from the database based on its ID.
-   * @param productId - ID of the product to be deleted.
-   * @returns A Promise that resolves when the operation is completed.
-   */
-  static async delete(productId: number | string): Promise<RunResult> {
-    try {
-      return await ProductModel.delete(productId);
-    } catch (error: any) {
-      throw new ProductError(`Error deleting product with Product Id ${productId}: ${error.message}`);
-    }
+  private cache;
+
+  private cacheKey = {
+    product: (productId: number) => {
+      return `product_id_${productId}`;
+    },
+    attributes: () => {
+      return `product_attributes`;
+    },
+  };
+
+  constructor() {
+    this.cache = new CacheService('product');
+  }
+
+  // TODO: Migrar para um repository só de stock, e adiconar uma tabela para o mesmo
+  public async updateStock(productId: number, quantity: number) {
+    return productId;
   }
 
   /**
-   * Get all aspects of products from the database.
-   * @returns A Promise that resolves with an array of product aspects.
+   * Get a product from the database based on its ID.
+   * @param id - ID of the product to be retrieved.
+   * @returns A Promise that resolves with the product data or null if not found.
    */
-  static async getAllAspects(): Promise<any> {
-    
-    // Refatorar esse metodo!!!
-
+  public async findById(productId: number): Promise<Product | null> {
     try {
-      return await ProductModel.getAllAspects();
+      const cacheKey = this.cacheKey.product(productId);
+      const cached = await this.cache.get<Product>(cacheKey);
+
+      if (cached) return cached.items[0];
+
+      const product = await ProductModel.findById(productId);
+
+      if (!product) {
+        throw ProductError.notFound();
+      }
+
+      await this.cache.set(cacheKey, product);
+
+      return product;
     } catch (error: any) {
-      throw new ProductError(`Error getting all aspects: ${error.message}`);
+      throw error;
     }
   }
 
@@ -36,27 +54,69 @@ class ProductRepository {
    * Get all products from the database.
    * @returns A Promise that resolves with an array of products.
    */
-  static async get(): Promise<Product[]> {
+  public async getAll(): Promise<Product[]> {
     try {
-      return await ProductModel.get();
+      const products = await ProductModel.getAll();
+
+      if (!products) {
+        throw ProductError.notFound();
+      }
+
+      return products;
     } catch (error: any) {
-      throw new ProductError(`Error getting all products: ${error.message}`);
+      throw error;
     }
   }
 
+  /**
+   * Get all aspects of products from the database.
+   * @returns A Promise that resolves with an array of product aspects.
+   */
+  public async findByAttributes(): Promise<AttributesResult> {
+    try {
+      const cacheKey = this.cacheKey.attributes();
+      const cached = await this.cache.get<AttributesResult>(cacheKey);
+
+      if (cached) return cached.items[0];
+
+      const attributes = await ProductModel.findByAttributes();
+
+      if (!attributes) {
+        throw ProductError.notFound("Product attributes not found!");
+      }
+
+      await this.cache.set(cacheKey, attributes);
+
+      return attributes;
+    } catch (error: any) {
+      throw error;
+    }
+  }
 
   /**
-   * Get products from the database based on an array of product IDs.
-   * @param productIds - Array of product IDs to retrieve from the database.
+   * Get products "quantity available" from the database based on an array of product IDs.
+   * @param productsIds - Array of product IDs to retrieve from the database.
    * @returns A Promise that resolves with an array of products matching the provided IDs.
    */
-  static async getByIds(productIds: Array<number | string>): Promise<Product[]> {
+  public async findByAmount(productsIds: Array<number | string>): Promise<Product[]> {
     try {
-      const products: Product[] | null = await ProductModel.getByIds(productIds);
+      const cacheProductKey = productsIds.map(String).join('');
+      const cacheKey = `product_amount_${cacheProductKey}`;
+      const cached = await this.cache.get<Product>(cacheKey);
 
-      return products || [];
+      if (cached) return cached.items;
+
+      const products = await ProductModel.findByAmount(productsIds);
+
+      if (!products) {
+        throw ProductError.notFound();
+      }
+
+      await this.cache.set(cacheKey, products);
+
+      return products;
     } catch (error: any) {
-      throw new ProductError(`Error getting all products: ${error.message}`);
+      throw error;
     }
   }
 
@@ -65,65 +125,110 @@ class ProductRepository {
    * @param filters - Object containing filters for the products.
    * @returns A Promise that resolves with an array of filtered products.
    */
-  static async getFiltered(filters: Partial<Product>): Promise<Product[]> {
+  public async filter(filters: ProductFilter): Promise<Product[]> {
     try {
-      return await ProductModel.getFiltered(filters);
-    } catch (error: any) {
-      throw new ProductError(`Error getting filtered products: ${error.message}`);
-    }
-  }
+      /**TODO: Mover a logica de filtro para outro lugar */
+      const filterKey = [
+        filters?.brand_id?.length && `brand_${filters.brand_id.join('_')}`,
+        filters?.gender_id?.length && `gender_${filters.gender_id.join('_')}`,
+        filters?.category_id?.length && `category_${filters.category_id.join('_')}`,
+        filters?.sizeRange?.min != null && filters?.sizeRange?.max != null &&
+          `size_${filters.sizeRange.min}_${filters.sizeRange.max}`
+      ].filter(Boolean).join('_');
 
-  /**
-   * Get a product from the database based on its ID.
-   * @param id - ID of the product to be retrieved.
-   * @returns A Promise that resolves with the product data or null if not found.
-   */
-  static async getById(productId: number | string): Promise<Product | null> {
-    try {
-      return await ProductModel.getById(productId);
+      const cacheKey = `product_filter_${filterKey}`;
+      const cached = await this.cache.get<Product>(cacheKey);
+
+      if (cached) return cached.items;
+
+      const products = await ProductModel.filter(filters);
+
+      await this.cache.set(cacheKey, products);
+
+      return products;
     } catch (error: any) {
-      throw new ProductError(`Error getting product by ID ${productId}: ${error.message}`);
+      throw error;
     }
   }
 
   /**
    * Create a new product in the database.
-   * @param fields - Object representing the product data to be created.
+   * @param values - Object representing the product data to be created.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async create(fields: Product): Promise<Product> {
-    // Validate price
-    if (fields.price < 0) {
-      throw new ProductError('Price cannot be negative.');
-    }
-
+  public async create(values: Product): Promise<Product> {
     try {
-      return await ProductModel.create(fields);
+      if (values.price <= 0) {
+        throw new ProductError('Price cannot be negative.', 400);
+      }
+
+      const product = await ProductModel.create(values);
+
+      if (!product) {
+        throw ProductError.creationFailed();
+      }
+
+      const cacheKey = this.cacheKey.product(product.id);
+      await this.cache.set(cacheKey, product);
+
+      return product;
     } catch (error: any) {
-      throw new ProductError(`Error creating product: ${error.message}`);
+      throw error;
     }
   }
 
   /**
    * Update an existing product in the database.
-   * @param fields - Object containing the updated product data.
-   * @returns A Promise that resolves when the operation is completed.
+   * @param productId - ID of the product to be updated.
+   * @param values - Object containing the updated product data.
+   * @returns A Promise that resolves with the updated product data.
    */
-  static async update(productUUID: number | string, fields: Partial<Product>): Promise<RunResult> {
-    if (fields.price !== undefined && fields.price <= 0) {
+  public async update(productId: number, values: Partial<Product>): Promise<Product> {
+    if (values.price !== undefined && values.price <= 0) {
       throw new ProductError('Price cannot be negative or zero.');
     }
-  
-    if (productUUID === undefined || !productUUID) {
-      throw new ProductError('The Product UUID could not be null', undefined, 404);
+
+    if (productId === undefined || !productId) {
+      throw new ProductError('The Product UUID could not be null', 404);
     }
 
     try {
-      return await ProductModel.update(productUUID, fields);
+      const product = await ProductModel.updateRecord(productId, values);
+
+      if (!product) {
+        throw ProductError.updateFailed();
+      }
+
+      const cacheKey = this.cacheKey.product(productId);
+      await this.cache.remove(cacheKey);
+
+      return product;
     } catch (error: any) {
-      throw new ProductError(`Error updating product: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a product from the database based on its ID.
+   * @param productId - ID of the product to be deleted.
+   * @returns A Promise that resolves when the operation is completed.
+   */
+  public async delete(productId: number): Promise<boolean> {
+    try {
+      const deleted = await ProductModel.deleteRecord(productId);
+
+      if (!deleted) {
+        throw ProductError.deletionFailed();
+      }
+
+      const cacheKey = this.cacheKey.product(productId);
+      await this.cache.remove(cacheKey);
+
+      return deleted;
+    } catch (error: any) {
+      throw error;
     }
   }
 }
 
-export default ProductRepository;
+export default new ProductRepository;

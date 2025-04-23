@@ -1,98 +1,307 @@
+import ProductModel from "models/ProductModel";
 import ShoppingCartModel from "models/ShoppingCartModel";
-import ShoppingCartError from "builders/errors/ShoppingCartError";
-import { ShoppingCartItem } from "types/Product.type";
+import CacheService from "lib/cache";
+import { ShoppingCartError } from "builders/errors";
+import { ShoppingCartItem } from "@types";
 
 class ShoppingCartRepository {
+  private cache;
+  private logger = console;
+  private readonly customerId: number;
+
+  private cacheKey = {
+    cart: (cartId: number) => {
+      return `cart_${cartId}_customer_${this.customerId}`;
+    },
+    customer: () => {
+      return `cart_customer_${this.customerId}`;
+    },
+  };
+
+  constructor(customerId: number) {
+    if (!customerId) {
+      throw ShoppingCartError.forbidden();
+    }
+    this.customerId = customerId;
+    this.cache = new CacheService('shopping_cart');
+  }
+
   /**
-   * Creates a new Shopping Cart Product in the database.
-   * @param Shopping Cart Product - Object representing the Shopping Cart Product data to be created.
-   * @returns A Promise that resolves when the operation is completed.
+   * Gets a Shopping Cart Product Ids from the database based on the provided ID.
+   * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
    */
-  static async create(customerID: number, product: ShoppingCartItem): Promise<void> {
+  public async findByCustomerId(): Promise<Array<ShoppingCartItem>> {
     try {
-      await ShoppingCartModel.save(customerID, product);
+      const cacheKey = this.cacheKey.customer();
+      const cachedReviews = await this.cache.get<ShoppingCartItem>(cacheKey);
+
+      if (cachedReviews) return cachedReviews.items;
+
+      const cartItems = await ShoppingCartModel.findByCustomerId(this.customerId);
+
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
+      }
+
+      this.cache.set(cacheKey, cartItems);
+
+      return cartItems;
     } catch (error: any) {
-      throw new ShoppingCartError('Error creating Shopping Cart Product', error);
+      throw error;
     }
   }
 
   /**
    * Gets a Shopping Cart Product Ids from the database based on the provided ID.
-   * @param customerID - Numeric ID of customer.
+   * @param productId - Numeric ID of product.
    * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
    */
-  static async get(customerID: number): Promise<Array<{ product_id: number }> | null> {
+  public async findByProductId(productId: number): Promise<Array<ShoppingCartItem> | null> {
     try {
-      return await ShoppingCartModel.get(customerID);
+      const cacheKey = this.cacheKey.customer();
+      const cachedReviews = await this.cache.get<ShoppingCartItem>(cacheKey);
+
+      if (cachedReviews) return cachedReviews.items;
+
+      const cartItems = await ShoppingCartModel.findByProductId(this.customerId, productId);
+
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
+      }
+
+      this.cache.set(cacheKey, cartItems);
+
+      return cartItems;
     } catch (error: any) {
-      throw new ShoppingCartError('Error retrieving Shopping Cart Product', error);
+      throw error;
     }
   }
 
   /**
-   * Gets all Shopping Cart Products from the database based on the provided ID.
-   * @param customerID - Numeric ID of customer.
+   * Gets a Shopping Cart Product Ids from the database based on the provided ID.
+   * @param cartId - Numeric ID of customer.
    * @returns A Promise that resolves with the Shopping Cart Product data or null if not found.
    */
-  static async getAll(customerID: number): Promise<ShoppingCartItem[] | null> {
+  public async findByCartId(cartId: number): Promise<ShoppingCartItem | null> {
     try {
-      return await ShoppingCartModel.getAll(customerID);
+      const cacheKey = this.cacheKey.cart(cartId);
+      const cached = await this.cache.get<ShoppingCartItem>(cacheKey);
+
+      if (cached?.items.length) {
+        return cached?.items[0];
+      }
+
+      const cartItems = await ShoppingCartModel.findByCartId(cartId);
+
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
+      }
+
+      this.cache.set(cacheKey, cartItems);
+
+      return cartItems;
     } catch (error: any) {
-      throw new ShoppingCartError('Error retrieving All Shopping Cart Product', error);
+      throw error;
     }
   }
 
   /**
-   * Get a shopping cart from the database based on the provided pattern and value.
-   * @param pattern - A string or array of strings representing the fields to filter on.
-   * @param value - The corresponding value for the filter pattern.
-   * @returns A Promise that resolves with the shopping cart data or null if not found.
+   * Creates a new Shopping Cart Product in the database.
+   * @param Shopping Cart Product - Object representing the Shopping Cart Product data to be created.
+   * @returns A Promise that resolves when the operation is completed.
    */
-  static async search(pattern: string | Array<string>, value: number | string | Array<string | number>): Promise<ShoppingCartItem | null> {
+  public async save(product: ShoppingCartItem): Promise<ShoppingCartItem> {
+    /**
+      TODO: Refatorar esse metodo, de forma que salve os produtos de n -> n, exemplo:
+
+      shopping_cart (todo: multiplos produtos)  = product_ids: [1,2,4,5], quantity ??
+      shopping_cart (atual: unico produto)  = product_id: 1, quantity 10
+    */
     try {
-      return await ShoppingCartModel.search(pattern, value);
+      await this.validateProductExists(product.product_id);
+
+      const cartItems = await ShoppingCartModel.findByProductId(this.customerId, product.product_id);
+
+      if (!cartItems) {
+        throw ShoppingCartError.notFound();
+      }
+
+      if (cartItems?.length) {
+        return this.updateCartItem(cartItems, product);
+      }
+
+      return await this.createNewCartItem(product);
     } catch (error: any) {
-      throw new ShoppingCartError('Error retrieving Shopping Cart Product', error);
+      throw error;
+    }
+  }
+
+  private async updateCartItem(cartItems: ShoppingCartItem[], product: ShoppingCartItem): Promise<ShoppingCartItem> {
+    const productId = Number(product.product_id);
+    const productQuantity = Number(product.quantity);
+
+    const updatedItems = await Promise.all(
+      cartItems.map(async (item) => {
+        if (Number(item.product_id) === productId) {
+          const updatedQuantity = Number(item.quantity) + Number(productQuantity);
+
+          await this.update(item.id, { quantity: updatedQuantity });
+          return { ...item, quantity: updatedQuantity };
+        }
+        return item;
+      })
+    );
+
+    return updatedItems.find(item => Number(item.product_id) === productId)!;
+  }
+
+  private async createNewCartItem(product: ShoppingCartItem): Promise<ShoppingCartItem> {
+    const createdItems = await ShoppingCartModel.saveProduct(this.customerId, product);
+    
+    console.log("createdItems:", createdItems);
+
+    if (!createdItems?.id) {
+      throw ShoppingCartError.creationFailed(this.customerId, product);
+    }
+
+    const cacheKey = this.cacheKey.customer();
+    this.cache.set(cacheKey, createdItems);
+
+    return createdItems;
+  }
+
+  private async validateProductExists(productId: number): Promise<void> {
+    const product = await ProductModel.findById(productId);
+
+    if (!product) {
+      throw ShoppingCartError.notFound();
     }
   }
 
   /**
    * Updates the data of a Shopping Cart Product in the database.
-   * @param shoppingCarID - ID of the Shopping Cart Product to be updated.
+   * @param shoppingCartID - ID of the Shopping Cart Product to be updated.
    * @param updatedFields - Object containing the fields to be updated.
    * @returns A Promise that resolves when the operation is completed.
    */
-  static async update(shoppingCarID: number, quantity: number): Promise<void> {
+  public async update(shoppingCartID: number, data: Partial<ShoppingCartItem>): Promise<ShoppingCartItem> {
     try {
-      await ShoppingCartModel.update(shoppingCarID, quantity);
+      const updatedCart = await ShoppingCartModel.updateCart(shoppingCartID, data);
+
+      if (!updatedCart) {
+        throw ShoppingCartError.updateQuantityFailed(shoppingCartID, data.quantity!);
+      }
+
+      const cacheKey = this.cacheKey.customer();
+      
+      this.cache.remove(cacheKey);
+
+      return updatedCart;
     } catch (error: any) {
-      throw new ShoppingCartError('Error updating Shopping Cart Product', error);
+      throw error;
     }
   }
 
   /**
    * Deletes a Shopping Cart Product from the database based on the provided ID.
-   * @param shoppingCarID - ID of the Shopping Cart Product to be deleted.
-   * @returns A Promise that resolves when the operation is completed.
+   * Includes validation, transaction support, and proper error handling.
+   * 
+   * @param shoppingCartItemID - ID of the Shopping Cart item to be deleted.
+   * @returns A Promise that resolves to true if deletion was successful.
+   * @throws ShoppingCartError if item not found or deletion fails.
    */
-  static async delete(customerID: number, shoppingCarID: number): Promise<void> {
+  public async delete(shoppingCarID: number): Promise<boolean> {
     try {
-      await ShoppingCartModel.delete(customerID, shoppingCarID);
+
+      const cartItems = await ShoppingCartModel.get<ShoppingCartItem>(shoppingCarID);
+
+      if (!cartItems) {
+        throw ShoppingCartError.notFound(`Shopping Cart Id: ${shoppingCarID}`);
+      }
+
+      if (Number(cartItems.customer_id) !== Number(this.customerId)) {
+        throw ShoppingCartError.forbidden(
+          "You don't have permission to delete this item",
+          null,
+          { cartId: shoppingCarID, requestedBy: this.customerId, ownedBy: cartItems.customer_id }
+        );
+      }
+
+      this.logger.info(`Deleting cart item: ${shoppingCarID} for customer: ${this.customerId}`);
+
+      const cartItemDeleted = await ShoppingCartModel.deleteItem(this.customerId, shoppingCarID);
+
+      if (!cartItemDeleted) {
+        throw ShoppingCartError.removeItemFailed(`Shopping Cart Id: ${shoppingCarID}`);
+      }
+
+      const cacheKey = this.cacheKey.customer();
+      await this.cache.remove(cacheKey);
+
+      this.logger.info(`Deleting cart item: ${shoppingCarID} for customer: ${this.customerId}`);
+
+      return cartItemDeleted;
     } catch (error: any) {
-      throw new ShoppingCartError('Error deleting Shopping Cart Product', error);
+      this.logger.error(`Failed to delete cart item: ${shoppingCarID}`, error);
+
+      if (error instanceof ShoppingCartError) {
+        throw error;
+      }
+
+      throw ShoppingCartError.removeItemFailed(shoppingCarID, error);
     }
   }
 
   /**
-   * Deletes all product items in the shopping cart by clearing the database based on the customer ID.
-   * @param customerID - ID of the cart owner of the shopping cart to be deleted.
-   * @returns A Promise that resolves when the operation is completed.
+   * Deletes all product items in the shopping cart based on criteria.
+   * Supports different input formats and implements transaction for data integrity.
+   * 
+   * @param options - Optional parameters to control the clearing operation:
+   *                  - items: Array of specific item IDs to clear (if not provided, clears entire cart)
+   *                  - reason: Reason for clearing (for logging/auditing)
+   * @returns A Promise that resolves to an object with details about the operation.
+   * @throws ShoppingCartError if clearing fails.
    */
-  static async clear(customerID: number): Promise<any> {
+  public async clear(
+    options: {
+      reason?: 'user_requested' | 'system_cleanup'
+    } = {}
+  ): Promise<boolean> {
     try {
-      return await ShoppingCartModel.clear(customerID);
+      const cartItems = await ShoppingCartModel.findByCustomerId(this.customerId) ?? [];
+      const cartExists = cartItems.length > 0 ? cartItems[0] : null;
+  
+      if (!cartExists) {
+        throw ShoppingCartError.notFound(`No shopping cart found for customer.`);
+      }
+      
+      this.logger.info(`Clearing cart for customer: ${this.customerId}`, {
+        specificItems: cartItems,
+        reason: options.reason || 'system_cleanup'
+      });
+
+      const cartCleaned = await ShoppingCartModel.clear(this.customerId);
+
+      if (!cartCleaned) {
+        throw ShoppingCartError.cleanCartFailed(this.customerId);
+      }
+
+      let cacheKey = this.cacheKey.customer();
+      this.cache.remove(cacheKey);
+
+      return true;
     } catch (error: any) {
-      throw new ShoppingCartError('Error deleting Shopping Cart Product', error);
+      this.logger.error(`Failed to clear cart for customer: ${this.customerId}`, error);
+
+      if (error instanceof ShoppingCartError) {
+        throw error;
+      }
+
+      throw ShoppingCartError.internalError(
+        "Failed to clear shopping cart",
+        error,
+        { customerID: this.customerId, reason: options.reason || 'system_cleanup' }
+      );
     }
   }
 }

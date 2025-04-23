@@ -91,18 +91,22 @@ const config: Config = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
-    '^controllers/(.*)$': '<rootDir>/src/app/controllers/$1',
-    '^middlewares$': '<rootDir>/src/app/middlewares',
     '^__mocks__$': '<rootDir>/src/app/__mocks__',
-    '^repositories/(.*)$': '<rootDir>/src/app/repositories/$1',
-    '^models/(.*)$': '<rootDir>/src/app/models/$1',
-    '^helpers/(.*)$': '<rootDir>/src/app/helpers/$1',
-    '^routes$': '<rootDir>/src/app/routes/index.ts',
-    '^config/(.*)$': '<rootDir>/src/config/$1',
-    '^schema/(.*)$': '<rootDir>/src/app/schema/$1',
     '^builders/(.*)$': '<rootDir>/src/app/builders/$1',
-    '^validators/(.*)$': '<rootDir>/src/app/validators/$1',
+    '^helpers/(.*)$': '<rootDir>/src/app/helpers/$1',
+    '^common/(.*)$': '<rootDir>/src/app/common/$1',
+    '^controllers/(.*)$': '<rootDir>/src/app/controllers/$1',
+    '^domain/(.*)$': '<rootDir>/src/app/domain/$1',
+    '^middlewares$': '<rootDir>/src/app/middlewares',
+    '^models/(.*)$': '<rootDir>/src/app/models/$1',
+    '^repositories/(.*)$': '<rootDir>/src/app/repositories/$1',
+    '^routes$': '<rootDir>/src/app/routes/index.ts',
     '^types/(.*)$': '<rootDir>/src/app/types/$1',
+    '^validators/(.*)$': '<rootDir>/src/app/validators/$1',
+    '^config/(.*)$': '<rootDir>/src/config/$1',
+    '^database/(.*)$': '<rootDir>/src/database/$1',
+    '^docs/(.*)$': '<rootDir>/src/app/docs/$1',
+    '^lib/(.*)$': '<rootDir>/src/lib/$1',
     '^utils/(.*)$': '<rootDir>/src/utils/$1'
   },
 

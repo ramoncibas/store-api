@@ -1,5 +1,5 @@
-export default interface Customer {
-  id?: number;
+export interface Customer {
+  id: number;
   uuid: string;
   user_id: number;
   shipping_address: string;

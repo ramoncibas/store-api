@@ -1,4 +1,4 @@
-export default interface Purchase {
+export interface Purchase {
   id?: number;
   customer_id: number;
   total_amount: number;

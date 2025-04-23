@@ -1,8 +1,24 @@
 import { checkSchema, Schema } from 'express-validator';
+import { SchemaValidator } from '../response/SchemaValidator';
+import { AppError } from 'builders/errors';
 
-const getByID: Schema = {
+export const defaultValidateCustomer: Schema = {
+  'user.id': {
+    in: ['body', 'query', 'params'],
+    custom: {
+      options: (value: any, { req }: any) => {
+        if (!req.user?.id) {
+          throw new AppError('User is not authenticated');
+        }
+        return true;
+      },
+    },
+  },
+};
+
+export const getReviewByIdSchema: Schema = {
   id: {
-    in: ['body'],
+    in: ['params'],
     notEmpty: {
       errorMessage: 'Product Id is required',
     },
@@ -13,28 +29,12 @@ const getByID: Schema = {
   },
 }
 
-const getByUUID: Schema = {
-  uuid: {
-    in: ['params'],
-    notEmpty: {
-      errorMessage: 'Customer UUID is required',
-    },
-    isString: {
-      errorMessage: 'Customer UUID must be a string',
-    },
-  },
+export const getReviewByCustomerIdSchema: Schema = {
+  ...defaultValidateCustomer,
 }
 
-const create: Schema = {
-  uuid: {
-    in: ['params'],
-    isString: {
-      errorMessage: 'CustomerUUID must be a string',
-    },
-    notEmpty: {
-      errorMessage: 'CustomerUUID is required',
-    },
-  },
+export const createReviewSchema: Schema = {
+  ...defaultValidateCustomer,
   product_id: {
     in: ['body'],
     isNumeric: {
@@ -44,7 +44,7 @@ const create: Schema = {
     notEmpty: {
       errorMessage: 'ProductID cannot be empty',
     },
-  },  
+  },
   rating: {
     in: ['body'],
     isNumeric: {
@@ -67,7 +67,7 @@ const create: Schema = {
   },
 }
 
-const update: Schema = {
+export const updateReviewSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -100,7 +100,7 @@ const update: Schema = {
   },
 }
 
-const remove: Schema = {
+export const removeReviewSchema: Schema = {
   uuid: {
     in: ['params'],
     notEmpty: {
@@ -113,9 +113,9 @@ const remove: Schema = {
 }
 
 export default {
-  getByID: checkSchema(getByID),
-  getByUUID: checkSchema(getByUUID),
-  create: checkSchema(create),
-  update: checkSchema(update),
-  remove: checkSchema(remove),
+  getById: SchemaValidator.validate(checkSchema(getReviewByIdSchema)),
+  getByCustomerId: SchemaValidator.validate(checkSchema(getReviewByCustomerIdSchema)),
+  create: SchemaValidator.validate(checkSchema(createReviewSchema)),
+  update: SchemaValidator.validate(checkSchema(updateReviewSchema)),
+  remove: SchemaValidator.validate(checkSchema(removeReviewSchema)),
 };

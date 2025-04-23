@@ -1,100 +1,14 @@
-import { Request, Response } from 'express';
-import Product from 'types/Product.type';
-import ProductRepository from 'repositories/ProductRepository';
-import ProductError from 'builders/errors/ProductError';
-import ResponseBuilder from 'builders/response/ResponseBuilder';
-import schemaResponseError from 'validators/response/schemaResponseError';
+import { Request, Response } from "express";
+import ProductRepository from "repositories/ProductRepository";
+import ProductError from "builders/errors/ProductError";
+import { ResponseBuilder } from "builders/response";
+import Parser from "utils/parser";
+import { Product } from "@types";
 
 class ProductController {
-  static async deleteProduct(req: Request, res: Response) {
+  static async getAll(req: Request, res: Response) {
     try {
-      schemaResponseError(req, res);
-
-      const id = req.body.id;
-
-      const productResponse = await ProductRepository.delete(id);
-
-      if (!productResponse) {
-        throw ProductError.productDeletionFailed();
-      }
-
-      ResponseBuilder.send({
-        response: res,
-        message: "Product deleted successfully!",
-        statusCode: 200
-      });
-    } catch (error: any) {
-      ProductError.handleError(res, error);
-    }
-  }
-
-  static async getAllAspects(req: Request, res: Response) {
-    try {
-      const aspects = await ProductRepository.getAllAspects();
-
-      ResponseBuilder.send({
-        response: res,
-        message: "Aspects retrieved successfully!",
-        statusCode: 200,
-        data: aspects
-      });
-    } catch (error: any) {
-      ProductError.handleError(res, error);
-    }
-  }
-
-  static async getFilteredProduct(req: Request, res: Response) {
-    try {
-      schemaResponseError(req, res);
-      const body = req.body;
-
-      const hasFilteredValue = Object.values(body).some((arr) => Array.isArray(arr) && arr.length != 0);
-      if (!hasFilteredValue) {
-        throw ProductError.defaultMessage();
-      }
-      
-      const product = await ProductRepository.getFiltered(body);
-      if (!product) {
-        throw ProductError.productNotFound();
-      }
-      
-      ResponseBuilder.send({
-        response: res,
-        message: "Filtered Product retrieved successfully!",
-        statusCode: 200,
-        data: product
-      });
-    } catch (error: any) {
-      ProductError.handleError(res, error);
-    }
-  }
-
-  static async getProductById(req: Request, res: Response) {
-    try {
-      schemaResponseError(req, res);
-
-      const id: any = req.params.id;
-      const productId = typeof id === "string" ? parseInt(id, 10) : id;
-      const product = await ProductRepository.getById(productId);
-
-      if (!product) {
-        throw ProductError.productNotFound();
-      }
-
-      ResponseBuilder.send({
-        response: res,
-        message: "Product retrieved successfully!",
-        statusCode: 200,
-        data: product
-      });
-    } catch (error: any) {
-      ProductError.handleError(res, error);
-    }
-  }
-
-  static async getProducts(req: Request, res: Response) {
-    try {
-      const products = await ProductRepository.get();
+      const products = await ProductRepository.getAll();
 
       if (!products) {
         throw ProductError.productNotFound();
@@ -111,15 +25,75 @@ class ProductController {
     }
   }
 
-  static async createProduct(req: Request, res: Response) {
+  static async getById(req: Request, res: Response) {
     try {
-      schemaResponseError(req, res);
+      const id: any = req.params.id;
+      const productId = typeof id === "string" ? parseInt(id, 10) : id;
+      const product = await ProductRepository.findById(productId);
 
+      if (!product) {
+        throw ProductError.productNotFound();
+      }
+
+      ResponseBuilder.send({
+        response: res,
+        message: "Product retrieved successfully!",
+        statusCode: 200,
+        data: product
+      });
+    } catch (error: any) {
+      ProductError.handleError(res, error);
+    }
+  }
+
+  static async attributes(req: Request, res: Response) {
+    try {
+      const attributes = await ProductRepository.findByAttributes();
+
+      ResponseBuilder.send({
+        response: res,
+        message: "Attributes retrieved successfully!",
+        statusCode: 200,
+        data: attributes
+      });
+    } catch (error: any) {
+      ProductError.handleError(res, error);
+    }
+  }
+
+  static async filter(req: Request, res: Response) {
+    try {
+      const body = req.body;
+      const hasFilteredValue = Object.values(body).some((arr) => Array.isArray(arr) && arr.length != 0);
+      
+      if (!hasFilteredValue) {
+        throw ProductError.invalidInput();
+      }
+
+      const product = await ProductRepository.filter(body);
+
+      if (!product) {
+        throw ProductError.productNotFound();
+      }
+
+      ResponseBuilder.send({
+        response: res,
+        message: "Filtered Product retrieved successfully!",
+        statusCode: 200,
+        data: product
+      });
+    } catch (error: any) {
+      ProductError.handleError(res, error);
+    }
+  }
+
+  static async create(req: Request, res: Response) {
+    try {
       const fields: Product = req.body;
       const productCreated = await ProductRepository.create(fields);
 
       if (!productCreated) {
-        throw ProductError.productCreationFailed();
+        throw ProductError.creationFailed();
       }
 
       ResponseBuilder.send({
@@ -132,24 +106,47 @@ class ProductController {
     }
   }
 
-  static async updateProduct(req: Request, res: Response) {
+  static async update(req: Request, res: Response) {
     try {
-      schemaResponseError(req, res);
+      const productId = Parser.toNumber(req.params?.id);
+      const fields: Partial<Product> = req.body;
 
-      const fields: Product = req.body;
-      
-      if (!fields.uuid) {
+      if (!productId) {
         throw ProductError.invalidInput();
       }
 
-      const productResponse = await ProductRepository.update(fields.uuid, fields);
+      const productResponse = await ProductRepository.update(productId, fields);
 
       if (!productResponse) {
-        throw ProductError.productUpdateFailed();
+        throw ProductError.updateFailed();
       }
       ResponseBuilder.send({
         response: res,
         message: "Product updated successfully!",
+        statusCode: 200
+      });
+    } catch (error: any) {
+      ProductError.handleError(res, error);
+    }
+  }
+
+  static async delete(req: Request, res: Response) {
+    try {
+      const productId = Parser.toNumber(req.params.id);
+
+      if (!productId) {
+        throw ProductError.invalidInput();
+      }
+
+      const productResponse = await ProductRepository.delete(productId);
+
+      if (!productResponse) {
+        throw ProductError.deletionFailed();
+      }
+
+      ResponseBuilder.send({
+        response: res,
+        message: "Product deleted successfully!",
         statusCode: 200
       });
     } catch (error: any) {
