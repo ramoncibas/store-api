@@ -21,7 +21,7 @@ class ReviewController {
       );
 
       if (customerNotFound) {
-        throw CustomerError.customerNotFound();
+        throw CustomerError.notFound();
       }
 
       reviewData.customer_id = customer!.id as number;

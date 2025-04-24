@@ -10,9 +10,9 @@ class ReviewModel extends BaseModel<Review> {
    * @returns A Promise that resolves with an array of reviews.
    */
   public static async findByUUID(reviewUUID: string): Promise<Review | null> {
-    const review: Review[] = await this.search("uuid", reviewUUID) ?? [];
+    const review: any = await this.search("uuid", reviewUUID);
 
-    return review[0];
+    return review?.[0] ?? null;
   }
 
   /**
@@ -21,7 +21,9 @@ class ReviewModel extends BaseModel<Review> {
    * @returns A Promise that resolves with an array of reviews.
    */
   public static async findByCustomerId(customerId: number): Promise<Review[] | null> {
-    return await this.search("customer_id", customerId);
+    const review: any = await this.search("customer_id", customerId);
+
+    return review?.[0] ?? null;
   }
 
   /**
@@ -30,7 +32,9 @@ class ReviewModel extends BaseModel<Review> {
    * @returns A Promise that resolves with an array of reviews.
    */
   public static async findByProductId(productId: number): Promise<Review[] | null> {
-    return await this.search("product_id", productId);
+    const review: any = await this.search("product_id", productId);
+    
+    return review?.[0] ?? null;
   }
 
   /**

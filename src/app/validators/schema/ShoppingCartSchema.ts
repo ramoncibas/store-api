@@ -8,7 +8,7 @@ export const getCartSchema: Schema = {
     custom: {
       options: (value, { req }) => {
         if (!req.user?.id) {
-            throw new AppError('User is not authenticated');
+          throw AppError.unauthorized();
         }
         return true;
       }
@@ -22,7 +22,7 @@ export const addToCartSchema: Schema = {
     custom: {
       options: (value, { req }) => {
         if (!req.user?.id) {
-            throw new AppError('User is not authenticated');
+          throw AppError.unauthorized();
         }
         return true;
       }
@@ -56,7 +56,7 @@ export const updateCartSchema: Schema = {
     custom: {
       options: (value, { req }) => {
         if (!req.user?.id) {
-            throw new AppError('User is not authenticated');
+          throw AppError.unauthorized();
         }
         return true;
       }
@@ -100,31 +100,11 @@ export const removeCartSchema: Schema = {
     custom: {
       options: (value, { req }) => {
         if (!req.user?.id) {
-            throw new AppError('User is not authenticated');
+          throw AppError.unauthorized();
         }
         return true;
       }
     }
-  },
-  id: {
-    in: ['params'],
-    notEmpty: {
-      errorMessage: 'Cart Id is required',
-    },
-    isNumeric: {
-      options: { no_symbols: true },
-      errorMessage: 'Cart Id must be a number',
-    },
-  },
-  product_id: {
-    in: ['body'],
-    notEmpty: {
-      errorMessage: 'Product Id is required',
-    },
-    isNumeric: {
-      options: { no_symbols: true },
-      errorMessage: 'Product Id must be a number',
-    },
   },
 }
 
@@ -134,7 +114,7 @@ export const clearCartSchema: Schema = {
     custom: {
       options: (value, { req }) => {
         if (!req.user?.id) {
-            throw new AppError('User is not authenticated');
+          throw AppError.unauthorized();
         }
         return true;
       }
@@ -154,6 +134,7 @@ export const clearCartSchema: Schema = {
         if (!value.reason || !['user_requested', 'system_cleanup'].includes(value.reason)) {
           return false;
         }
+
         return true;
       },
     },

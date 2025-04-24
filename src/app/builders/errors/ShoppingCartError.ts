@@ -12,6 +12,10 @@ export class ShoppingCartError extends AppError {
     super(message, errorCode, error, data);
   }
 
+  static alreadyExists(): ShoppingCartError {
+    return new ShoppingCartError("Product already exists on Shopping Cart!", 409);
+  }
+
   static creationFailed(customerId: number, product: ShoppingCartItem): ShoppingCartError {
     return new ShoppingCartError(
       `Failed to create shopping cart item for customer ID ${customerId}. Product: ${product}.`,

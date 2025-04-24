@@ -23,16 +23,16 @@ router.patch("/:id",
   ShoppingCartController.updateQuantity
 );
 
-router.delete("/:id",
-  AuthGuard,
-  ShoppingCartSchema.remove,
-  ShoppingCartController.remove
-);
-
 router.delete("/clear",
   AuthGuard,
   ShoppingCartSchema.clear,
   ShoppingCartController.clear
+);
+
+router.delete("/:id",
+  AuthGuard,
+  ShoppingCartSchema.remove,
+  ShoppingCartController.remove
 );
 
 export default router;

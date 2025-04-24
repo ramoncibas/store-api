@@ -31,10 +31,14 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
    * @returns A Promise that resolves with the cart data or null if not found.
    */
   public static async findByProductId(customerId: number, productId: number): Promise<Array<ShoppingCartItem> | null> {
-    return await this.search(
+    const cartItem: any = await this.search(
       ["customer_id", "product_id"],
       [customerId, productId]
     );
+
+    console.log(cartItem)
+
+    return cartItem || null;
   }
 
   /**
@@ -43,7 +47,7 @@ class ShoppingCartModel extends BaseModel<ShoppingCartItem> {
    * @returns A Promise that resolves with the cart data or null if not found.
    */
   public static async findByCartId(cartId: number): Promise<ShoppingCartItem | null> {
-    const [ cartItem ]: ShoppingCartItem[] = await this.search("id", cartId) ?? [];
+    const cartItem: any = await this.search("id", cartId);
     
     return cartItem || null;
   }

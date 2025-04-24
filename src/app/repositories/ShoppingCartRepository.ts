@@ -122,12 +122,8 @@ class ShoppingCartRepository {
 
       const cartItems = await ShoppingCartModel.findByProductId(this.customerId, product.product_id);
 
-      if (!cartItems) {
-        throw ShoppingCartError.notFound();
-      }
-
-      if (cartItems?.length) {
-        return this.updateCartItem(cartItems, product);
+      if (cartItems) {
+        throw ShoppingCartError.alreadyExists();
       }
 
       return await this.createNewCartItem(product);

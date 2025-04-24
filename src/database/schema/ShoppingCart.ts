@@ -3,9 +3,10 @@ const Schema = `
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     uuid TEXT NOT NULL UNIQUE,
     customer_id INTEGER,
-    product_id INTEGER,
+    product_id INTEGER UNIQUE,
     quantity INTEGER DEFAULT 1,
-    UNIQUE(uuid, product_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(customer_id) REFERENCES customer(id) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY(product_id) REFERENCES product(id) ON DELETE SET NULL ON UPDATE CASCADE
   );
